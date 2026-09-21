@@ -1,0 +1,223 @@
+# =============================================================================
+# C++ / CMake (Node A — adaptive_ecu/)
+# =============================================================================
+
+# CMake 빌드 산출물
+build/
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+install_manifest.txt
+Makefile
+
+# CMake FetchContent / ExternalProject 의존성 다운로드 캐시
+_deps/
+
+# clangd / clang-tidy 자동생성 (CMake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
+compile_commands.json
+
+# 컴파일 중간 파일
+*.o
+*.a
+*.so
+*.so.*
+*.out
+*.elf
+
+# CTest 실행 결과
+Testing/
+
+# gcov / lcov 커버리지 파일
+*.gcno
+*.gcda
+*.gcov
+coverage/
+lcov.info
+coverage.info
+coverage-report/
+
+# cppcheck 결과
+cppcheck-result.xml
+
+# 크로스컴파일 바이너리 (ARM64)
+*.arm64
+adaptive_ecu/bin/
+
+
+# =============================================================================
+# Python (security/ — 공격 시뮬레이터 / IDS)
+# =============================================================================
+
+# 바이트코드
+__pycache__/
+*.py[cod]
+*.pyo
+
+# 가상환경
+.venv/
+venv/
+env/
+.env/
+
+# 패키지 빌드 산출물
+*.egg-info/
+dist/
+*.egg
+
+# pytest 캐시
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- IDS 대용량 파일 (gitignore 핵심) ---
+# 학습된 Isolation Forest 모델 (수십~수백 MB)
+security/ids/models/
+security/ids/data/
+
+# 실험 결과 원본 CSV (수집 CAN 트래픽, 수GB 가능)
+security/ids/logs/
+security/attack_simulators/logs/
+
+# 단, 재현 방법 문서와 요약 수치는 커밋 대상
+# security/ids/how_to_train.md  ← 커밋 O
+# security/ids/results_summary.csv  ← 커밋 O (경량 요약만)
+
+
+# =============================================================================
+# Android / AOSP (Node B — ivi_platform/)
+# =============================================================================
+
+# AOSP 전체 빌드 산출물 — 절대 커밋 금지 (수백 GB)
+out/
+
+# Gradle 빌드 산출물
+.gradle/
+ivi_platform/app/build/
+ivi_platform/*/build/
+
+# Android 로컬 설정 (개발자마다 경로 다름)
+local.properties
+
+# 앱 바이너리
+*.apk
+*.aab
+*.dex
+
+# Android 서명 키 — 민감 정보
+*.keystore
+*.jks
+
+# Android Studio 생성 파일
+captures/
+.externalNativeBuild/
+*.iml
+
+# HIDL 자동생성 파일 (빌드 시 재생성됨)
+ivi_platform/hal/gen/
+
+
+# =============================================================================
+# Docker
+# =============================================================================
+
+# Docker 빌드 캐시 (레이어 캐시, 로컬에만 존재)
+.docker/
+
+# 크로스컴파일 결과물 (Docker 컨테이너 내부 산출물)
+toolchain/sysroot/
+
+
+# =============================================================================
+# 민감 정보 — 절대 커밋 금지
+# =============================================================================
+
+# 환경 변수 / 시크릿
+.env
+.env.*
+!.env.example
+secrets/
+.secrets/
+private/
+
+# 로컬 인증정보 (공유용 예제는 *.example 파일로 작성)
+credentials.json
+credentials.*.json
+service-account*.json
+.netrc
+_netrc
+.git-credentials
+.npmrc
+.pypirc
+.aws/
+.ssh/
+.kube/
+.envrc
+key.properties
+keystore.properties
+.claude/settings.local.json
+.codex/auth.json
+.codex/config.local.toml
+
+# SSH 배포 키 (GitHub Secret으로 관리)
+*.pem
+*.key
+*.p12
+*.pfx
+*.p8
+id_rsa
+id_ed25519
+id_ecdsa
+id_dsa
+id_ecdsa_sk
+id_ed25519_sk
+
+# HMAC 공유 키 파일 (현재 ECU는 --key로 파일 경로 전달)
+secoc_key.*
+hmac_key.*
+
+# GPS가 포함된 하드웨어 사진 원본. 공유용 사본은 shared/에 둔다.
+/하드웨어 정보/*.jpg
+/하드웨어 정보/*.jpeg
+/하드웨어 정보/*.JPG
+/하드웨어 정보/*.JPEG
+
+
+# =============================================================================
+# IDE
+# =============================================================================
+
+# IntelliJ / Android Studio
+.idea/
+*.iws
+
+# VS Code
+.vscode/
+
+# Vim
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+
+# =============================================================================
+# 로그 / 임시 파일
+# =============================================================================
+
+*.log
+logs/
+tmp/
+temp/
+
+# CAN 캡처 파일 (대용량 가능)
+*.candump
+*.pcap
+*.pcapng

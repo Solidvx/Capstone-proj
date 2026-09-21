@@ -1,0 +1,22 @@
+{
+  "scope": "DESIGN_MODEL_ONLY_NOT_PRODUCT",
+  "profile": "fixture-only",
+  "limits": {"max_body": 2048, "queue_size": 2, "max_age": 10, "heartbeat_timeout": 20},
+  "event": {"version": 1, "kind": "event", "node_id": "TEST_NODE_B", "producer_epoch": "TEST_EPOCH_1", "connection_id": "TEST_CONN_1", "event_seq": "11", "decision": "ACCEPTED", "reason": "VERIFIED", "event_mono_ns": "100", "emit_mono_ns": "101"},
+  "cases": [
+    {"id":"F01","group":"Q2-D01","patch":{},"expected":"ACCEPTED"},
+    {"id":"F02","group":"Q2-D01","patch":{"decision":"REJECTED","reason":"MAC_MISMATCH"},"expected":"REJECTED"},
+    {"id":"F03","group":"Q2-D01","patch":{"decision":"REJECTED","reason":"COUNTER_REJECT"},"expected":"REJECTED"},
+    {"id":"F04","group":"Q2-D01","patch":{"decision":"BYPASSED","reason":"SECURITY_DISABLED"},"expected":"BYPASSED"},
+    {"id":"F05","group":"Q2-D01","patch":{"decision":"NOT_EVALUATED","reason":"ORPHAN_AUTH"},"expected":"NOT_EVALUATED"},
+    {"id":"F06","group":"Q2-D03","patch":{"decision":"ACCEPTED","reason":"MAC_MISMATCH"},"expected":"ERROR"},
+    {"id":"F07","group":"Q2-D03","patch":{"version":true},"expected":"ERROR"},
+    {"id":"F08","group":"Q2-D03","patch":{"version":2},"expected":"ERROR"},
+    {"id":"F09","group":"Q2-D03","patch":{"event_seq":"18446744073709551616"},"expected":"ERROR"},
+    {"id":"F10","group":"Q2-D03","patch":{"event_seq":11},"expected":"ERROR"},
+    {"id":"F11","group":"Q2-D03","patch":{"event_seq":"-1"},"expected":"ERROR"},
+    {"id":"F12","group":"Q2-D07","patch":{"emit_mono_ns":"99"},"expected":"ERROR"},
+    {"id":"F13","group":"Q2-D07","patch":{"emit_mono_ns":"110"},"expected":"ACCEPTED"},
+    {"id":"F14","group":"Q2-D07","patch":{"emit_mono_ns":"111"},"expected":"ERROR"}
+  ]
+}

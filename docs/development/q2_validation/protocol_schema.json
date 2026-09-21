@@ -1,0 +1,113 @@
+{
+  "scope": "DESIGN_CANDIDATE_ONLY",
+  "revision": "q2-candidate-2",
+  "limits": {
+    "max_body": 4096,
+    "max_id": 64,
+    "queue_size": 2,
+    "source_age": 10,
+    "consumer_age": 10,
+    "heartbeat_timeout": 20,
+    "handshake_timeout": 5
+  },
+  "common": {
+    "version": "version",
+    "kind": "kind",
+    "node_id": "id",
+    "producer_epoch": "id",
+    "contract_profile": "id",
+    "verifier_version": "id",
+    "connection_id": "nullable_id"
+  },
+  "kinds": {
+    "hello": {},
+    "challenge": {},
+    "ready": {
+      "cutoff_seq": "u64",
+      "generated_total": "u64",
+      "accepted_total": "u64",
+      "rejected_total": "u64",
+      "not_evaluated_total": "u64",
+      "bypassed_total": "u64",
+      "offered_total": "u64",
+      "overflow_total": "u64",
+      "expired_total": "u64",
+      "reset_total": "u64",
+      "queue_depth": "u64",
+      "last_offered_seq": "u64"
+    },
+    "event": {
+      "event_seq": "u64",
+      "raw_id": "nullable_can",
+      "auth_id": "nullable_can",
+      "counter": "nullable_u32",
+      "counter_trusted": "bool",
+      "decision": "decision",
+      "reason": "reason",
+      "event_mono_ns": "u64",
+      "emit_mono_ns": "u64"
+    },
+    "status": {
+      "status_seq": "u64",
+      "snapshot_mono_ns": "u64",
+      "generated_total": "u64",
+      "accepted_total": "u64",
+      "rejected_total": "u64",
+      "not_evaluated_total": "u64",
+      "bypassed_total": "u64",
+      "offered_total": "u64",
+      "overflow_total": "u64",
+      "expired_total": "u64",
+      "reset_total": "u64",
+      "queue_depth": "u64",
+      "last_offered_seq": "u64"
+    }
+  },
+  "reasons": {
+    "ACCEPTED": [
+      "VERIFIED"
+    ],
+    "REJECTED": [
+      "MAC_MISMATCH",
+      "COUNTER_REJECT"
+    ],
+    "NOT_EVALUATED": [
+      "RAW_EXPIRED",
+      "RAW_REPLACED",
+      "ORPHAN_AUTH",
+      "FORMAT_INVALID",
+      "CONFIG_ERROR"
+    ],
+    "BYPASSED": [
+      "SECURITY_DISABLED"
+    ]
+  },
+  "profiles": {
+    "TEST_FIXED_V1": {
+      "mode": "secure",
+      "pairs": [
+        [
+          256,
+          258
+        ],
+        [
+          257,
+          259
+        ]
+      ]
+    },
+    "TEST_C0": {
+      "mode": "bypass",
+      "pairs": [
+        [
+          256,
+          258
+        ],
+        [
+          257,
+          259
+        ]
+      ]
+    }
+  }
+}

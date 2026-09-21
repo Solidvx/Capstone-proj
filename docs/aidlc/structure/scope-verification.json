@@ -1,0 +1,12 @@
+{
+  "fixed_and_template_paths_checked": 73,
+  "missing_paths": 0,
+  "original_files": 159,
+  "unchanged_files": 157,
+  "reference_only_files": 2,
+  "new_scaffold_files": 30,
+  "settings_parse": "pass: empty JSON and TOML",
+  "python_syntax": "pass",
+  "implementation_status": "not implemented",
+  "baseline_excludes": "tmp/"
+}

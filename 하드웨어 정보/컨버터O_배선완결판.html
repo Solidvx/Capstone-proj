@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>MCP2515 Wiring — RPi4 + Breadboard</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d1117;
+    color: #e6edf3;
+    font-family: 'Segoe UI', -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    gap: 40px;
+  }
+
+  h1 { font-size: 26px; font-weight: 700; color: #58a6ff; }
+  .subtitle { color: #8b949e; font-size: 13px; margin-top: 6px; text-align: center; line-height: 1.6; }
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; margin: 0 2px;
+  }
+  .badge.tja { background: #f8514922; color: #f85149; border: 1px solid #f8514944; }
+  .badge.mhz { background: #58a6ff22; color: #58a6ff; border: 1px solid #58a6ff44; }
+  .badge.bb  { background: #ffa65722; color: #ffa657; border: 1px solid #ffa65744; }
+
+  .card {
+    background: #161b22; border: 1px solid #30363d; border-radius: 12px;
+    width: 1000px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,.4);
+  }
+  .card-head {
+    padding: 14px 24px; font-size: 15px; font-weight: 600;
+    background: #1c2129; border-bottom: 1px solid #30363d;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  thead th {
+    background: #1c2129; color: #8b949e; font-weight: 600; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .5px; padding: 10px 14px;
+    text-align: left; border-bottom: 1px solid #30363d;
+  }
+  tbody tr { border-bottom: 1px solid #21262d; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #1c2129; }
+  tbody td { padding: 10px 14px; vertical-align: middle; }
+
+  .mono { font-family: 'Cascadia Code','Fira Code',monospace; }
+  .pin  { font-weight: 700; color: #f0883e; }
+  .gpio { font-weight: 600; color: #d2a8ff; }
+  .gpio.na { color: #484f58; }
+
+  .sig       { font-weight: 600; }
+  .sig.v33   { color: #3fb950; }
+  .sig.v5    { color: #f85149; }
+  .sig.gnd   { color: #8b949e; }
+  .sig.spi   { color: #79c0ff; }
+  .sig.intr  { color: #7ee787; }
+
+  .tag {
+    display: inline-block; padding: 2px 7px; border-radius: 4px;
+    font-size: 11px; font-weight: 700;
+  }
+  .tag.lc1 { background: #1f3d5c; color: #58a6ff; }
+  .tag.lc2 { background: #1a3a2a; color: #3fb950; }
+  .tag.mcp { background: #2a2218; color: #ffa657; }
+  .tag.bb  { background: #2a2218; color: #ffa657; }
+  .tag.rail { background: #3d2a1f; color: #f0883e; }
+
+  .dest { color: #e6edf3; }
+  .dest-pin { font-weight: 700; color: #ffa657; }
+
+  .dir {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-weight: 600; font-size: 12.5px;
+  }
+  .dir-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 20px; border-radius: 4px; font-size: 13px; font-weight: 700;
+  }
+  .dir-icon.out  { background: #1f3d5c; color: #58a6ff; }
+  .dir-icon.in   { background: #2a1f3d; color: #d2a8ff; }
+  .dir-icon.pwr  { background: #3d2a1f; color: #f0883e; }
+
+  .sep td { padding: 0; height: 3px; background: #30363d; }
+
+  .flow-body { padding: 24px 28px; }
+  .flow-row {
+    display: flex; align-items: center; margin-bottom: 7px;
+    font-family: 'Cascadia Code','Fira Code',monospace; font-size: 12.5px;
+  }
+  .flow-row:last-child { margin-bottom: 0; }
+  .fb {
+    padding: 7px 12px; border-radius: 6px; font-weight: 600;
+    white-space: nowrap; text-align: center; min-width: 150px;
+  }
+  .fb.rpi { background: #1a2332; color: #79c0ff; border: 1px solid #1f3d5c; }
+  .fb.lc  { background: #1a2a1a; color: #7ee787; border: 1px solid #2a3d2a; }
+  .fb.mc  { background: #2a2218; color: #ffa657; border: 1px solid #3d3018; }
+  .fa {
+    padding: 0 8px; font-size: 15px; font-weight: 700; min-width: 80px; text-align: center;
+  }
+  .fa.r { color: #58a6ff; }
+  .fa.l { color: #d2a8ff; }
+  .flow-sep { height: 1px; border-top: 1px dashed #30363d; margin: 10px 0; }
+
+  .phys-body { padding: 24px 28px; }
+  .phys-diagram {
+    font-family: 'Cascadia Code','Fira Code',monospace;
+    font-size: 12px; line-height: 1.7; color: #8b949e;
+    background: #0d1117; border: 1px solid #21262d; border-radius: 8px;
+    padding: 20px 24px; white-space: pre; overflow-x: auto;
+  }
+  .hl-rpi  { color: #79c0ff; font-weight: 700; }
+  .hl-lc   { color: #7ee787; font-weight: 700; }
+  .hl-mcp  { color: #ffa657; font-weight: 700; }
+  .hl-v5   { color: #f85149; font-weight: 700; }
+  .hl-v33  { color: #3fb950; font-weight: 700; }
+  .hl-gnd  { color: #6e7681; font-weight: 700; }
+  .hl-sig  { color: #d2a8ff; font-weight: 700; }
+  .hl-rail { color: #f0883e; font-weight: 700; }
+  .arrow   { color: #58a6ff; font-weight: 700; }
+  .dim     { color: #484f58; }
+
+  .pow-body { padding: 24px 28px; }
+  .pow-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .pow-card { border-radius: 8px; padding: 16px; text-align: center; }
+  .pow-card.v5  { background: #2a1818; border: 1px solid #f8514933; }
+  .pow-card.v33 { background: #182a18; border: 1px solid #3fb95033; }
+  .pow-card.gnd { background: #1a1a1a; border: 1px solid #48505833; }
+  .pow-v { font-size: 20px; font-weight: 800; font-family: 'Cascadia Code','Fira Code',monospace; }
+  .pow-card.v5  .pow-v { color: #f85149; }
+  .pow-card.v33 .pow-v { color: #3fb950; }
+  .pow-card.gnd .pow-v { color: #8b949e; }
+  .pow-src { font-size: 12px; color: #8b949e; margin: 8px 0 6px; line-height: 1.6; }
+  .pow-tgt { font-size: 12px; color: #e6edf3; line-height: 2.0; }
+  .pow-tgt span {
+    display: inline-block; background: #21262d; padding: 2px 8px; border-radius: 4px;
+    margin: 2px; font-family: 'Cascadia Code','Fira Code',monospace; font-size: 11px;
+  }
+
+  .step-body { padding: 24px 28px; }
+  .step-list { list-style: none; padding: 0; counter-reset: step; }
+  .step-list li {
+    padding: 14px 0 14px 50px; position: relative; color: #c9d1d9;
+    font-size: 14px; line-height: 1.7; border-bottom: 1px solid #21262d;
+  }
+  .step-list li:last-child { border-bottom: none; }
+  .step-list li::before {
+    counter-increment: step;
+    content: counter(step);
+    position: absolute; left: 0; top: 12px;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #1f3d5c; color: #58a6ff; font-weight: 700; font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-list li strong { color: #ffa657; }
+  .step-list li code {
+    background: #21262d; padding: 1px 5px; border-radius: 4px;
+    font-family: 'Cascadia Code','Fira Code',monospace; font-size: 12.5px; color: #79c0ff;
+  }
+  .step-list .wire {
+    display: inline-block; padding: 1px 8px; border-radius: 4px;
+    font-family: 'Cascadia Code','Fira Code',monospace; font-size: 12px; font-weight: 600;
+  }
+  .wire.red    { background: #f8514922; color: #f85149; }
+  .wire.orange { background: #f0883e22; color: #f0883e; }
+  .wire.black  { background: #30363d;   color: #8b949e; }
+  .wire.yellow { background: #d2a8ff22; color: #d2a8ff; }
+  .wire.blue   { background: #58a6ff22; color: #58a6ff; }
+  .wire.green  { background: #3fb95022; color: #3fb950; }
+  .wire.white  { background: #e6edf322; color: #e6edf3; }
+
+  .notes-body { padding: 20px 24px; }
+  .notes-body ul { list-style: none; padding: 0; }
+  .notes-body li {
+    padding: 8px 0 8px 24px; position: relative; color: #c9d1d9;
+    font-size: 13.5px; line-height: 1.6; border-bottom: 1px solid #21262d;
+  }
+  .notes-body li:last-child { border-bottom: none; }
+  .notes-body li::before {
+    content: ''; position: absolute; left: 4px; top: 14px;
+    width: 8px; height: 8px; border-radius: 50%; background: #f0883e;
+  }
+  .notes-body li strong { color: #ffa657; }
+  .notes-body li code {
+    background: #21262d; padding: 1px 5px; border-radius: 4px;
+    font-family: 'Cascadia Code','Fira Code',monospace; font-size: 12.5px; color: #79c0ff;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div style="text-align:center">
+  <h1>RPi4 + Breadboard + LC x2 + MCP2515 Wiring</h1>
+  <div class="subtitle">
+    <span class="badge tja">TJA1050 5V</span>
+    <span class="badge mhz">8 MHz Crystal</span>
+    <span class="badge bb">Breadboard 1ea</span>
+    <br>RPi physical pin: no duplicates &mdash; breadboard power rail for 5V/GND fan-out
+  </div>
+</div>
+
+<!-- ===== 0. Concept ===== -->
+<div class="card">
+  <div class="card-head">&#128161; Concept &mdash; breadboard as power hub</div>
+  <div class="phys-body">
+    <div class="phys-diagram" style="line-height:1.8"><span class="dim">Breadboard 전원 레일을 5V / GND 분배 허브로 사용한다.
+RPi에서 5V 1선, GND 1선만 레일에 꽂으면 LC#1, LC#2, MCP2515가 모두 tap 한다.
+3.3V와 SPI/INT 신호선은 RPi에서 각 장치로 직접 1:1 연결한다.</span>
+
+<span class="hl-rpi">[RPi4]</span>
+  Pin 2  <span class="hl-v5">(5V)</span>  <span class="arrow">──────►</span> <span class="hl-rail">[BB + rail]</span> <span class="arrow">──┬──►</span> <span class="hl-lc">[LC#1]</span> HV
+                                    <span class="arrow">├──►</span> <span class="hl-lc">[LC#2]</span> HV
+                                    <span class="arrow">└──►</span> <span class="hl-mcp">[MCP2515]</span> VCC
+
+  Pin 6  <span class="hl-gnd">(GND)</span> <span class="arrow">──────►</span> <span class="hl-rail">[BB - rail]</span> <span class="arrow">──┬──►</span> <span class="hl-lc">[LC#1]</span> GND
+                                    <span class="arrow">├──►</span> <span class="hl-lc">[LC#2]</span> GND
+                                    <span class="arrow">└──►</span> <span class="hl-mcp">[MCP2515]</span> GND
+
+  Pin 1  <span class="hl-v33">(3.3V)</span> <span class="arrow">─────────────────────►</span> <span class="hl-lc">[LC#1]</span> LV      <span class="dim">(direct)</span>
+  Pin 17 <span class="hl-v33">(3.3V)</span> <span class="arrow">─────────────────────►</span> <span class="hl-lc">[LC#2]</span> LV      <span class="dim">(direct)</span>
+
+  Pin 23 <span class="hl-sig">(SCLK)</span> <span class="arrow">──►</span> <span class="hl-lc">[LC#1]</span> <span class="arrow">──►</span> <span class="hl-mcp">[MCP]</span> SCK     <span class="dim">(direct)</span>
+  Pin 19 <span class="hl-sig">(MOSI)</span> <span class="arrow">──►</span> <span class="hl-lc">[LC#1]</span> <span class="arrow">──►</span> <span class="hl-mcp">[MCP]</span> SI      <span class="dim">(direct)</span>
+  Pin 24 <span class="hl-sig">(CE0)</span>  <span class="arrow">──►</span> <span class="hl-lc">[LC#1]</span> <span class="arrow">──►</span> <span class="hl-mcp">[MCP]</span> CS      <span class="dim">(direct)</span>
+  Pin 21 <span class="hl-sig">(MISO)</span> <span class="arrow">◄──</span> <span class="hl-lc">[LC#1]</span> <span class="arrow">◄──</span> <span class="hl-mcp">[MCP]</span> SO      <span class="dim">(direct)</span>
+  Pin 22 <span class="hl-sig">(INT)</span>  <span class="arrow">◄──</span> <span class="hl-lc">[LC#2]</span> <span class="arrow">◄──</span> <span class="hl-mcp">[MCP]</span> INT     <span class="dim">(direct)</span></div>
+  </div>
+</div>
+
+<!-- ===== 1. Pin Mapping Table ===== -->
+<div class="card">
+  <div class="card-head">&#128204; Pin Mapping &mdash; RPi4 pin 1:1, breadboard fan-out</div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:85px">RPi4 Pin</th>
+        <th style="width:80px">GPIO</th>
+        <th style="width:60px">Signal</th>
+        <th>From RPi</th>
+        <th>Then to</th>
+        <th style="width:90px">Final Pin</th>
+        <th style="width:110px">Direction</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- 5V -->
+      <tr>
+        <td class="mono pin">Pin 2</td>
+        <td class="mono gpio na">&mdash;</td>
+        <td class="mono sig v5">5V</td>
+        <td><span class="tag rail">BB</span> <span class="dest">+ rail (red)</span></td>
+        <td>
+          <span class="tag lc1">LC#1</span> HV,
+          <span class="tag lc2">LC#2</span> HV,
+          <span class="tag mcp">MCP</span> VCC
+        </td>
+        <td class="mono dest-pin">HV / VCC</td>
+        <td><span class="dir"><span class="dir-icon pwr">&#9889;</span>Power</span></td>
+      </tr>
+      <!-- GND -->
+      <tr>
+        <td class="mono pin">Pin 6</td>
+        <td class="mono gpio na">&mdash;</td>
+        <td class="mono sig gnd">GND</td>
+        <td><span class="tag rail">BB</span> <span class="dest">- rail (blue)</span></td>
+        <td>
+          <span class="tag lc1">LC#1</span> GND,
+          <span class="tag lc2">LC#2</span> GND,
+          <span class="tag mcp">MCP</span> GND
+        </td>
+        <td class="mono dest-pin">GND</td>
+        <td><span class="dir"><span class="dir-icon pwr">&#9889;</span>Power</span></td>
+      </tr>
+      <!-- 3.3V -->
+      <tr>
+        <td class="mono pin">Pin 1</td>
+        <td class="mono gpio na">&mdash;</td>
+        <td class="mono sig v33">3.3V</td>
+        <td colspan="2"><span class="tag lc1">LC#1</span> <span class="dest">LV (direct wire)</span></td>
+        <td class="mono dest-pin">LV</td>
+        <td><span class="dir"><span class="dir-icon pwr">&#9889;</span>Power</span></td>
+      </tr>
+      <tr>
+        <td class="mono pin">Pin 17</td>
+        <td class="mono gpio na">&mdash;</td>
+        <td class="mono sig v33">3.3V</td>
+        <td colspan="2"><span class="tag lc2">LC#2</span> <span class="dest">LV (direct wire)</span></td>
+        <td class="mono dest-pin">LV</td>
+        <td><span class="dir"><span class="dir-icon pwr">&#9889;</span>Power</span></td>
+      </tr>
+
+      <tr class="sep"><td colspan="7"></td></tr>
+
+      <!-- SPI via LC#1 -->
+      <tr>
+        <td class="mono pin">Pin 23</td>
+        <td class="mono gpio">GPIO11</td>
+        <td class="mono sig spi">SCLK</td>
+        <td colspan="2"><span class="tag lc1">LC#1</span> LV1 &#8594; HV1 &#8594; <span class="tag mcp">MCP</span></td>
+        <td class="mono dest-pin">SCK</td>
+        <td><span class="dir"><span class="dir-icon out">&#8594;</span>RPi &#8594; MCP</span></td>
+      </tr>
+      <tr>
+        <td class="mono pin">Pin 19</td>
+        <td class="mono gpio">GPIO10</td>
+        <td class="mono sig spi">MOSI</td>
+        <td colspan="2"><span class="tag lc1">LC#1</span> LV2 &#8594; HV2 &#8594; <span class="tag mcp">MCP</span></td>
+        <td class="mono dest-pin">SI</td>
+        <td><span class="dir"><span class="dir-icon out">&#8594;</span>RPi &#8594; MCP</span></td>
+      </tr>
+      <tr>
+        <td class="mono pin">Pin 24</td>
+        <td class="mono gpio">GPIO8</td>
+        <td class="mono sig spi">CE0</td>
+        <td colspan="2"><span class="tag lc1">LC#1</span> LV3 &#8594; HV3 &#8594; <span class="tag mcp">MCP</span></td>
+        <td class="mono dest-pin">CS</td>
+        <td><span class="dir"><span class="dir-icon out">&#8594;</span>RPi &#8594; MCP</span></td>
+      </tr>
+      <tr>
+        <td class="mono pin">Pin 21</td>
+        <td class="mono gpio">GPIO9</td>
+        <td class="mono sig spi">MISO</td>
+        <td colspan="2"><span class="tag lc1">LC#1</span> LV4 &#8592; HV4 &#8592; <span class="tag mcp">MCP</span></td>
+        <td class="mono dest-pin">SO</td>
+        <td><span class="dir"><span class="dir-icon in">&#8592;</span>MCP &#8594; RPi</span></td>
+      </tr>
+
+      <tr class="sep"><td colspan="7"></td></tr>
+
+      <!-- INT via LC#2 -->
+      <tr>
+        <td class="mono pin">Pin 22</td>
+        <td class="mono gpio">GPIO25</td>
+        <td class="mono sig intr">INT</td>
+        <td colspan="2"><span class="tag lc2">LC#2</span> LV1 &#8592; HV1 &#8592; <span class="tag mcp">MCP</span></td>
+        <td class="mono dest-pin">INT</td>
+        <td><span class="dir"><span class="dir-icon in">&#8592;</span>MCP &#8594; RPi</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===== 2. Breadboard Layout ===== -->
+<div class="card">
+  <div class="card-head">&#128268; Breadboard Physical Layout</div>
+  <div class="phys-body">
+    <div class="phys-diagram" style="line-height:1.75; font-size: 11.5px;">
+<span class="dim">  Breadboard (half-size OK)</span>
+  <span class="hl-v5">+ rail (red)  ═══════════════════════════════════════════════════════</span>
+  <span class="hl-gnd">- rail (blue) ═══════════════════════════════════════════════════════</span>
+       ┃               ┃                   ┃                     ┃
+       ┃               ┃                   ┃                     ┃
+  <span class="dim">     ┃ (from RPi)     ┃ (tap)              ┃ (tap)               ┃ (tap)</span>
+       ┃               ┃                   ┃                     ┃
+  ┌────┸────┐    ┌─────┸──────┐    ┌───────┸───────┐    ┌────────┸────────┐
+  │ <span class="hl-rpi">RPi4</span>    │    │ <span class="hl-lc">LC#1</span>       │    │ <span class="hl-lc">LC#2</span>          │    │ <span class="hl-mcp">MCP2515</span>         │
+  │         │    │ <span class="hl-v5">HV</span>  ◄─ <span class="hl-v5">+rail</span>│    │ <span class="hl-v5">HV</span>  ◄─ <span class="hl-v5">+rail</span>  │    │ <span class="hl-v5">VCC</span> ◄─ <span class="hl-v5">+rail</span>   │
+  │ Pin 2 <span class="hl-v5">──►─── + rail</span>│    │ <span class="hl-gnd">GND</span> ◄─ <span class="hl-gnd">-rail</span>│    │ <span class="hl-gnd">GND</span> ◄─ <span class="hl-gnd">-rail</span>  │    │ <span class="hl-gnd">GND</span> ◄─ <span class="hl-gnd">-rail</span>   │
+  │ Pin 6 <span class="hl-gnd">──►─── - rail</span>│    │            │    │               │    │                 │
+  │         │    │ <span class="hl-v33">LV</span>  ◄─────│────│─ Pin 1 <span class="hl-v33">(3.3V)</span> │    │                 │
+  │         │    │            │    │ <span class="hl-v33">LV</span>  ◄─ Pin 17│<span class="hl-v33">(3.3V)</span>               │
+  │         │    │            │    │               │    │                 │
+  │ Pin 23 <span class="hl-sig">─►──── LV1</span> ──► <span class="hl-sig">HV1</span> ──►───────────────────── <span class="hl-mcp">SCK</span>             │
+  │ Pin 19 <span class="hl-sig">─►──── LV2</span> ──► <span class="hl-sig">HV2</span> ──►───────────────────── <span class="hl-mcp">SI</span>              │
+  │ Pin 24 <span class="hl-sig">─►──── LV3</span> ──► <span class="hl-sig">HV3</span> ──►───────────────────── <span class="hl-mcp">CS</span>              │
+  │ Pin 21 <span class="hl-sig">◄────── LV4</span> ◄── <span class="hl-sig">HV4</span> ◄──────────────────── <span class="hl-mcp">SO</span>              │
+  │         │    │            │    │               │    │                 │
+  │ Pin 22 <span class="hl-sig">◄─────────────────── LV1</span> ◄── <span class="hl-sig">HV1</span> ◄──── <span class="hl-mcp">INT</span>             │
+  │         │    │            │    │               │    │                 │
+  └─────────┘    └────────────┘    └───────────────┘    │ <span class="hl-mcp">CAN_H</span> ══►─ Bus   │
+                                                        │ <span class="hl-mcp">CAN_L</span> ══►─ Bus   │
+                                                        └─────────────────┘</div>
+  </div>
+</div>
+
+<!-- ===== 3. Signal Flow ===== -->
+<div class="card">
+  <div class="card-head">&#128260; Signal Flow &mdash; data direction</div>
+  <div class="flow-body">
+    <div class="flow-row">
+      <div class="fb rpi">Pin23 GPIO11 SCLK</div>
+      <div class="fa r">&#9472; 3.3V &#9654;&#9654;</div>
+      <div class="fb lc">LC#1 Ch1</div>
+      <div class="fa r">&#9654;&#9654; 5V &#9472;</div>
+      <div class="fb mc">MCP SCK</div>
+    </div>
+    <div class="flow-row">
+      <div class="fb rpi">Pin19 GPIO10 MOSI</div>
+      <div class="fa r">&#9472; 3.3V &#9654;&#9654;</div>
+      <div class="fb lc">LC#1 Ch2</div>
+      <div class="fa r">&#9654;&#9654; 5V &#9472;</div>
+      <div class="fb mc">MCP SI</div>
+    </div>
+    <div class="flow-row">
+      <div class="fb rpi">Pin24 GPIO8 &nbsp;CE0</div>
+      <div class="fa r">&#9472; 3.3V &#9654;&#9654;</div>
+      <div class="fb lc">LC#1 Ch3</div>
+      <div class="fa r">&#9654;&#9654; 5V &#9472;</div>
+      <div class="fb mc">MCP CS</div>
+    </div>
+    <div class="flow-row">
+      <div class="fb rpi">Pin21 GPIO9 &nbsp;MISO</div>
+      <div class="fa l">&#9664;&#9664; 3.3V &#9472;</div>
+      <div class="fb lc">LC#1 Ch4</div>
+      <div class="fa l">&#9472; 5V &#9664;&#9664;</div>
+      <div class="fb mc">MCP SO</div>
+    </div>
+    <div class="flow-sep"></div>
+    <div class="flow-row">
+      <div class="fb rpi">Pin22 GPIO25 INT</div>
+      <div class="fa l">&#9664;&#9664; 3.3V &#9472;</div>
+      <div class="fb lc">LC#2 Ch1</div>
+      <div class="fa l">&#9472; 5V &#9664;&#9664;</div>
+      <div class="fb mc">MCP INT</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 4. Power Distribution ===== -->
+<div class="card">
+  <div class="card-head">&#9889; Power Distribution</div>
+  <div class="pow-body">
+    <div class="pow-grid">
+      <div class="pow-card v5">
+        <div class="pow-v">5V</div>
+        <div class="pow-src">RPi <strong>Pin 2</strong> &#8594; BB + rail</div>
+        <div class="pow-tgt">
+          <span>+ rail &#8594; LC#1 HV</span><br>
+          <span>+ rail &#8594; LC#2 HV</span><br>
+          <span>+ rail &#8594; MCP VCC</span>
+        </div>
+      </div>
+      <div class="pow-card v33">
+        <div class="pow-v">3.3V</div>
+        <div class="pow-src">Direct wire (no rail)</div>
+        <div class="pow-tgt">
+          <span>Pin 1 &#8594; LC#1 LV</span><br>
+          <span>Pin 17 &#8594; LC#2 LV</span>
+        </div>
+      </div>
+      <div class="pow-card gnd">
+        <div class="pow-v">GND</div>
+        <div class="pow-src">RPi <strong>Pin 6</strong> &#8594; BB - rail</div>
+        <div class="pow-tgt">
+          <span>- rail &#8594; LC#1 GND</span><br>
+          <span>- rail &#8594; LC#2 GND</span><br>
+          <span>- rail &#8594; MCP GND</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 5. Wire-by-wire Steps ===== -->
+<div class="card">
+  <div class="card-head">&#128295; Step-by-step Wiring &mdash; wire color suggestion</div>
+  <div class="step-body">
+    <ol class="step-list">
+      <li>
+        <span class="wire black">black</span> RPi <strong>Pin 6 (GND)</strong> &#8594; Breadboard <strong>- rail</strong><br>
+        <span class="dim">GND를 항상 먼저 연결한다.</span>
+      </li>
+      <li>
+        <span class="wire black">black</span> BB - rail &#8594; <strong>LC#1 GND</strong><br>
+        <span class="wire black">black</span> BB - rail &#8594; <strong>LC#2 GND</strong><br>
+        <span class="wire black">black</span> BB - rail &#8594; <strong>MCP2515 GND</strong>
+      </li>
+      <li>
+        <span class="wire red">red</span> RPi <strong>Pin 2 (5V)</strong> &#8594; Breadboard <strong>+ rail</strong>
+      </li>
+      <li>
+        <span class="wire red">red</span> BB + rail &#8594; <strong>LC#1 HV</strong><br>
+        <span class="wire red">red</span> BB + rail &#8594; <strong>LC#2 HV</strong><br>
+        <span class="wire red">red</span> BB + rail &#8594; <strong>MCP2515 VCC</strong>
+      </li>
+      <li>
+        <span class="wire orange">orange</span> RPi <strong>Pin 1 (3.3V)</strong> &#8594; <strong>LC#1 LV</strong> (direct)<br>
+        <span class="wire orange">orange</span> RPi <strong>Pin 17 (3.3V)</strong> &#8594; <strong>LC#2 LV</strong> (direct)
+      </li>
+      <li>
+        <span class="wire yellow">yellow</span> RPi <strong>Pin 23 (GPIO11 SCLK)</strong> &#8594; <strong>LC#1 LV1</strong><br>
+        <span class="wire yellow">yellow</span> LC#1 <strong>HV1</strong> &#8594; MCP2515 <strong>SCK</strong>
+      </li>
+      <li>
+        <span class="wire blue">blue</span> RPi <strong>Pin 19 (GPIO10 MOSI)</strong> &#8594; <strong>LC#1 LV2</strong><br>
+        <span class="wire blue">blue</span> LC#1 <strong>HV2</strong> &#8594; MCP2515 <strong>SI</strong>
+      </li>
+      <li>
+        <span class="wire green">green</span> RPi <strong>Pin 24 (GPIO8 CE0)</strong> &#8594; <strong>LC#1 LV3</strong><br>
+        <span class="wire green">green</span> LC#1 <strong>HV3</strong> &#8594; MCP2515 <strong>CS</strong>
+      </li>
+      <li>
+        <span class="wire white">white</span> RPi <strong>Pin 21 (GPIO9 MISO)</strong> &#8592; <strong>LC#1 LV4</strong><br>
+        <span class="wire white">white</span> LC#1 <strong>HV4</strong> &#8592; MCP2515 <strong>SO</strong>
+      </li>
+      <li>
+        <span class="wire green">green</span> RPi <strong>Pin 22 (GPIO25 INT)</strong> &#8592; <strong>LC#2 LV1</strong><br>
+        <span class="wire green">green</span> LC#2 <strong>HV1</strong> &#8592; MCP2515 <strong>INT</strong>
+      </li>
+      <li>
+        CAN bus: MCP2515 <strong>CAN_H / CAN_L</strong> &#8594; Node B 쪽 MCP2515<br>
+        양 끝 <strong>120&#8486; 종단저항</strong> ON (모듈 초록 점퍼 J3)
+      </li>
+    </ol>
+  </div>
+</div>
+
+<!-- ===== 6. RPi4 Header Map ===== -->
+<div class="card">
+  <div class="card-head">&#128205; RPi4 40-Pin Header &mdash; used pins</div>
+  <div class="phys-body">
+    <div class="phys-diagram" style="font-size:12px; line-height:2">                     RPi4 GPIO Header (top view, USB ports at bottom)
+
+         Left (odd)                                Right (even)
+  ┌────────────────────────────────────┬────────────────────────────────────┐
+  │ <span class="hl-v33">&#9679; Pin 1  (3.3V)  &#8594; LC#1 LV</span>      │ <span class="hl-v5">&#9679; Pin 2  (5V)    &#8594; BB + rail</span>   │
+  │   Pin 3  (SDA)                     │   Pin 4  (5V)                      │
+  │   Pin 5  (SCL)                     │ <span class="hl-gnd">&#9679; Pin 6  (GND)   &#8594; BB - rail</span>   │
+  │   Pin 7  (GPIO4)                   │   Pin 8  (TXD)                     │
+  │   Pin 9  (GND)                     │   Pin 10 (RXD)                     │
+  │   Pin 11 (GPIO17)                  │   Pin 12 (GPIO18)                  │
+  │   Pin 13 (GPIO27)                  │   Pin 14 (GND)                     │
+  │   Pin 15 (GPIO22)                  │   Pin 16 (GPIO23)                  │
+  │ <span class="hl-v33">&#9679; Pin 17 (3.3V)  &#8594; LC#2 LV</span>      │   Pin 18 (GPIO24)                  │
+  │ <span class="hl-sig">&#9679; Pin 19 (MOSI)  &#8594; LC#1 LV2</span>     │   Pin 20 (GND)                     │
+  │ <span class="hl-sig">&#9679; Pin 21 (MISO)  &#8592; LC#1 LV4</span>     │ <span class="hl-sig">&#9679; Pin 22 (GPIO25) &#8592; LC#2 LV1</span>  │
+  │ <span class="hl-sig">&#9679; Pin 23 (SCLK)  &#8594; LC#1 LV1</span>     │ <span class="hl-sig">&#9679; Pin 24 (CE0)    &#8594; LC#1 LV3</span>  │
+  │   Pin 25 ~ Pin 40  (unused)                                             │
+  └──────────────────────────────────────────────────────────────────────────┘
+
+  <span class="hl-v33">&#9679;</span> 3.3V (direct)   <span class="hl-v5">&#9679;</span> 5V (via BB rail)   <span class="hl-gnd">&#9679;</span> GND (via BB rail)   <span class="hl-sig">&#9679;</span> Signal (direct)
+
+  RPi pins used: <strong style="color:#ffa657">8 pins</strong> &mdash; each used exactly once, no duplicates
+  Breadboard rail handles 5V/GND fan-out to 3 devices</div>
+  </div>
+</div>
+
+<!-- ===== 7. Notes ===== -->
+<div class="card">
+  <div class="card-head">&#9888;&#65039; Notes</div>
+  <div class="notes-body">
+    <ul>
+      <li><strong>GND first, power last</strong> &mdash; Step 1~2(GND) &#8594; Step 3~4(5V) &#8594; Step 5(3.3V) &#8594; Step 6~10(signal) 순서로 연결.</li>
+      <li><strong>LV = 3.3V (RPi side)</strong>, <strong>HV = 5V (MCP side)</strong>. Level converter의 LV와 HV를 절대 바꿔 꽂지 말 것.</li>
+      <li>3.3V는 브레드보드 레일을 통하지 않고 <strong>RPi에서 LC로 직접 연결</strong>한다. 5V 레일과 섞이면 안 됨.</li>
+      <li><code>/boot/firmware/config.txt</code> 끝에 추가: <code>dtparam=spi=on</code> + <code>dtoverlay=mcp2515-can0,oscillator=8000000,interrupt=25</code></li>
+      <li>모듈의 초록 점퍼 <strong>(J3)</strong> = 120&#8486; 종단저항. CAN bus 양 끝 노드에서 ON.</li>
+      <li>LC#2는 Ch1(INT)만 사용. Ch2~Ch4 비워둔다.</li>
+      <li>총 점퍼선: <strong>RPi&#8594;BB 2개</strong> + <strong>BB&#8594;장치 6개</strong> + <strong>RPi&#8594;직접 7개</strong> + <strong>LC&#8594;MCP 5개</strong> = 약 <strong>20개</strong></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== 8. config.txt ===== -->
+<div class="card">
+  <div class="card-head">&#9881;&#65039; /boot/firmware/config.txt + verification</div>
+  <div class="phys-body">
+    <div class="phys-diagram" style="color: #e6edf3;">
+<span class="dim"># Add to end of file:</span>
+<span class="hl-sig">dtparam</span>=spi=on
+<span class="hl-sig">dtoverlay</span>=mcp2515-can0,oscillator=<span class="hl-mcp">8000000</span>,interrupt=<span class="hl-mcp">25</span>
+
+<span class="dim"># Reboot:</span>
+<span class="hl-rpi">$</span> sudo reboot
+
+<span class="dim"># Verify MCP2515 detected:</span>
+<span class="hl-rpi">$</span> dmesg | grep -i mcp
+<span class="hl-lc">mcp251x spi0.0 can0: MCP2515 successfully initialized</span>
+
+<span class="dim"># Bring up can0:</span>
+<span class="hl-rpi">$</span> sudo ip link set can0 up type can bitrate 500000
+<span class="hl-rpi">$</span> ip link show can0
+<span class="hl-lc">can0: &lt;NOARP,UP,LOWER_UP&gt; ... state UP</span>
+
+<span class="dim"># Loopback self-test:</span>
+<span class="hl-rpi">$</span> sudo ip link set can0 down
+<span class="hl-rpi">$</span> sudo ip link set can0 up type can bitrate 500000 loopback on
+<span class="hl-rpi">$</span> candump can0 &
+<span class="hl-rpi">$</span> cansend can0 100#DEADBEEF00000000
+<span class="hl-lc">can0  100   [8]  DE AD BE EF 00 00 00 00</span>   <span class="dim"># Success!</span></div>
+  </div>
+</div>
+
+</body>
+</html>

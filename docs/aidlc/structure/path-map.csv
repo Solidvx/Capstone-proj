@@ -1,0 +1,205 @@
+original_path,applied_path,action,reason
+,.agents/skills/capstone-workflow/SKILL.md,add,added structure artifact; path existence is not functional completion
+,.claude/README.md,add,added structure artifact; path existence is not functional completion
+,.claude/settings.json,add,added structure artifact; path existence is not functional completion
+,.claude/skills/capstone-workflow/SKILL.md,add,added structure artifact; path existence is not functional completion
+,.codex/config.toml,add,added structure artifact; path existence is not functional completion
+.gitignore,.gitignore,preserve,original bytes retained
+AGENTS.md,AGENTS.md,preserve,original bytes retained
+CLAUDE.md,CLAUDE.md,preserve,original bytes retained
+CODEX.md,CODEX.md,preserve,original bytes retained
+README.md,README.md,reference_only,structure/status/reference mapping only; see reference-changes.md
+SKILL.md,SKILL.md,preserve,original bytes retained
+adaptive_ecu/CMakeLists.txt,adaptive_ecu/CMakeLists.txt,preserve,original bytes retained
+adaptive_ecu/data/battery_profile.csv,adaptive_ecu/data/battery_profile.csv,preserve,original bytes retained
+adaptive_ecu/include/adc_acquisition_gate.h,adaptive_ecu/include/adc_acquisition_gate.h,preserve,original bytes retained
+adaptive_ecu/include/ads1115_conversion.h,adaptive_ecu/include/ads1115_conversion.h,preserve,original bytes retained
+adaptive_ecu/include/ads1115_registers.h,adaptive_ecu/include/ads1115_registers.h,preserve,original bytes retained
+adaptive_ecu/include/bms_types.h,adaptive_ecu/include/bms_types.h,preserve,original bytes retained
+adaptive_ecu/include/can_cdd.h,adaptive_ecu/include/can_cdd.h,preserve,original bytes retained
+adaptive_ecu/include/can_driver.h,adaptive_ecu/include/can_driver.h,preserve,original bytes retained
+adaptive_ecu/include/can_publisher.h,adaptive_ecu/include/can_publisher.h,preserve,original bytes retained
+adaptive_ecu/include/ekf_soc_estimator.h,adaptive_ecu/include/ekf_soc_estimator.h,preserve,original bytes retained
+adaptive_ecu/include/failsafe_sm.h,adaptive_ecu/include/failsafe_sm.h,preserve,original bytes retained
+adaptive_ecu/include/mock_can_driver.h,adaptive_ecu/include/mock_can_driver.h,preserve,original bytes retained
+adaptive_ecu/include/publisher.h,adaptive_ecu/include/publisher.h,preserve,original bytes retained
+adaptive_ecu/include/secoc_module.h,adaptive_ecu/include/secoc_module.h,preserve,original bytes retained
+adaptive_ecu/include/sensor_quality.h,adaptive_ecu/include/sensor_quality.h,preserve,original bytes retained
+adaptive_ecu/include/sensor_simulator.h,adaptive_ecu/include/sensor_simulator.h,preserve,original bytes retained
+adaptive_ecu/include/soh_estimator.h,adaptive_ecu/include/soh_estimator.h,preserve,original bytes retained
+adaptive_ecu/include/subscriber.h,adaptive_ecu/include/subscriber.h,preserve,original bytes retained
+adaptive_ecu/include/watchdog_manager.h,adaptive_ecu/include/watchdog_manager.h,preserve,original bytes retained
+adaptive_ecu/main.cpp,adaptive_ecu/main.cpp,preserve,original bytes retained
+adaptive_ecu/src/app/ads1115_conversion.cpp,adaptive_ecu/src/app/ads1115_conversion.cpp,preserve,original bytes retained
+adaptive_ecu/src/app/ekf_soc_estimator.cpp,adaptive_ecu/src/app/ekf_soc_estimator.cpp,preserve,original bytes retained
+adaptive_ecu/src/app/failsafe_sm.cpp,adaptive_ecu/src/app/failsafe_sm.cpp,preserve,original bytes retained
+adaptive_ecu/src/app/sensor_simulator.cpp,adaptive_ecu/src/app/sensor_simulator.cpp,preserve,original bytes retained
+adaptive_ecu/src/app/soh_estimator.cpp,adaptive_ecu/src/app/soh_estimator.cpp,preserve,original bytes retained
+adaptive_ecu/src/bsw/ads1115_registers.cpp,adaptive_ecu/src/bsw/ads1115_registers.cpp,preserve,original bytes retained
+adaptive_ecu/src/bsw/can_cdd.cpp,adaptive_ecu/src/bsw/can_cdd.cpp,preserve,original bytes retained
+adaptive_ecu/src/bsw/can_publisher.cpp,adaptive_ecu/src/bsw/can_publisher.cpp,preserve,original bytes retained
+adaptive_ecu/src/bsw/mock_can_driver.cpp,adaptive_ecu/src/bsw/mock_can_driver.cpp,preserve,original bytes retained
+adaptive_ecu/src/bsw/secoc_module.cpp,adaptive_ecu/src/bsw/secoc_module.cpp,preserve,original bytes retained
+adaptive_ecu/src/bsw/watchdog_manager.cpp,adaptive_ecu/src/bsw/watchdog_manager.cpp,preserve,original bytes retained
+adaptive_ecu/test/test_adc_acquisition_gate.cpp,adaptive_ecu/test/test_adc_acquisition_gate.cpp,preserve,original bytes retained
+adaptive_ecu/test/test_ads1115_conversion.cpp,adaptive_ecu/test/test_ads1115_conversion.cpp,preserve,original bytes retained
+adaptive_ecu/test/test_ads1115_registers.cpp,adaptive_ecu/test/test_ads1115_registers.cpp,preserve,original bytes retained
+adaptive_ecu/test/test_can_publisher.cpp,adaptive_ecu/test/test_can_publisher.cpp,preserve,original bytes retained
+adaptive_ecu/test/test_ekf_soc.cpp,adaptive_ecu/test/test_ekf_soc.cpp,preserve,original bytes retained
+adaptive_ecu/test/test_failsafe_sm.cpp,adaptive_ecu/test/test_failsafe_sm.cpp,preserve,original bytes retained
+adaptive_ecu/test/test_mock_can_driver.cpp,adaptive_ecu/test/test_mock_can_driver.cpp,preserve,original bytes retained
+adaptive_ecu/test/test_publisher.cpp,adaptive_ecu/test/test_publisher.cpp,preserve,original bytes retained
+adaptive_ecu/test/test_secoc.cpp,adaptive_ecu/test/test_secoc.cpp,preserve,original bytes retained
+adaptive_ecu/test/test_sensor_quality.cpp,adaptive_ecu/test/test_sensor_quality.cpp,preserve,original bytes retained
+adaptive_ecu/test/test_sensor_simulator.cpp,adaptive_ecu/test/test_sensor_simulator.cpp,preserve,original bytes retained
+adaptive_ecu/test/test_soh_estimator.cpp,adaptive_ecu/test/test_soh_estimator.cpp,preserve,original bytes retained
+adaptive_ecu/test/test_watchdog_manager.cpp,adaptive_ecu/test/test_watchdog_manager.cpp,preserve,original bytes retained
+docs/ADR.md,docs/ADR.md,preserve,original bytes retained
+docs/CICD_SPEC.md,docs/CICD_SPEC.md,preserve,original bytes retained
+docs/ICD.md,docs/ICD.md,preserve,original bytes retained
+docs/README.md,docs/README.md,reference_only,structure/status/reference mapping only; see reference-changes.md
+docs/SDD-ECU.md,docs/SDD-ECU.md,preserve,original bytes retained
+docs/SDD-IVI.md,docs/SDD-IVI.md,preserve,original bytes retained
+docs/SRS.md,docs/SRS.md,preserve,original bytes retained
+docs/TARA.md,docs/TARA.md,preserve,original bytes retained
+docs/TEST_PLAN.md,docs/TEST_PLAN.md,preserve,original bytes retained
+,docs/aidlc/README.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/CHG-template/aidlc-state.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/CHG-template/audit.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/CHG-template/construction/README.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/CHG-template/construction/build-and-test/README.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/CHG-template/construction/plans/README.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/CHG-template/construction/unit-template/README.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/CHG-template/construction/unit-template/code/README.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/CHG-template/construction/unit-template/functional-design/README.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/CHG-template/construction/unit-template/infrastructure-design/README.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/CHG-template/construction/unit-template/nfr-design/README.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/CHG-template/construction/unit-template/nfr-requirements/README.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/CHG-template/inception/README.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/CHG-template/inception/application-design/README.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/CHG-template/inception/plans/README.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/CHG-template/inception/requirements/README.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/CHG-template/inception/reverse-engineering/README.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/CHG-template/inception/user-stories/README.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/CHG-template/mistakes.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/CHG-template/spec.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/changes/README.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/structure/baseline.sha256,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/structure/document-map.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/structure/path-map.csv,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/structure/reference-changes.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/structure/scaffold-application.md,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/structure/scaffold-paths.json,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/structure/scope-verification.json,add,added structure artifact; path existence is not functional completion
+,docs/aidlc/structure/verification.md,add,added structure artifact; path existence is not functional completion
+docs/archive/project-overview.md,docs/archive/project-overview.md,preserve,original bytes retained
+docs/development/CAN_세션인증_설계안.md,docs/development/security/CAN_세션인증_설계안.md,preserve,original bytes retained
+,docs/development/README.md,add,added structure artifact; path existence is not functional completion
+docs/development/SOC_합성실험_결과.md,docs/development/experiments/SOC_합성실험_결과.md,preserve,original bytes retained
+,docs/development/playbooks/docs-review.md,add,added structure artifact; path existence is not functional completion
+,docs/development/playbooks/ecu.md,add,added structure artifact; path existence is not functional completion
+,docs/development/playbooks/ivi-integration.md,add,added structure artifact; path existence is not functional completion
+,docs/development/playbooks/security.md,add,added structure artifact; path existence is not functional completion
+docs/development/q2_validation/check_design.py,docs/development/q2_validation/check_design.py,preserve,original bytes retained
+docs/development/q2_validation/fixtures.json,docs/development/q2_validation/fixtures.json,preserve,original bytes retained
+docs/development/q2_validation/protocol_fixtures.json,docs/development/q2_validation/protocol_fixtures.json,preserve,original bytes retained
+docs/development/q2_validation/protocol_model.py,docs/development/q2_validation/protocol_model.py,preserve,original bytes retained
+docs/development/q2_validation/protocol_schema.json,docs/development/q2_validation/protocol_schema.json,preserve,original bytes retained
+docs/development/q2_validation/test_protocol.py,docs/development/q2_validation/test_protocol.py,preserve,original bytes retained
+,docs/development/templates/aidlc-state.md,add,added structure artifact; path existence is not functional completion
+,docs/development/templates/audit.md,add,added structure artifact; path existence is not functional completion
+,docs/development/templates/change.md,add,added structure artifact; path existence is not functional completion
+,docs/development/templates/evidence.md,add,added structure artifact; path existence is not functional completion
+,docs/development/templates/spec.md,add,added structure artifact; path existence is not functional completion
+,docs/development/tooling.md,add,added structure artifact; path existence is not functional completion
+,docs/development/verification/steering-tests.md,add,added structure artifact; path existence is not functional completion
+,docs/development/workflow.md,add,added structure artifact; path existence is not functional completion
+docs/development/계획_검토.md,docs/development/reviews/계획_검토.md,preserve,original bytes retained
+docs/development/문서_종합정합성_검토.md,docs/development/reviews/문서_종합정합성_검토.md,preserve,original bytes retained
+docs/development/보안계획_구현전_인계_및_진행현황.md,docs/development/security/보안계획_구현전_인계_및_진행현황.md,reference_only,structure/status/reference mapping only; see reference-changes.md
+docs/development/안드로이드_환경설정.md,docs/development/environment/안드로이드_환경설정.md,preserve,original bytes retained
+docs/development/의사결정_기록.md,docs/development/governance/의사결정_기록.md,preserve,original bytes retained
+docs/development/인증이벤트_메시지_상태규약.md,docs/development/security/인증이벤트_메시지_상태규약.md,preserve,original bytes retained
+docs/development/인증이벤트_전달_설계안.md,docs/development/security/인증이벤트_전달_설계안.md,reference_only,structure/status/reference mapping only; see reference-changes.md
+docs/development/정리_이력.md,docs/development/reviews/정리_이력.md,preserve,original bytes retained
+,docs/development/governance/협업_형상관리전략.md,add,category merge of collaboration and configuration strategies; source map in document-map.md
+,ivi_platform/README.md,add,added structure artifact; path existence is not functional completion
+plan/ECU.md,plan/ECU.md,preserve,original bytes retained
+plan/IVI.md,plan/IVI.md,reference_only,structure/status/reference mapping only; see reference-changes.md
+plan/_archive/ECU.md,plan/_archive/ECU.md,preserve,original bytes retained
+plan/_archive/ECU_최종_실행계획서.md,plan/_archive/ECU_최종_실행계획서.md,preserve,original bytes retained
+plan/_archive/INDEX.md,plan/_archive/INDEX.md,preserve,original bytes retained
+plan/_archive/IVI.md,plan/_archive/IVI.md,preserve,original bytes retained
+plan/_archive/IVI_최종_실행계획서.md,plan/_archive/IVI_최종_실행계획서.md,preserve,original bytes retained
+plan/_archive/README.md,plan/_archive/README.md,preserve,original bytes retained
+plan/_archive/plan_20260908/Common.md.txt,plan/_archive/plan_20260908/Common.md.txt,preserve,original bytes retained
+plan/_archive/plan_20260908/ECU.md.txt,plan/_archive/plan_20260908/ECU.md.txt,preserve,original bytes retained
+plan/_archive/plan_20260908/IVI.md.txt,plan/_archive/plan_20260908/IVI.md.txt,preserve,original bytes retained
+plan/_archive/plan_20260908/manifest.json,plan/_archive/plan_20260908/manifest.json,preserve,original bytes retained
+plan/_archive/공동.md,plan/_archive/공동.md,preserve,original bytes retained
+plan/_archive/팀간_연계_분석.md,plan/_archive/팀간_연계_분석.md,preserve,original bytes retained
+plan/detail/common/00_협업_규약.md,plan/detail/common/00_협업_규약.md,preserve,original bytes retained
+plan/detail/common/01_연계_의존성.md,plan/detail/common/01_연계_의존성.md,preserve,original bytes retained
+plan/detail/common/02_통합시험.md,plan/detail/common/02_통합시험.md,preserve,original bytes retained
+plan/detail/common/03_발표_제출.md,plan/detail/common/03_발표_제출.md,preserve,original bytes retained
+plan/detail/ecu/M1_환경구축_ICD확정.md,plan/detail/ecu/M1_환경구축_ICD확정.md,preserve,original bytes retained
+plan/detail/ecu/M2_CAN_CDD_Publisher.md,plan/detail/ecu/M2_CAN_CDD_Publisher.md,preserve,original bytes retained
+plan/detail/ecu/M3_EKF_Failsafe_SecOC.md,plan/detail/ecu/M3_EKF_Failsafe_SecOC.md,preserve,original bytes retained
+plan/detail/ecu/M4_IDS_공격_물리통합.md,plan/detail/ecu/M4_IDS_공격_물리통합.md,preserve,original bytes retained
+plan/detail/ecu/M5_Ablation.md,plan/detail/ecu/M5_Ablation.md,preserve,original bytes retained
+plan/detail/ecu/M6_문서_품질.md,plan/detail/ecu/M6_문서_품질.md,preserve,original bytes retained
+plan/detail/ecu/M7_최종검증_재현성.md,plan/detail/ecu/M7_최종검증_재현성.md,preserve,original bytes retained
+plan/detail/ecu/M8_데모_제출.md,plan/detail/ecu/M8_데모_제출.md,preserve,original bytes retained
+plan/detail/ecu/ref_명령모음.md,plan/detail/ecu/ref_명령모음.md,preserve,original bytes retained
+plan/detail/ivi/M1_AOSP_Docker_CI.md,plan/detail/ivi/M1_AOSP_Docker_CI.md,reference_only,structure/status/reference mapping only; see reference-changes.md
+plan/detail/ivi/M2_HALMock_PlanAB.md,plan/detail/ivi/M2_HALMock_PlanAB.md,preserve,original bytes retained
+plan/detail/ivi/M3_HAL_Service_대시보드.md,plan/detail/ivi/M3_HAL_Service_대시보드.md,preserve,original bytes retained
+plan/detail/ivi/M4_대시보드_Alert_배포.md,plan/detail/ivi/M4_대시보드_Alert_배포.md,preserve,original bytes retained
+plan/detail/ivi/M5_성능_UI개선.md,plan/detail/ivi/M5_성능_UI개선.md,preserve,original bytes retained
+plan/detail/ivi/M6_문서_Coverage.md,plan/detail/ivi/M6_문서_Coverage.md,preserve,original bytes retained
+plan/detail/ivi/M7_안정성_교차검토.md,plan/detail/ivi/M7_안정성_교차검토.md,preserve,original bytes retained
+plan/detail/ivi/M8_데모_제출.md,plan/detail/ivi/M8_데모_제출.md,preserve,original bytes retained
+plan/detail/ivi/ref_CI파이프라인_명령모음.md,plan/detail/ivi/ref_CI파이프라인_명령모음.md,preserve,original bytes retained
+security/analysis/measure_can_secoc.py,security/analysis/measure_can_secoc.py,preserve,original bytes retained
+security/attacks/traffic_gen.py,security/attacks/traffic_gen.py,preserve,original bytes retained
+security/experiments/run_eval.py,security/experiments/run_eval.py,preserve,original bytes retained
+security/ids/feature_extractor.py,security/ids/feature_extractor.py,preserve,original bytes retained
+security/ids/if_detector.py,security/ids/if_detector.py,preserve,original bytes retained
+security/ids/rule_baseline.py,security/ids/rule_baseline.py,preserve,original bytes retained
+security/ids/spec_detector.py,security/ids/spec_detector.py,preserve,original bytes retained
+security/requirements.txt,security/requirements.txt,preserve,original bytes retained
+security/secoc_module.py,security/secoc_module.py,preserve,original bytes retained
+security/tests/test_ids_baseline.py,security/tests/test_ids_baseline.py,preserve,original bytes retained
+security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original bytes retained
+,tools/workflow/README.md,add,added structure artifact; path existence is not functional completion
+,tools/workflow/check.py,add,added structure artifact; path existence is not functional completion
+,tools/workflow/core.py,add,added structure artifact; path existence is not functional completion
+,tools/workflow/mcp_server.py,add,added structure artifact; path existence is not functional completion
+,tools/workflow/tests/README.md,add,added structure artifact; path existence is not functional completion
+프로젝트구조개선.md,프로젝트구조개선.md,reference_only,structure/status/reference mapping only; see reference-changes.md
+하드웨어 정보/ADS1115.jpg,하드웨어 정보/ADS1115.jpg,preserve,original bytes retained
+하드웨어 정보/mcp2515.jpg,하드웨어 정보/mcp2515.jpg,preserve,original bytes retained
+하드웨어 정보/가변저항.jpg,하드웨어 정보/가변저항.jpg,preserve,original bytes retained
+하드웨어 정보/가변저항_뒷면.jpg,하드웨어 정보/가변저항_뒷면.jpg,preserve,original bytes retained
+하드웨어 정보/디스플레이_정보.jpg,하드웨어 정보/디스플레이_정보.jpg,preserve,original bytes retained
+하드웨어 정보/레벨컨버터_뒷면.jpg,하드웨어 정보/레벨컨버터_뒷면.jpg,preserve,original bytes retained
+하드웨어 정보/레벨컨버터_앞면.jpg,하드웨어 정보/레벨컨버터_앞면.jpg,preserve,original bytes retained
+하드웨어 정보/스크린샷 2026-09-07 130854.png,하드웨어 정보/스크린샷 2026-09-07 130854.png,preserve,original bytes retained
+하드웨어 정보/스크린샷 2026-09-07 130955.png,하드웨어 정보/스크린샷 2026-09-07 130955.png,preserve,original bytes retained
+하드웨어 정보/스크린샷 2026-09-07 130959.png,하드웨어 정보/스크린샷 2026-09-07 130959.png,preserve,original bytes retained
+하드웨어 정보/촬영_사진1.png,하드웨어 정보/촬영_사진1.png,preserve,original bytes retained
+하드웨어 정보/촬영_사진2.png,하드웨어 정보/촬영_사진2.png,preserve,original bytes retained
+하드웨어 정보/컨버터O_배선완결판.html,하드웨어 정보/컨버터O_배선완결판.html,preserve,original bytes retained
+
+,docs/development/governance/프로젝트구조_사용안내.md,add,new member structure and file purpose guide
+,docs/development/governance/commit.md,add,ECU and IVI GitHub version control execution manual
+커밋관련지침/SKILL.md,.agents/skills/commit/SKILL.md,preserve,pre-existing interactive commit skill
+커밋관련지침/rules.md,.agents/skills/commit/rules.md,preserve,pre-existing commit rules
+
+,.claude/skills/commit/SKILL.md,add,Claude entry referencing shared commit procedure
+
+,docs/aidlc/changes/CHG-001/spec.md,add,commit guidance placement scope
+
+,docs/aidlc/changes/CHG-001/aidlc-state.md,add,commit guidance change state
+
+,docs/aidlc/changes/CHG-001/audit.md,add,commit guidance verification evidence
