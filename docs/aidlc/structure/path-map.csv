@@ -207,3 +207,6 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,docs/aidlc/changes/CHG-002/spec.md,add,IVI Qt Plan B P0 scope
 ,docs/aidlc/changes/CHG-002/aidlc-state.md,add,IVI Qt Plan B P0 state
 ,docs/aidlc/changes/CHG-002/audit.md,add,IVI Qt Plan B P0 verification evidence
+,docs/aidlc/changes/CHG-004/spec.md,add,Qt current guidance consistency record
+,docs/aidlc/changes/CHG-004/aidlc-state.md,add,Qt current guidance consistency record
+,docs/aidlc/changes/CHG-004/audit.md,add,Qt current guidance consistency record

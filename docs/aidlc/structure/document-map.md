@@ -84,3 +84,7 @@ playbooks/·templates/·verification/·q2_validation/는 기존 위치를 유지
 ## IVI Qt Plan B 기준 동기화 — 2026-09-22
 
 [IVI Plan B 진행·구조 안내](../../development/governance/IVI_Plan_B_진행상황_및_구조_안내.md)를 governance에 추가했다. 이 문서는 IVI 담당자의 탐색·인계용이며 공식 계약은 ICD/SRS/SDD-IVI/TEST_PLAN, 실행 순서는 plan/IVI와 Plan B 전환 계획이 원본이다. 변경 범위와 검증은 [CHG-002](../changes/CHG-002/aidlc-state.md)에 기록한다.
+
+## IVI Qt 현행 안내 정정 — 2026-09-23
+
+현재 실행 진입점과 과거 Android 절차를 분리한 범위·검증은 [CHG-004](../changes/CHG-004/aidlc-state.md)에 기록한다. CHG-003은 다른 브랜치의 기존 작업 번호로 보존한다.
