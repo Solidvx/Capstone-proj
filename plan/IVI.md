@@ -1,5 +1,7 @@
 # IVI 실행 계획 — Node B
 
+> **2026-09-22 플랫폼 결정:** 시간 제약에 따라 현 제출 범위는 **Plan B(Ubuntu + C++17 + SocketCAN + Qt Quick/QML)**로 전환한다. 아래 Android Plan A 중심 내용은 결정 배경과 과거 계획으로 보존하며, 이후 실행 순서와 완료 기준은 [IVI Plan B 전환 및 구현 계획](IVI_PLAN_B_전환계획.md)을 우선 적용한다. CAN ID, payload와 SecOC 계약은 현행 `docs/ICD.md`를 유지한다.
+
 > **2026-09-09 보안 후속 계획:** [공동 적용 규약](detail/common/00_협업_규약.md#security-adoption)에 따라 기존 과제에 [M3 pending·인증 이벤트](detail/ivi/M3_HAL_Service_대시보드.md#security-adoption), [M4 배포·표시](detail/ivi/M4_대시보드_Alert_배포.md#security-adoption), [M5 계측](detail/ivi/M5_성능_UI개선.md#security-adoption)의 추가 조건을 적용한다. Q2의 상세 전달 계약은 미확정이며 IVI 구현 완료를 뜻하지 않는다.
 
 > **담당**: IVI / HAL / Service / Dashboard / CI·CD · **플랫폼**: RPi4 Android AOSP (Plan A) 또는 Ubuntu (Plan B)
