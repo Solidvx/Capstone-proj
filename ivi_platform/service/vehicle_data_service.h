@@ -33,6 +33,10 @@ struct VehicleSnapshot {
     std::optional<SecurityAlert> security_alert;
     bool last_secoc_verified = false;
     std::uint32_t secoc_failure_count = 0;
+    std::uint32_t consecutive_secoc_failure_count = 0;
+    std::uint32_t orphan_auth_count = 0;
+    std::uint32_t pending_timeout_count = 0;
+    std::uint32_t pending_overwrite_count = 0;
     std::uint32_t last_can_id = 0;
     std::string last_message = "Waiting for authenticated CAN data";
     std::vector<std::string> logs;
@@ -50,6 +54,7 @@ public:
     using ObserverId = std::uint64_t;
     using Observer = std::function<void(const VehicleSnapshot&)>;
     using Clock = std::chrono::steady_clock;
+    static constexpr auto kPendingTimeout = std::chrono::milliseconds{100};
 
     VehicleDataService() = default;
     explicit VehicleDataService(SecOcKey key);
@@ -78,6 +83,14 @@ private:
                               ProtectedState& state,
                               Clock::time_point received_at,
                               VehicleSnapshot& notification);
+    void storePending(const CanPayload& payload,
+                      Clock::time_point received_at,
+                      ProtectedState& state,
+                      const char* channel_name);
+    bool expirePending(ProtectedState& state,
+                       Clock::time_point received_at,
+                       const char* channel_name);
+    void recordSecOcFailureLocked(std::string message);
     void appendLogLocked(std::string message);
     void notify(const VehicleSnapshot& snapshot, const std::vector<Observer>& observers) const;
     static std::uint64_t monotonicNanoseconds(Clock::time_point time);

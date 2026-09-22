@@ -24,7 +24,7 @@
 
 ## 1. 테스트 전략
 
-2026-09-22 정적 대조: 이 문서는 인수 명세이며 표에 적힌 기대 결과 자체가 실행 결과는 아니다. C++ 파일 `test/`, `data/`는 기본적으로 `adaptive_ecu/` 기준이고 IVI 시험은 명시한 `ivi_platform/test/` 기준이다. `test_can_cdd.cpp`, `test_bms_component.cpp`, 1시간 CSV, 실 CAN 공격/IDS 시험과 CI는 아직 없다. IVI P1 core 회귀 시험의 실제 결과만 §4의 별도 기록과 CHG-003 증거를 따른다. API를 축약한 assertion은 시험 의도이며 실제 헤더에 없는 메서드를 구현돼 있다고 가정하지 않는다.
+2026-09-23 정적 대조: 이 문서는 인수 명세이며 표에 적힌 기대 결과 자체가 실행 결과는 아니다. C++ 파일 `test/`, `data/`는 기본적으로 `adaptive_ecu/` 기준이고 IVI 시험은 명시한 `ivi_platform/test/` 기준이다. `test_can_cdd.cpp`, `test_bms_component.cpp`, 1시간 CSV, 실 CAN 공격/IDS 시험과 CI는 아직 없다. IVI P1~P2 core 회귀 시험의 실제 결과만 §4의 별도 기록과 CHG-003 증거를 따른다. API를 축약한 assertion은 시험 의도이며 실제 헤더에 없는 메서드를 구현돼 있다고 가정하지 않는다.
 
 ### 1.1. 테스트 레벨
 
@@ -313,13 +313,19 @@ TC-{모듈}-{번호}
 
 ## 4. 단위 테스트 — Node B (C++/Qt)
 
-> 2026-09-22 현재 P1 core 소스와 단위 시험 3개가 있다. 아래 공식 TC의 전체 합격은 아직 아니며, P1에서 실제 확인한 부분 범위만 다음 기록과 CHG-003 증거를 따른다.
+> 2026-09-23 현재 P2 core 소스와 단위 시험 6개가 있다. 아래 공식 TC의 전체 합격은 아직 아니며, 실제 확인한 부분 범위만 다음 기록과 CHG-003 증거를 따른다.
 
 ### P1 core 회귀 실행 기록
 
 macOS arm64에서 CMake Debug와 Release를 각각 구성해 `test_can_parser`, `test_secoc_verifier`, `test_vehicle_data_service`를 실행했고 양쪽 모두 3/3 통과했다. ECU 공개 더미 벡터, signed current, 변조 MAC, counter `+100/+101`·replay·wrap, 인증 전 미게시, 인증 실패 후 last-good 유지, BMS/Fail-safe counter 분리, BMS 갱신 후 IDS 상태 유지를 확인했다.
 
 이 결과는 TC-IVI-002의 core 범위와 TC-IVI-003의 일부 범위만 증명한다. pending timeout/stale, Linux 수신, Qt property/UI, `vcan0`, 물리 CAN은 미실행이므로 해당 TC를 PASS로 표시하지 않는다. 실제 명령과 환경은 [CHG-003 P1 증거](aidlc/changes/CHG-003/construction/build-and-test/evidence.md)에 있다.
+
+### P2 CAN·SecOC 회귀 실행 기록
+
+macOS arm64에서 `-Wall -Wextra -Wpedantic -Werror`를 적용한 CMake Debug와 Release를 각각 실행했고 양쪽 모두 6/6 통과했다. 정확한 DLC 8/SFF/허용 ID, RTR·ERR·EFF 거부, retry 3회 경계, pending 99ms 허용·100ms 만료, 최신 원본 교체, orphan auth, BMS/Fail-safe 교차 순서, last-good 유지와 SecOC 실패 복구를 확인했다.
+
+이 결과는 TC-IVI-001의 플랫폼 독립 frame/retry 정책, TC-IVI-002 core 범위와 TC-IVI-003의 pending/observer 범위를 증명한다. Linux kernel filter·실제 poll/read, 300ms stale, Qt와 vcan은 미실행이다. 상세 결과는 [P2 구현 결과](aidlc/changes/CHG-003/construction/P2_구현_결과.md)와 [P2 증거](aidlc/changes/CHG-003/construction/build-and-test/P2_빌드_시험_증거.md)에 있다.
 
 ### TC-IVI-001: SocketCAN 수신 콜백과 종료
 
@@ -328,7 +334,7 @@ macOS arm64에서 CMake Debug와 Release를 각각 구성해 `test_can_parser`, 
 | **요구사항** | FR-IVI-001 |
 | **절차** | `vcan0`에 허용 ID, 미등록 ID, 잘못된 DLC, RTR/ERR 프레임을 전송하고 콜백 수와 종료 시간을 기록 |
 | **기대 결과** | 허용된 DLC 8 데이터 프레임만 1회 전달되고 receiver가 대기 없이 종료 |
-| **파일** | `ivi_platform/test/test_socketcan_receiver.cpp` |
+| **파일** | 현재 정책 시험 `test_can_frame_validator.cpp`, `test_receive_retry_policy.cpp`; Linux 수신 통합 시험 `test_socketcan_receiver.cpp`는 P4 예정 |
 
 ### TC-IVI-002: CAN 파싱과 SecOC 인증
 
@@ -346,7 +352,7 @@ macOS arm64에서 CMake Debug와 Release를 각각 구성해 `test_can_parser`, 
 | **요구사항** | FR-IVI-003 |
 | **절차** | 최초 상태, 인증 성공, timeout, 재수신과 observer 등록/해제를 순서대로 주입 |
 | **기대 결과** | 최초 `valid=false`, 성공 시 원자적 snapshot, timeout 시 last-good+`stale=true`, 해제 observer 미호출 |
-| **파일** | `ivi_platform/test/test_vehicle_data_service.cpp` |
+| **파일** | `ivi_platform/test/test_vehicle_data_service.cpp`, `ivi_platform/test/test_vehicle_data_service_security.cpp` |
 
 ### TC-IVI-004: Service에서 DashboardViewModel 전달
 
