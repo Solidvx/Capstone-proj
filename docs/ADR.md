@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADR)
 
-> **버전**: v1.3 | **작성일**: 2026-03-01 | **최종 수정**: 2026-04-01 | **작성자**: 팀원A, 팀원B  
+> **버전**: v1.4 | **작성일**: 2026-03-01 | **최종 수정**: 2026-09-22 | **작성자**: 팀원A, 팀원B
 > **프로젝트**: AUTOSAR 계층 기반 IVI-ECU 통합 플랫폼  
 > **목적**: 주요 기술 선택의 컨텍스트·대안·근거를 기록하여 면접 질문 "왜 이 기술을 골랐나요?"에 데이터 기반으로 답변할 수 있게 한다.  
 > **작성 규칙**: 기술 선택 시점에 즉시 작성. 결정 번복 시 상태를 Superseded로 변경하고 새 ADR 추가.
@@ -14,13 +14,13 @@
 | [ADR-001](#adr-001) | Linux SocketCAN API 사용 (직접 SPI 레지스터 접근 대신) | Accepted | 2026-03-01 |
 | [ADR-002](#adr-002) | HMAC-SHA256 절단 MAC (4 B) + 분리 프레임 SecOC | Accepted | 2026-03-01 |
 | [ADR-003](#adr-003) | Isolation Forest 기반 ML IDS | Accepted | 2026-03-15 |
-| [ADR-004](#adr-004) | HIDL 채택 (AIDL 대신) — Vehicle HAL 인터페이스 | Accepted | 2026-03-10 |
+| [ADR-004](#adr-004) | HIDL 채택 (AIDL 대신) — Vehicle HAL 인터페이스 | Superseded by ADR-010 | 2026-03-10 |
 | [ADR-005](#adr-005) | Extended Kalman Filter SOC 추정 | Accepted | 2026-03-01 |
 | [ADR-006](#adr-006) | QEMU user-mode 에뮬레이션 CI 통합 | Accepted | 2026-03-10 |
 | [ADR-007](#adr-007) | Docker ARM64 크로스컴파일 컨테이너 | Accepted | 2026-03-10 |
 | [ADR-008](#adr-008) | Ablation Study 기반 보안 실험 설계 (3가지 방어 구성) | Accepted | 2026-04-01 |
 | [ADR-009](#adr-009) | ML IDS 엔진 실행 위치 — Node A (Ubuntu) | Accepted | 2026-03-15 |
-| [ADR-010](#adr-010) | AOSP 포팅 Plan B — Ubuntu + D-Bus/gRPC + Qt/Flutter | Accepted | 2026-03-01 |
+| [ADR-010](#adr-010) | IVI Plan B — Ubuntu + C++ SocketCAN + Qt Quick/QML | Accepted / Activated | 2026-09-22 |
 | [ADR-011](#adr-011) | 공격 시뮬레이터 및 IDS 구현 언어 — Python (C++ 대신) | Accepted | 2026-03-01 |
 | [ADR-012](#adr-012) | SecOC 인증 프레임 분리 전송 (0x102 / 0x103) | Accepted | 2026-03-01 |
 
@@ -140,7 +140,7 @@ CAN 버스 이상 트래픽 탐지 ML 알고리즘을 선택해야 한다.
 
 ### HIDL 채택 (AIDL 대신) — Vehicle HAL 인터페이스
 
-**상태**: Accepted | **결정일**: 2026-03-10 | **결정자**: 팀원B
+**상태**: Superseded for current delivery by ADR-010 | **결정일**: 2026-03-10 | **결정자**: 팀원B
 
 #### 컨텍스트
 
@@ -346,31 +346,31 @@ ML IDS(Isolation Forest) 엔진을 어느 노드에서 실행할지 결정해야
 
 ## ADR-010
 
-### AOSP 포팅 Plan B — Ubuntu + D-Bus/gRPC + Qt/Flutter
+### IVI Plan B — Ubuntu + C++ SocketCAN + Qt Quick/QML
 
-**상태**: Accepted | **결정일**: 2026-03-01 | **결정자**: 팀원B
+**상태**: Accepted / Activated | **결정일**: 2026-09-22 | **결정자**: 팀원B
 
 #### 컨텍스트
 
-RPi4에 Android 13 AOSP 완전 포팅은 200GB+ 빌드 환경, 디바이스 트리 수정, 커널 드라이버 통합이 필요하다. 2개월차(7월) 말까지 기본 부팅 실패 시 프로젝트 전체가 지연될 위험이 있다.
+남은 일정 안에 AOSP 이미지 선정·대용량 빌드·RPi4 부팅·커널 CAN·HIDL/Binder·앱을 모두 검증할 시간이 부족하다. 현재 저장소에는 Android 제품 코드가 없고, 이전 작업 폴더에는 재사용 가능한 C++ SocketCAN·Qt 자료가 있다. CAN/SecOC 통합과 시연 가능한 대시보드를 우선 완성해야 한다.
 
 #### 결정
 
-**현재 전환 판단 기준(2026-09-08)**: 과거 7월 말/Android 13 기준은 이전 일정 기록이다. Android 16 우선 후보의 실제 지원·빌드·부팅 증거와 2026-09-18 시연 영향을 바탕으로 IVI M2 및 Android 환경설정 §6~7에서 판단한다. 날짜 경과만으로 자동 전환하지 않는다. Plan B 선택 시 Android 전용 요구/시험과 HAL 계약 변경 영향을 검토·승인한 뒤 동기화한다.
+현 제출 범위의 Node B를 **Ubuntu 22.04 + C++17 + SocketCAN + Qt 6 Quick/QML**로 구현한다.
 
-**Plan B 구성**: Ubuntu 22.04 + D-Bus 또는 gRPC 미들웨어 + Qt/Flutter 대시보드
-
-- Plan B에서도 "HAL 추상화 → Service 계층 → UI 분리"의 핵심 3계층 아키텍처 원칙 동일 유지
-- D-Bus: Linux 표준 IPC, Android Binder IPC와 개념적으로 동일한 계층 분리 경험 제공
-- Qt: AUTOSAR HMI 도메인에서 실제 사용되는 UI 프레임워크 (직무 어필 가능)
-
-**Trade-off 인지**: Android HAL/HIDL 직접 경험 포기. IVI 직무 어필 강도 감소.
-보완 전략: D-Bus/gRPC 계층 설계 경험 + "플랫폼 엔지니어링 관점의 아키텍처 설계"로 대체 어필.
+- 수신, SecOC, 상태 서비스, ViewModel, QML의 책임을 분리한다.
+- 첫 구현은 단일 프로세스로 구성하고 C++ 인터페이스로 계층 경계를 유지한다.
+- D-Bus/gRPC 프로세스 분리는 제출 후 확장으로 둔다.
+- CAN ID, DLC, byte order, HMAC 입력, rolling counter 규칙은 ICD 현행 계약을 유지한다.
+- Android AOSP, HIDL, Binder/AIDL, Jetpack Compose는 현 제출 범위에서 제외하고 과거 설계 자료로 보존한다.
+- ICD §8 sensorState는 별도 양 노드 동시 전환 전까지 활성 계약으로 취급하지 않는다.
 
 #### 결과
 
-- 2개월차 말 Go/No-Go 판단 이정표 명시 (SDD-IVI §3.4.6 대안 접근법)
-- Plan B 전환 시 `docs/SDD-IVI.md` §3, §4 업데이트 필요
+- ADR-004는 현 제출 범위에서 이 결정으로 대체된다.
+- SRS FR-IVI-001~008, SDD-IVI, TEST_PLAN, ICD의 Node B API를 Qt 경로로 동기화한다.
+- `ivi_platform/`은 C++/Qt 제품 경계가 되며 이전 소스는 파일별 검토 후 선택 이관한다.
+- Android 포팅 경험 대신 Linux IVI 계층 설계, CAN 보안 검증, Qt HMI 통합 결과를 시연한다.
 
 ---
 
@@ -442,7 +442,7 @@ ICD 설계 단계에서 공동 결정이 필요한 인터페이스 수준 결정
 #### 결과
 
 - `ICD §1.4`: 0x102/0x103 레이아웃 확정 (TruncatedMAC 4B + RollingCounter 4B)
-- Node B HAL: 0x100 수신 후 버퍼링 → 0x102 수신 시 MAC 검증 후 VehicleData 구성
+- Node B 수신 계층: 0x100 수신 후 버퍼링 → 0x102 수신 시 MAC 검증 후 VehicleData 구성
 
 ---
 
@@ -453,6 +453,7 @@ ICD 설계 단계에서 공동 결정이 필요한 인터페이스 수준 결정
 | v1.0 | 2026-03-01 | ADR-001, 002, 005, 010, 011, 012 초안 작성 | 팀원A, 팀원B |
 | v1.1 | 2026-03-10 | ADR-004, 006, 007 추가 (HIDL, QEMU, Docker) | 팀원A, 팀원B |
 | v1.2 | 2026-03-15 | ADR-003, 009 추가 (IDS 알고리즘, IDS 위치) | 팀원A, 팀원B |
+| v1.4 | 2026-09-22 | ADR-010 활성화, ADR-004 대체 표시, Qt Plan B 기준 확정 | 팀원B |
 | v1.3 | 2026-04-01 | ADR-008 추가 (Ablation Study 실험 설계) | 팀원A |
 
 
