@@ -192,6 +192,7 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 하드웨어 정보/컨버터O_배선완결판.html,하드웨어 정보/컨버터O_배선완결판.html,preserve,original bytes retained
 
 ,docs/development/governance/프로젝트구조_사용안내.md,add,new member structure and file purpose guide
+,docs/development/governance/IVI_Plan_B_진행상황_및_구조_안내.md,add,IVI Plan B onboarding and current progress guide
 ,docs/development/governance/commit.md,add,ECU and IVI GitHub version control execution manual
 커밋관련지침/SKILL.md,.agents/skills/commit/SKILL.md,preserve,pre-existing interactive commit skill
 커밋관련지침/rules.md,.agents/skills/commit/rules.md,preserve,pre-existing commit rules
@@ -203,3 +204,6 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,docs/aidlc/changes/CHG-001/aidlc-state.md,add,commit guidance change state
 
 ,docs/aidlc/changes/CHG-001/audit.md,add,commit guidance verification evidence
+,docs/aidlc/changes/CHG-002/spec.md,add,IVI Qt Plan B P0 scope
+,docs/aidlc/changes/CHG-002/aidlc-state.md,add,IVI Qt Plan B P0 state
+,docs/aidlc/changes/CHG-002/audit.md,add,IVI Qt Plan B P0 verification evidence

@@ -1,9 +1,9 @@
-> **개발 재개 시 읽기 경계(2026-09-09)**: 사용자 승인에 따라 §2.3·2.4·2.5.3의 현행 고정키 수신 규칙을 정정했다. §1~3의 기존 형식과 §8의 승인된 다음 목표를 혼용하지 않는다. 현행 규칙의 문구 충돌은 해소했다. 인증 세션 상세 전환은 별도이므로 [종합 검토 G1](development/reviews/문서_종합정합성_검토.md#계약실행-착수-관문)의 세션 검증·승인 전 재부팅 수신 보안 인수를 닫지 않는다. §2.5.1의 stale 요구는 기존 §3.1 필드에 없으며 §8 동시 전환으로 구현한다. 계약 변경의 승인·같은 변경 단위 동기화는 상위 작업 지침 AGENTS의 Default Workflow가 우선한다. §5의 문서 머지 후 각자 코드 수정 문장을 호환되지 않는 제품을 배포해도 된다는 허가로 해석하지 않는다.
+> **개발 재개 시 읽기 경계(2026-09-22)**: §1~2는 현행 CAN/SecOC wire 계약, §3은 ADR-010에 따른 Node B C++ Service API다. §8 sensorState byte 7은 승인된 다음 전환 목표이며 아직 활성 wire 계약이 아니다. 인증 세션 상세 전환도 별도 승인·양 노드 동시 반영 전까지 현행 고정키 규칙을 대체하지 않는다. 계약 변경은 AGENTS의 Default Workflow에 따라 ICD·양 노드 구현·시험을 같은 변경 단위로 동기화한다.
 
 > **문서명**: Interface Control Document (ICD)  
-> **버전**: v1.4 | **작성일**: 2026-03-01 | **최종 수정**: 2026-09-09  
+> **버전**: v1.5 | **작성일**: 2026-03-01 | **최종 수정**: 2026-09-22
 > **작성자**: 팀원A + 팀원B (공동 — 인터페이스 확정 후 각자 독립 개발 시작)  
-> **참조**: SRS v1.4, ADR-002 (SecOC 설계), ADR-009 (IDS 위치), ADR-012 (분리 프레임)  
+> **참조**: SRS v1.6, ADR-002 (SecOC 설계), ADR-009 (IDS 위치), ADR-010 (IVI Plan B), ADR-012 (분리 프레임)
 > **변경 관리**: 수정 시 GitHub Issue (`interface-change` 라벨) + 양측 합의 후 PR 머지
 
 ---
@@ -114,7 +114,7 @@ TruncatedMAC = MAC[0:4]  (앞 4바이트)
 3. `HMAC_Input = CAN_ID || RollingCounter || Payload` 재구성
 4. `HMAC-SHA256(SharedKey, HMAC_Input)` 재계산, 앞 4바이트 추출
 5. `hmac.compare_digest(수신MAC, 재계산MAC)` 비교 → 불일치 시 **폐기** (타이밍 공격 방지)
-6. 모든 검증 성공 시에만 마지막 인증 성공 counter를 갱신하고 HAL로 데이터를 전달한다. 실패하면 counter와 기존 전달 데이터를 유지한다.
+6. 모든 검증 성공 시에만 마지막 인증 성공 counter를 갱신하고 Node B Service로 데이터를 전달한다. 실패하면 counter와 기존 전달 데이터를 유지한다.
 
 ## 2.4. 롤링 카운터 규칙
 
@@ -142,7 +142,7 @@ TruncatedMAC = MAC[0:4]  (앞 4바이트)
 | --- | --- |
 | 1~3회 | `ERR_HMAC_VERIFY_FAIL` 로그 기록, 해당 메시지만 폐기 |
 | 4~9회 | 로그 레벨 WARNING 상향, IDS_Alert와 별개로 Node B 내부 보안 이벤트 기록 |
-| 10회 이상 | SecOC 키 동기화 오류 의심, Node B logcat CRITICAL 로그 + 대시보드에 "인증 오류" 경고 표시 |
+| 10회 이상 | SecOC 키 동기화 오류 의심, Node B 구조화 로그 CRITICAL 항목 + 대시보드에 "인증 오류" 경고 표시 |
 
 ### 2.5.3. 롤링 카운터 재동기화
 
@@ -154,71 +154,76 @@ TruncatedMAC = MAC[0:4]  (앞 4바이트)
 
 현행 고정키의 uint32 래핑은 유지하지만 last=0xFFFFFFFF 이후 0 수신은 동일 키의 정상 래핑과 재부팅을 구별하지 못한다. 위 정정만으로 재부팅·전체 counter 순환의 replay 위험을 해결했다고 주장하지 않는다.
 
-**승인된 다음 방향:** 인증된 세션을 통해 자동 복구한다. [세션 설계안](development/security/CAN_세션인증_설계안.md)의 상세 wire·키 파생·운영 수치는 사전 검증과 별도 승인 후 양측에 동시 적용한다. 새 세션 없이 고정키 counter를 초기화하는 것으로 대체하지 않는다. 이번 정정은 CAN ID·방향·DLC·바이트 배치·HMAC 입력 순서·HAL API를 변경하지 않는다.
+**승인된 다음 방향:** 인증된 세션을 통해 자동 복구한다. [세션 설계안](development/security/CAN_세션인증_설계안.md)의 상세 wire·키 파생·운영 수치는 사전 검증과 별도 승인 후 양측에 동시 적용한다. 새 세션 없이 고정키 counter를 초기화하는 것으로 대체하지 않는다. 이번 정정은 CAN ID·방향·DLC·바이트 배치·HMAC 입력 순서·Node B Service API를 변경하지 않는다.
 
 2026-09-09 사용자 승인: [현행 계약 정정안](development/security/CAN_세션인증_설계안.md#secoc-amendment). 이전 §2.3 단순 비교·§2.4 경계 설명·§2.5.3 범위 밖 MAC 재동기화는 이 절로 대체한다.
 
 ---
 
-# 3. Vehicle HAL API 명세
+# 3. Node B C++ Service API 명세
 
-## 3.1. HIDL 인터페이스 정의
+이 절은 ADR-010으로 활성화한 Plan B의 프로세스 내부 C++ 계약이다. CAN wire 계약인 §1~2를 변경하지 않는다. 첫 제출은 한 프로세스이며 D-Bus/gRPC 직렬화는 후속 범위다.
 
-```
-// IVehicleHal.hal
-package vehicle.hal@1.0;
+## 3.1. 데이터와 observer
 
+```cpp
 struct VehicleData {
-    float soc;              // 배터리 잔량 (%), 0.0 ~ 100.0
-    float soh;              // 배터리 건강도 (%), 0.0 ~ 100.0
-    float voltage;          // 팩 전압 (V)
-    float current;          // 충방전 전류 (A), 양수=충전
-    int8_t temperature;     // 셀 온도 (°C)
-    uint8_t failSafeState;  // 0=NORMAL, 1=WARNING, 2=CRITICAL, 3=SHUTDOWN
-    uint8_t failSafeReason; // Fail-safe 전이 사유 코드 (ICD 1.3 참조)
-    bool attackDetected;    // ML IDS 공격 탐지 여부
-    uint8_t attackType;     // 공격 유형 (0=None, 1=Fuzzy, 2=Replay, 3=Spoofing, 4=Flooding)
-    float anomalyScore;     // IDS 이상 점수 (0.00 ~ 2.55)
-    uint32_t timestamp;     // 데이터 수신 시각 (Unix epoch)
+    double socPercent;
+    double sohPercent;
+    double voltageV;
+    double currentA;
+    double temperatureC;
+    std::uint8_t failSafeState;
+    std::uint8_t failSafeReason;
+    std::uint8_t sensorState;  // §8 동시 전환 전에는 미지원
+    bool stale;
+    bool valid;
+    std::uint64_t receivedMonotonicNs;
 };
 
-interface IVehicleHal {
-    getVehicleData() generates (VehicleData data);
-    registerCallback(IVehicleHalCallback callback) generates (bool success);
-    unregisterCallback(IVehicleHalCallback callback) generates (bool success);
+struct SecurityAlert {
+    std::uint8_t attackType;
+    double anomalyScore;
+    std::uint16_t suspectCanId;
+    std::uint32_t sourceTimestamp;
 };
 
-interface IVehicleHalCallback {
-    onVehicleDataChanged(VehicleData data);
-    onSecurityAlert(uint8_t attackType, float anomalyScore, uint16_t suspectCanId);
-    onFailSafeTransition(uint8_t prevState, uint8_t newState, uint8_t reason);
+class IVehicleDataObserver {
+public:
+    virtual ~IVehicleDataObserver() = default;
+    virtual void onVehicleDataChanged(const VehicleData&) = 0;
+    virtual void onSecurityAlert(const SecurityAlert&) = 0;
+    virtual void onFailSafeTransition(std::uint8_t previous,
+                                      std::uint8_t current,
+                                      std::uint8_t reason) = 0;
 };
 ```
 
-## 3.2. HAL 동작 사양
+## 3.2. 서비스 동작
 
-| 항목 | 사양 |
+| API/항목 | 사양 |
 | --- | --- |
-| CAN 수신 방식 | 별도 스레드에서 SocketCAN `read()` 상시 대기 |
-| 데이터 갱신 트리거 | CAN 프레임 도착 시 즉시 (이벤트 기반) |
-| 콜백 호출 방식 | Push 방식 — 등록된 모든 콜백에 순차 호출 |
-| HMAC 검증 실패 처리 | 해당 데이터 폐기, 로그 기록, 콜백 호출 안 함 |
-| 스레드 안전성 | `std::mutex`로 콜백 리스트 보호 |
-| 에러 로그 | Android logcat `VehicleHAL` 태그로 출력 |
+| `latest()` | mutex로 보호한 최신 일관 snapshot의 복사본 반환 |
+| `registerObserver()` / `unregisterObserver()` | 중복 등록을 막고 수명 종료 후 호출하지 않음 |
+| 데이터 게시 | 0x100/0x101은 대응 SecOC 성공 뒤에만 게시. 0x200은 현 계약상 인증 비대상 |
+| 최초 상태 | 정상 인증 전 `valid=false`; 0을 실제 SOC로 표시하지 않음 |
+| timeout | 300ms 후 last-good를 유지하며 `stale=true`; 유효 메시지 수신 시 복구 |
+| UI 전달 | `DashboardViewModel`이 observer를 구현하고 Qt queued signal로 GUI thread에 전달 |
+| 오류 로그 | stderr/journald 또는 Qt logging category에 구조화해 기록 |
 
-## 3.3. 에러 코드 정의
+`sensorState`는 §8이 Node A/Node B에 같은 변경 단위로 반영되기 전까지 wire에서 읽지 않는다. byte 7을 독자적으로 활성화하지 않는다.
 
-| 에러 코드 | 이름 | 설명 |
+## 3.3. 에러 코드
+
+| 코드 | 이름 | 설명 |
 | --- | --- | --- |
 | 0 | OK | 정상 |
-| -1 | ERR_CAN_INIT_FAIL | SocketCAN can0 인터페이스 초기화 실패 |
+| -1 | ERR_CAN_INIT_FAIL | SocketCAN 인터페이스 초기화 실패 |
 | -2 | ERR_CAN_READ_FAIL | CAN 프레임 읽기 오류 |
-| -3 | ERR_HMAC_VERIFY_FAIL | HMAC 인증 실패 (MAC 불일치) |
-| -4 | ERR_COUNTER_MISMATCH | 롤링 카운터 윈도우 초과 |
-| -5 | ERR_CALLBACK_FULL | 콜백 등록 한도 초과 (최대 10개) |
-| -6 | ERR_UNKNOWN_CAN_ID | 등록되지 않은 CAN ID 수신 |
-
----
+| -3 | ERR_HMAC_VERIFY_FAIL | HMAC 인증 실패 |
+| -4 | ERR_COUNTER_MISMATCH | rolling counter 윈도우 거부 |
+| -5 | ERR_INVALID_FRAME | ID/DLC/RTR/ERR 또는 payload 형식 오류 |
+| -6 | ERR_UNKNOWN_CAN_ID | 등록되지 않은 CAN ID |
 
 # 4. ara::com 서비스 인터페이스 명세
 
@@ -269,7 +274,7 @@ struct FailSafeEvent {
 ## 6.1. 정상 인증 플로우 (Node A → Node B)
 
 ```
-Node A (ECU)                    CAN 버스                Node B (IVI HAL)
+Node A (ECU)                    CAN 버스                Node B (IVI Service)
      │                              │                         │
      │  BmsComponent.update()       │                         │
      │  ├─ EKF → SOC = 75.0%        │                         │
@@ -297,13 +302,13 @@ Node A (ECU)                    CAN 버스                Node B (IVI HAL)
      │                              │                         │
      │                              │   [검증 실패]            │
      │                              │   ERR_HMAC_VERIFY_FAIL   │
-     │                              │   폐기 + logcat 기록      │
+     │                              │   폐기 + 구조화 로그 기록      │
 ```
 
 ## 6.2. Replay 공격 차단 플로우
 
 ```
-공격자 노드                     CAN 버스                Node B (IVI HAL)
+공격자 노드                     CAN 버스                Node B (IVI Service)
      │                              │                         │
      │ (사전 캡처: Counter=42,       │                         │
      │  MAC=0xABCD1234)             │                         │
@@ -323,7 +328,7 @@ Node A (ECU)                    CAN 버스                Node B (IVI HAL)
 ## 6.3. IDS 공격 탐지 → Node B 경보 플로우
 
 ```
-공격자 노드    CAN 버스    [Node A] ML IDS       [Node B] HAL         App
+공격자 노드    CAN 버스    [Node A] ML IDS       [Node B] Service     Qt App
      │            │               │                    │               │
      │─ 공격 ────▶│               │                    │               │
      │            │─ 트래픽 수집 ─▶│                    │               │
@@ -357,11 +362,12 @@ Node A (ECU)                    CAN 버스                Node B (IVI HAL)
 | v1.2 | 2026-03-15 | 시퀀스 다이어그램 추가 (§6 SecOC 정상/Replay/IDS 탐지 플로우) | 팀원A |
 | v1.3 | 2026-05-09 | §2.5 CAN 통신 타임아웃 및 오류 복구 절차 추가 (수신 타임아웃, SecOC 연속 실패 에스컬레이션, 롤링 카운터 재동기화) | 팀원A, 팀원B |
 | v1.3 | 2026-05-09 | §1.4 키 파일 퍼미션 600→400 수정 (TARA TS-007 보안 권고 반영, 읽기 전용) | 팀원A |
+| v1.5 | 2026-09-22 | §3 Node B API를 HIDL에서 C++ Service/Qt 전달 계약으로 전환; §1~2 wire 계약 유지 | 팀원B |
 | v1.4 | 2026-09-06 | §1.3 Fail-safe 전이 사유 코드 `0x07`(Watchdog 재시작 3회 실패) 신설. SRS FR-BSW-006이 필수로 요구하는 전이를 표현할 코드가 없어 추가 | 팀원A, 팀원B |
 
 # 8. 승인된 다음 전환 목표 — S-3=A (제품 반영 전)
 
-2026-09-06 사용자 S-3=A는 아래 byte 7 상태표와 HAL 확장을 목표 계약으로 승인했다. **§1~3은 기존 형식, 본 절은 승인된 다음 전환 목표**다. 현 소스·생성 코드가 이미 이 확장을 지원한다는 뜻이 아니다. 한 실행에서 두 형식을 섞지 않으며 실제 전환 시 양측 구현·Python 참조·Mock·직렬화·시험을 같은 변경 단위로 동기화하고 버전을 확정한다. 이 계획 작업에서 제품 코드는 변경하지 않았다.
+2026-09-06 사용자 S-3=A는 아래 byte 7 상태표와 Node B 데이터 모델 확장을 목표 계약으로 승인했다. **§1~3은 현행 형식, 본 절은 승인된 다음 전환 목표**다. 현 소스가 이미 이 확장을 지원한다는 뜻이 아니다. 한 실행에서 두 형식을 섞지 않으며 실제 전환 시 양측 구현·Python 참조·Mock·직렬화·시험을 같은 변경 단위로 동기화하고 버전을 확정한다. 이 계획 작업에서 제품 코드는 변경하지 않았다.
 
 | 항목 | 기존 계약 | 승인된 목표 |
 |---|---|---|

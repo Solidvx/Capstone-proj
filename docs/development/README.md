@@ -28,6 +28,8 @@
 
 ## 운영·협업·자동화
 
+- [IVI Plan B 진행·구조 안내](governance/IVI_Plan_B_진행상황_및_구조_안내.md): IVI 현재 상태, M/P 단계, 폴더 구조와 다음 작업
+
 - [작업 흐름](workflow.md): 요청 분류·작업 기록·검증 진입점
 - [협업·형상관리 전략](governance/협업_형상관리전략.md): 역할·저장소·PR·인계 및 환경·실험·릴리즈 증거 관리
 - [GitHub 형상관리 실행 매뉴얼](governance/commit.md): ECU·IVI별 포함·제외 파일과 최초 등록·브랜치·커밋·PR·릴리즈 명령
@@ -42,7 +44,7 @@
 
 ## 환경·실험·결정
 
-- [Android 환경설정](environment/안드로이드_환경설정.md): 플랫폼 준비·환경 답변·서버 인계
+- [Android 환경설정](environment/안드로이드_환경설정.md): superseded된 과거 포팅 조사·인계 자료
 - [SOC 합성실험 결과](experiments/SOC_합성실험_결과.md): 특정 실험의 조건·수치·제품 반영 근거
 - [의사결정 기록](governance/의사결정_기록.md): 사용자 답변과 결정 원본
 

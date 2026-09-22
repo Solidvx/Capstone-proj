@@ -80,3 +80,7 @@ playbooks/·templates/·verification/·q2_validation/는 기존 위치를 유지
 [사람용 매뉴얼](../../development/governance/commit.md)은 governance/에, [공통 커밋 절차](../../../.agents/skills/commit/SKILL.md)와 [규칙](../../../.agents/skills/commit/rules.md)은 Codex skill 경로에 배치했다. [Claude 진입 문서](../../../.claude/skills/commit/SKILL.md)는 이 공통 원본을 참조한다. 기존 capstone-workflow와 루트 SKILL의 역할을 유지하며 커밋 작업에서만 상세 지침을 읽는다.
 
 기존 루트의 커밋 문서 3개는 위 위치로 이동했고 비워진 폴더만 제거했다. 최초 생성 위치·규칙은 [과거 기록](reference-changes.md)에 보존하며 현행 탐색에는 path-map의 applied_path를 사용한다. 변경 범위·검증·미실행 항목은 [CHG-001](../changes/CHG-001/aidlc-state.md), 실제 사용 조건은 [tooling](../../development/tooling.md#commit-skill)에 연결한다. 현재 파일 목록은 199개(tmp/ 제외)다.
+
+## IVI Qt Plan B 기준 동기화 — 2026-09-22
+
+[IVI Plan B 진행·구조 안내](../../development/governance/IVI_Plan_B_진행상황_및_구조_안내.md)를 governance에 추가했다. 이 문서는 IVI 담당자의 탐색·인계용이며 공식 계약은 ICD/SRS/SDD-IVI/TEST_PLAN, 실행 순서는 plan/IVI와 Plan B 전환 계획이 원본이다. 변경 범위와 검증은 [CHG-002](../changes/CHG-002/aidlc-state.md)에 기록한다.
