@@ -2,7 +2,7 @@
 
 > **결정일**: 2026-09-22
 > **결정**: Android AOSP 포팅을 현 제출 범위에서 제외하고, Ubuntu + C++17 + SocketCAN + Qt Quick/QML로 Node B를 구현한다.
-> **기준 브랜치**: 현 저장소 `main` (`70acbd34fcea`)
+> **통합 기준 브랜치**: 원격 `develop` (초기 생성 기준 `main`의 `70acbd34fcea`)
 > **기존 구현 출처**: 팀 보관본 `도토리팀_소스코드/Cap-proj`, Qt 기준 커밋 `c6d632c`
 > **계약 정본**: `docs/ICD.md`. CAN ID, payload, SecOC 규칙은 플랫폼 전환으로 바꾸지 않는다.
 
@@ -38,12 +38,12 @@ SocketCAN(can0/vcan0)
 
 ### 2.1 브랜치
 
-현재 원격에는 `develop`이 아직 없으므로 `main`의 기준 커밋 `70acbd34fcea`에서 다음 단일 통합 브랜치를 시작한다. 원격에 `develop`을 구성한 뒤 PR을 만들 경우 base는 팀 규약에 따라 `develop`으로 지정한다.
+원격 `develop`은 `main`의 기준 커밋 `70acbd34fcea`에서 생성되었다. 이후 IVI 작업은 최신 `develop`에서 기능 브랜치를 만들고 PR base를 `develop`으로 지정한다.
 
 ```bash
-git switch main
-git pull --ff-only
-git switch -c feat/ivi-plan-b
+git switch develop
+git pull --ff-only origin develop
+git switch -c feat/ivi-<topic>
 ```
 
 이전 저장소의 `develop`이나 `feat/#3-ivi-qt-dashboard`를 현재 저장소에 merge하지 않는다. 두 저장소의 문서와 이력이 갈라져 있고, 이전 작업 트리에는 삭제·수정·미추적 파일이 섞여 있기 때문이다. 필요한 파일만 가져오고 출처를 커밋 메시지와 PR 본문에 기록한다.
@@ -259,7 +259,7 @@ ivi_platform/
 
 ## 5. 병합 게이트
 
-`feat/ivi-plan-b`를 `main`에 병합하기 전에 다음을 모두 확인한다.
+`feat/ivi-plan-b`를 `develop`에 병합하기 전에 다음을 모두 확인한다.
 
 - [ ] 이전 저장소 전체 merge/cherry-pick 없이 선택 파일만 반입했다.
 - [ ] 빌드 산출물, 0바이트 Android 파일, 비밀키가 추적되지 않는다.
@@ -274,7 +274,7 @@ ivi_platform/
 
 | 단계 | 상태 | 산출물/검증 | 차단 요인 |
 |---|---|---|---|
-| P0 전환 기록 | 계획 완료 | 본 문서 | ADR/SRS 실제 갱신 대기 |
+| P0 전환 기록 | 완료 | ADR·SRS·ICD·SDD-IVI·TEST_PLAN·진행 안내 동기화 | 없음 |
 | P1 선택 이관 | 미착수 |  |  |
 | P2 CAN·SecOC 수정 | 미착수 |  |  |
 | P3 상태·UI | 미착수 |  |  |

@@ -1,6 +1,7 @@
-<!-- 생성 목적: Node B Android IVI 구현을 위한 공용 경계다. 현재 제품 소스·빌드·시험은 없다. 구체적인 파일은 plan/IVI.md와 docs/SDD-IVI.md의 실제 구현 과제에 따라 작성한다. 이번 구조안은 IVI 내부 제품 파일 목록을 정의하지 않으므로 임의의 Android/Qt 코드는 생성하지 않는다. 사용 목적: 협업 시 기록 위치와 책임 확인. 상태: 골격이며 실제 작업·시험 완료 기록 아님. -->
 # Node B IVI 구현 경계
 
-Node B Android IVI 구현을 위한 공용 경계다. 현재 제품 소스·빌드·시험은 없다. 구체적인 파일은 plan/IVI.md와 docs/SDD-IVI.md의 실제 구현 과제에 따라 작성한다. 이번 구조안은 IVI 내부 제품 파일 목록을 정의하지 않으므로 임의의 Android/Qt 코드는 생성하지 않는다.
+이 디렉터리는 ADR-010에 따라 Ubuntu 22.04, C++17, SocketCAN, Qt 6 Quick/QML로 구현할 Node B 제품 경계다.
 
-현재는 목적 안내만 작성했다. 실제 작업을 시작할 때 관련 계획 과제·공식 원본 경로·담당·입력·결과·증거를 기입한다. 비밀이나 실제 자격 증명은 넣지 않는다.
+2026-09-22 현재 제품 소스·CMake·시험은 없고 이 README만 있다. [IVI 계획](../plan/IVI.md)의 P1에서 이전 작업 폴더의 검토된 C++/QML 파일만 선택 이관한다. Android/HIDL/AIDL/Kotlin 파일, 빌드 산출물, 비밀키는 반입하지 않는다.
+
+구현 구조와 API는 [SDD-IVI](../docs/SDD-IVI.md), CAN/SecOC 계약은 [ICD](../docs/ICD.md), 합격 기준은 [TEST_PLAN](../docs/TEST_PLAN.md)을 따른다.

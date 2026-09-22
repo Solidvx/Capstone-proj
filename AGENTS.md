@@ -34,12 +34,12 @@
 |---|---|---|
 | Node A ECU | `adaptive_ecu/` | C++17, CMake, GoogleTest/CTest. 소스 존재와 시험 통과를 구분한다. |
 | Security/IDS | `security/` | Python SecOC, 공격·IDS·실험. 의존성은 `security/requirements.txt`. |
-| Node B IVI | `ivi_platform/` (예정) | 현재 구현 없음. Android AOSP가 주 계획, Qt는 전환 대안이다. |
+| Node B IVI | `ivi_platform/` (예정) | 현재 제품 구현 없음. ADR-010에 따라 Ubuntu/C++17/SocketCAN/Qt Quick Plan B가 현 실행 기준이다. |
 | 공식 문서 | `docs/` | 계약·요구사항·설계·시험의 source of truth. |
 | 실행 계획 | `plan/ECU.md`, `plan/IVI.md`, `plan/detail/common/00_협업_규약.md` | 상위 2개 계획과 `plan/detail/ecu/`, `ivi/`, `common/`의 상세 절차를 사용한다. 원문 보관 위치는 `plan/_archive/`다. 과거 별도 `Plan/` 원문은 통합·보관했으며 현재 실행 디렉토리는 소문자 `plan/`이다. 현재 구현의 증거가 아니다. |
 | 임시 산출물 | `tmp/` | `.gitignore` 대상. 보존이 필요한 최종 문서는 두지 않는다. |
 
-**스냅샷 갱신일 2026-09-10.** 현재 `Capstone-proj`는 `.git`이 없는 작업 폴더다. 브랜치·HEAD·dirty 상태·원격 ref는 확인할 수 없으며, Git이 없는 동안 파일 목록과 해시로 변경을 검증한다. ECU와 Python 보안·IDS 소스는 존재하지만 이번 문서 정리가 동작 검증을 의미하지 않는다. IVI의 유일한 0바이트 자리표시자는 정리했으며 Android/Qt 코드는 없다. M1~M8 단계 순서는 유지하고 사용자 지정 시연 마감은 2026-09-18이다. 단계별 실행 완료는 증거로 확인한다. 2026-09-09 사용자 요청으로 실행 계획 디렉토리를 소문자 `plan/`으로 변경했다. 과거 Plan 원문은 `_archive/`에 보존했다. 2026-09-09 사용자 요청으로 남아 있던 과거 문서 4개와 약어 안내 이미지를 삭제했다. 나머지 대상 문서 4개는 앞서 정리_이력.md로 통합되어 이미 없었으며 통합본은 보존했다. 과거 브랜치 설명은 역사 기록으로만 취급한다. 2026-09-10 재확인에서도 Git 메타데이터는 없으며 커밋 지침은 공통 `.agents/skills/commit/`·Claude 진입 `.claude/skills/commit/`·사람용 `docs/development/governance/commit.md`로 배치했다. CLI의 실제 skill 로딩은 미검증이다. 이 스냅샷은 작업 시작 때 재검증하고, 지침 파일을 수정하는 작업에서는 이 문단(갱신일 포함)도 함께 갱신한다.
+**스냅샷 갱신일 2026-09-22.** 현재 저장소는 Git 원격과 `main`·`develop` 브랜치가 있으며 실제 작업 시작 때 branch와 dirty 상태를 다시 확인한다. ECU와 Python 보안·IDS 소스는 존재하지만 문서 정리가 동작 검증을 의미하지 않는다. IVI 제품 코드는 아직 없고 `ivi_platform/README.md`만 있다. ADR-010에 따라 Ubuntu/C++17/SocketCAN/Qt Quick Plan B를 현 제출 경로로 선택했으며 P0 문서 기준을 동기화했다. Android 포팅 자료는 역사 자료다. 단계 완료는 실제 빌드·시험 증거로만 판정한다.
 
 현재 폴더에 없는 `CAR-ECU/`, `.github/` CI, `Dockerfile.arm64`, ARM64 toolchain, `.clang-format`, AOSP 소스는 존재한다고 가정하지 않는다. 초기 제안서는 `docs/archive/project-overview.md`에서 배경 자료로 보존한다.
 
@@ -58,7 +58,7 @@
 
 ### 고정 인터페이스 참조
 
-CAN ID·방향·주기·DLC·레이아웃은 [ICD](docs/ICD.md)의 CAN 메시지 규격, HMAC 입력·rolling-counter 예외 규칙은 SecOC 절, HAL API는 HAL 인터페이스 절을 직접 읽는다. 요약을 별도 유지하지 않는다.
+CAN ID·방향·주기·DLC·레이아웃은 [ICD](docs/ICD.md)의 CAN 메시지 규격, HMAC 입력·rolling-counter 예외 규칙은 SecOC 절, Node B API는 C++ Service API 절을 직접 읽는다. 요약을 별도 유지하지 않는다.
 
 ## 5. Default Workflow
 

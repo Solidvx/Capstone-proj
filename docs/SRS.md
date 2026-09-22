@@ -1,7 +1,7 @@
 > **문서명**: Software Requirements Specification (SRS)  
-> **버전**: v1.5 | **작성일**: 2026-03-01 | **최종 수정**: 2026-09-08  
+> **버전**: v1.6 | **작성일**: 2026-03-01 | **최종 수정**: 2026-09-22
 > **작성자**: 팀원A + 팀원B (공동)  
-> **참조**: ICD v1.4, ADR-003 (IDS 알고리즘), ADR-005 (EKF), ADR-008 (Ablation Study)  
+> **참조**: ICD v1.5, ADR-003 (IDS 알고리즘), ADR-005 (EKF), ADR-008 (Ablation Study), ADR-010 (IVI Plan B)
 > **표기**: 필수=Must Have / 권장=Should Have / 선택=Nice to Have
 
 ---
@@ -49,14 +49,14 @@
 
 | ID | 요구사항 | 우선순위 | 검증 방법 |
 | --- | --- | --- | --- |
-| FR-IVI-001 | Vehicle HAL은 CAN 수신 스레드를 상시 운영하며 새 프레임 도착 시 등록된 콜백을 호출해야 한다. | 필수 | CAN 전송 후 HAL 콜백 로그 확인 |
-| FR-IVI-002 | Vehicle HAL은 CAN ID별(0x100, 0x101, 0x102, 0x103, 0x200)로 VehicleData를 정확히 파싱해야 한다. | 필수 | 알려진 페이로드 전송 후 파싱 결과 값 비교 |
-| FR-IVI-003 | VehicleDataService는 `getSystemService("vehicle_data")`로 앱에서 접근 가능해야 한다. | 필수 | 테스트 앱에서 getSystemService 호출 성공 확인 |
-| FR-IVI-004 | VehicleDataService는 HAL 콜백 → Binder IPC → 앱 ViewModel의 StateFlow 경로로 실시간 데이터를 전달해야 한다. | 필수 | 앱에서 StateFlow 수신 확인 |
-| FR-IVI-005 | 대시보드 앱은 SOC를 원형 게이지로 표시하며 50% 이상=초록, 20~50%=주황, 20% 미만=빨강으로 표시해야 한다. | 필수 | UI 스크린샷으로 색상 코드 확인 |
-| FR-IVI-006 | 공격 탐지 시 상단의 빨간 경보 배너와 공격 유형을 즉시 완전히 표시해야 한다. 효과는 장식 요소에만 허용하며 경고 인지를 지연시키지 않는다. 사용자 확인까지 유지하고 새 경보는 다시 표시한다. | 필수 | 공격 시뮬레이션 중 UI 스크린샷 확인 |
-| FR-IVI-007 | CRITICAL/SHUTDOWN 상태 시 풀스크린 경고 팝업이 표시되어야 한다. | 필수 | Fail-safe 전이 시뮬레이션 후 팝업 표시 확인 |
-| FR-IVI-008 | 대시보드 앱은 StateFlow + collectAsState()로 100ms 주기 CAN 데이터를 지연 없이 반영해야 한다. | 필수 | 레이턴시 측정 테스트 |
+| FR-IVI-001 | `SocketCanReceiver`는 CAN 수신 worker를 운영하고 0x100/101/102/103/200의 정상 Classic CAN 프레임을 등록된 콜백에 전달해야 한다. | 필수 | vcan 전송 후 콜백 횟수와 종료 동작 확인 |
+| FR-IVI-002 | `CanParser`와 `SecOcVerifier`는 ICD에 따라 ID별 payload를 해석하고, 0x100/101은 대응 0x102/103의 MAC·counter 검증에 성공한 경우에만 게시해야 한다. | 필수 | 알려진 벡터, 변조 MAC, replay, wrap 경계 시험 |
+| FR-IVI-003 | `VehicleDataService`는 최신 일관 snapshot 조회와 observer 등록/해제를 C++ API로 제공해야 한다. | 필수 | 서비스 단위 시험에서 snapshot과 observer 호출 확인 |
+| FR-IVI-004 | 서비스는 Qt queued signal을 통해 `DashboardViewModel`의 `Q_PROPERTY`를 갱신해야 하며 수신 worker가 UI 객체를 직접 변경해서는 안 된다. | 필수 | thread affinity와 property 변경 signal 확인 |
+| FR-IVI-005 | QML 대시보드는 SOC를 원형 게이지로 표시하며 50% 이상=초록, 20% 이상 50% 미만=주황, 20% 미만=빨강으로 표시해야 한다. | 필수 | Qt Quick UI 시험과 캡처로 확인 |
+| FR-IVI-006 | 공격 탐지 시 빨간 경보 배너와 공격 유형을 즉시 완전히 표시하고 사용자 확인까지 유지하며 새 경보를 다시 표시해야 한다. | 필수 | QML 경보·ack 경쟁 시험 |
+| FR-IVI-007 | CRITICAL/SHUTDOWN 상태 시 전체 화면 경고를 표시해야 한다. | 필수 | 상태 전이 주입 후 QML overlay 확인 |
+| FR-IVI-008 | 대시보드는 100ms 주기 인증 데이터를 Qt property binding으로 반영하고 initial/invalid/stale 상태를 정상 측정값과 구분해야 한다. | 필수 | property 갱신 지연과 상태별 UI 시험 |
 
 ## 1.5. CI/CD 파이프라인
 
@@ -77,7 +77,7 @@
 
 | ID | 요구사항 | 목표값 | 측정 방법 |
 | --- | --- | --- | --- |
-| NFR-PERF-001 | CAN 수신 → Android UI 반영 end-to-end 레이턴시 | 평균 50ms 이하, 최대 100ms 이하 | 타임스탬프 차이 측정 (1000회 샘플링) |
+| NFR-PERF-001 | CAN 수신 → Qt/QML UI 반영 end-to-end 레이턴시 | 평균 50ms 이하, 최대 100ms 이하 | 타임스탬프 차이 측정 (1000회 샘플링) |
 | NFR-PERF-002 | BMS 데이터 CAN 전송 주기 정확도 | 100ms ± 10ms | candump 타임스탬프 편차 분석 |
 | NFR-PERF-003 | IDS 탐지 응답 시간 (공격 시작 → 경보 전송) | 3초 이하 | 공격 시작 시점 ~ 0x200 수신 시점 차이 |
 
@@ -122,7 +122,7 @@
 
 # 3. 요구사항 추적 매트릭스 (Traceability Matrix)
 
-2026-09-08 파일 대조. 아래 경로는 **존재**와 **예정**을 구분한다. 소스 존재는 요구 충족/시험 통과가 아니다. 49개 요구의 역할 과제·인계 연결은 [공동 의존성 §10](../plan/detail/common/01_연계_의존성.md#10-공식-요구사항에서-수행검증까지의-매핑)을 따른다.
+2026-09-22 파일 대조. 아래 경로는 **존재**와 **예정**을 구분한다. 소스 존재는 요구 충족/시험 통과가 아니다. 49개 요구의 역할 과제·인계 연결은 [공동 의존성 §10](../plan/detail/common/01_연계_의존성.md#10-공식-요구사항에서-수행검증까지의-매핑)을 따른다.
 
 | 요구사항 ID | SDD 섹션 | 소스 코드 모듈 | 테스트 케이스 ID |
 | --- | --- | --- | --- |
@@ -146,14 +146,14 @@
 | FR-SEC-005 | SDD-ECU 3.8 공격 시뮬레이터 | 존재: `security/attacks/traffic_gen.py` (합성); 예정: `security/attack_simulator.py`, 실 CAN 공격 CLI | TC-SEC-005 |
 | FR-SEC-006 | SDD-ECU 3.9 IDS 엔진 | 존재: `security/ids/if_detector.py`, `security/ids/feature_extractor.py`; 예정: 실시간 수집·모델 로드 루프 | TC-SEC-006 |
 | FR-SEC-007 | SDD-ECU 3.9.4 IDS 실행 환경 | 예정: `security/ids/ids_alerter.py` | TC-SEC-007 |
-| FR-IVI-001 | SDD-IVI 4.2 HAL | 예정: `ivi_platform/hal/vehicle_hal_impl.cpp` | TC-IVI-001 |
-| FR-IVI-002 | SDD-IVI 4.2 HAL | 예정: `ivi_platform/hal/can_parser.cpp` | TC-IVI-002 |
-| FR-IVI-003 | SDD-IVI 4.3 Service | 예정: `ivi_platform/service/VehicleDataService.java` | TC-IVI-003 |
-| FR-IVI-004 | SDD-IVI 4.3 Service | 예정: `ivi_platform/service/VehicleDataService.java` | TC-IVI-004 |
-| FR-IVI-005 | SDD-IVI 4.4 App | 예정: `ivi_platform/app/SocGauge.kt` | TC-IVI-005 |
-| FR-IVI-006 | SDD-IVI 4.4 App | 예정: `ivi_platform/app/AlertBanner.kt` | TC-IVI-006 |
-| FR-IVI-007 | SDD-IVI 4.4 App | 예정: `ivi_platform/app/DashboardScreen.kt` | TC-IVI-007 |
-| FR-IVI-008 | SDD-IVI 4.4 App | 예정: `ivi_platform/app/DashboardViewModel.kt` | TC-IVI-008 |
+| FR-IVI-001 | SDD-IVI 3.1 SocketCanReceiver | 예정: `ivi_platform/hal/socketcan_receiver.cpp` | TC-IVI-001 |
+| FR-IVI-002 | SDD-IVI 3.2~3.3 인증·파싱 | 예정: `ivi_platform/hal/can_parser.cpp`, `secoc_verifier.cpp` | TC-IVI-002 |
+| FR-IVI-003 | SDD-IVI 3.4 Service | 예정: `ivi_platform/service/vehicle_data_service.cpp` | TC-IVI-003 |
+| FR-IVI-004 | SDD-IVI 3.5 ViewModel | 예정: `ivi_platform/ui_qml/dashboard_view_model.cpp` | TC-IVI-004 |
+| FR-IVI-005 | SDD-IVI 3.6 QML | 예정: `ivi_platform/ui_qml/qml/SocGauge.qml` | TC-IVI-005 |
+| FR-IVI-006 | SDD-IVI 3.6 QML | 예정: `ivi_platform/ui_qml/qml/AlertBanner.qml` | TC-IVI-006 |
+| FR-IVI-007 | SDD-IVI 3.6 QML | 예정: `ivi_platform/ui_qml/qml/FailSafeOverlay.qml` | TC-IVI-007 |
+| FR-IVI-008 | SDD-IVI 3.4~3.6 | 예정: `ivi_platform/ui_qml/dashboard_view_model.cpp`, `qml/Main.qml` | TC-IVI-008 |
 | FR-CI-001 | CICD_SPEC §2.1 | 예정: `.github/workflows/ci.yml` | TC-CI-001 |
 | FR-CI-002 | CICD_SPEC §2.2 | 예정: `.github/workflows/ci.yml` | TC-CI-002 |
 | FR-CI-003 | CICD_SPEC §2.3 | 예정: `Dockerfile.arm64`, `toolchain-aarch64.cmake` | TC-CI-003 |
@@ -192,6 +192,7 @@
 | v1.2 | 2026-04-01 | NFR §2.5 목표값 근거 섹션 추가 | 팀원A |
 | v1.3 | 2026-05-09 | FR-BSW-006 (WatchdogManager), FR-BSW-007 (SensorSimulator) 추가 + 추적 매트릭스 업데이트 | 팀원A, 팀원B |
 | v1.4 | 2026-05-09 | FR-BSW-006 추적 매트릭스에 TC-BSW-007 추가, §3.1 NFR 추적 매트릭스 신규 작성 | 팀원A, 팀원B |
+| v1.6 | 2026-09-22 | FR-IVI-001~008과 추적 경로를 C++/Qt Plan B로 전환 | 팀원B |
 | v1.5 | 2026-09-06 | NFR-QA-003 검증 TC를 TC-CI-001→TC-CI-002로 정정 (TC-CI-001은 Actions 자동 기동, cppcheck는 TC-CI-002). FR-BSW-007에 모드 4종 한정 명시 | 팀원A, 팀원B |
 
 ## 승인된 범위 정합화 — S 서면 답변
