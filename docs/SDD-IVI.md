@@ -1,12 +1,12 @@
 > **문서명**: Software Design Document — Node B (IVI)
-> **버전**: v2.3 | **작성일**: 2026-03-15 | **최종 수정**: 2026-09-23 | **작성자**: 팀원B
+> **버전**: v2.4 | **작성일**: 2026-03-15 | **최종 수정**: 2026-09-23 | **작성자**: 팀원B
 > **참조**: ICD v1.5, SRS v1.6 (FR-IVI-*), ADR-010, IVI Plan B 전환 계획
 
 # 1. 목적과 현재 기준선
 
 이 문서는 Node B를 Ubuntu 22.04, C++17, SocketCAN, Qt Quick/QML로 구현하기 위한 설계 기준이다. CAN ID·DLC·바이트 순서·SecOC MAC/rolling counter 계약은 [ICD](ICD.md)를 그대로 따른다.
 
-2026-09-23 현재 `ivi_platform/`에는 P1 기준선, P2 CAN·SecOC, P3 상태·Qt UI와 P4 Linux vcan·계측이 있다. Linux aarch64 VM에서 Qt Release 9/9와 실제 `vcan0` 1,000표본을 검증했다. RPi4/MCP2515 `can0`와 물리 화면은 P5에서 별도 검증한다. Android AOSP, HIDL, Binder/AIDL, Jetpack Compose 설계는 과거 결정 기록으로만 유지한다.
+2026-09-23 현재 `ivi_platform/`에는 P1 기준선, P2 CAN·SecOC, P3 상태·Qt UI, P4 Linux vcan·계측과 P5 RPi 배포 코드가 있다. Linux aarch64 VM에서 Qt Release 9/9와 실제 `vcan0` 1,000표본을 검증했다. RPi4/MCP2515 `can0`와 물리 화면 실행은 별도 장비 증거가 필요하다. Android AOSP, HIDL, Binder/AIDL, Jetpack Compose 설계는 과거 결정 기록으로만 유지한다.
 
 # 2. 구조와 책임
 
@@ -46,7 +46,19 @@ ivi_platform/
 │   ├── send_ivi_test_vectors.py
 │   ├── measure_latency.py
 │   ├── run_vcan_integration.sh
-│   └── run_vcan_latency.sh
+│   ├── run_vcan_latency.sh
+│   ├── deploy_rpi.sh
+│   ├── install_rpi_dependencies.sh
+│   ├── build_rpi.sh
+│   ├── install_rpi.sh
+│   ├── provision_secoc_key.sh
+│   ├── rpi_preflight.sh
+│   └── setup_can0.sh
+├── deploy/rpi/
+│   ├── ivi-can0.service
+│   ├── ivi-dashboard.service
+│   ├── ivi-dashboard.env
+│   └── config.txt.fragment
 └── test/
     ├── test_can_parser.cpp
     ├── test_can_frame_validator.cpp
@@ -135,6 +147,8 @@ P4 계측 모드의 `--latency-csv`와 `--latency-samples`는 T1~T4 stage row를
 
 개발 환경은 `vcan0`, 실제 RPi4는 `can0`을 사용한다. 배포 전 Node A와 bitrate 500 kbps, CAN ID, 키, counter 초기화 정책을 함께 확인한다.
 
+RPi 배포는 clean Git commit archive를 SHA-256 검증 후 업로드한다. 제품 binary와 helper는 `/opt/ivi`, 환경과 32바이트 SecOC 키는 `/etc/ivi`에 두며 키는 저장소와 deploy archive에 포함하지 않는다. root oneshot이 `can0`만 구성하고 dashboard는 `ivi` 사용자와 `CAP_NET_RAW`으로 실행한다. 설치 직후 service는 비활성 상태를 유지하고 RPi4·can0·키 preflight 이후에만 운영자가 활성화한다.
+
 # 5. 검증 전략
 
 - 순수 단위 시험: parser 경계값, signed 변환, HMAC 정상/변조, counter replay/wrap.
@@ -154,3 +168,4 @@ P4 계측 모드의 `--latency-csv`와 `--latency-samples`는 T1~T4 stage row를
 | v2.1 | 2026-09-23 | P2 pending 100ms·교체·orphan, frame validator와 제한 수신 retry 구현 상태 반영 |
 | v2.2 | 2026-09-23 | P3 BMS 300ms stale, IDS sequence ack, Qt ViewModel·QML 경고와 실제 Qt 시험 반영 |
 | v2.3 | 2026-09-23 | P4 Linux vcan 통합시험, T1~T4 stage 계측·자동화와 1,000표본 결과 반영 |
+| v2.4 | 2026-09-23 | P5 RPi clean-commit 배포, can0·systemd·키·preflight 설치 설계 반영 |

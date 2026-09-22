@@ -56,4 +56,20 @@ CAN 장치 없이 P3 화면을 확인하려면 demo 상태를 사용한다.
 
 ## 다음 단계
 
-P5에서 RPi4/MCP2515 `can0` 물리 통합을 수행한다. 단계별 결과는 [P1](../docs/aidlc/changes/CHG-003/construction/P1_구현_결과.md), [P2](../docs/aidlc/changes/CHG-003/construction/P2_구현_결과.md), [P3](../docs/aidlc/changes/CHG-003/construction/P3_구현_결과.md), [P4](../docs/aidlc/changes/CHG-003/construction/P4_구현_결과.md), 전체 상태는 [CHG-003](../docs/aidlc/changes/CHG-003/aidlc-state.md)에 기록한다.
+P5의 RPi4 업로드·설치 코드는 준비됐다. 깨끗하게 커밋된 현재 HEAD를 RPi에 올리려면 저장소 루트에서 다음을 실행한다.
+
+```bash
+./ivi_platform/scripts/deploy_rpi.sh <user>@<rpi-host>
+```
+
+업로드 후 출력되는 RPi 경로에서 의존성 설치, Release 빌드와 설치를 순서대로 실행한다. `deploy_rpi.sh`는 git archive와 SHA-256을 사용하며 작업 트리의 미커밋 파일, SecOC 키, 로컬 빌드 산출물은 전송하지 않는다.
+
+```bash
+sudo ./ivi_platform/scripts/install_rpi_dependencies.sh
+./ivi_platform/scripts/build_rpi.sh
+sudo ./ivi_platform/scripts/install_rpi.sh
+sudo ./ivi_platform/scripts/provision_secoc_key.sh <32-byte-key-file>
+sudo systemctl enable --now ivi-can0.service ivi-dashboard.service
+```
+
+MCP2515 overlay는 `deploy/rpi/config.txt.fragment`를 실제 8MHz crystal과 GPIO25 INT 배선에 대조한 뒤 적용한다. 실제 장비 시험 전에는 [preflight](scripts/rpi_preflight.sh)가 모두 통과해야 한다. 단계별 결과는 [P1](../docs/aidlc/changes/CHG-003/construction/P1_구현_결과.md), [P2](../docs/aidlc/changes/CHG-003/construction/P2_구현_결과.md), [P3](../docs/aidlc/changes/CHG-003/construction/P3_구현_결과.md), [P4](../docs/aidlc/changes/CHG-003/construction/P4_구현_결과.md), [P5 배포 준비](../docs/aidlc/changes/CHG-003/construction/P5_배포_준비_결과.md), 전체 상태는 [CHG-003](../docs/aidlc/changes/CHG-003/aidlc-state.md)에 기록한다.
