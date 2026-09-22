@@ -33,6 +33,9 @@ struct VehicleSnapshot {
     std::optional<SecurityAlert> security_alert;
     std::uint64_t security_alert_sequence = 0;
     std::uint64_t last_good_age_ms = 0;
+    std::uint64_t measurement_sequence = 0;
+    std::uint64_t t1_received_ns = 0;
+    std::uint64_t t2_published_ns = 0;
     bool last_secoc_verified = false;
     std::uint32_t secoc_failure_count = 0;
     std::uint32_t consecutive_secoc_failure_count = 0;

@@ -97,6 +97,27 @@ private slots:
         QCOMPARE(model.thread(), QThread::currentThread());
     }
 
+    void measurementCarriesT1ThroughT3Once() {
+        DashboardViewModel model;
+        QSignalSpy measurements(&model, &DashboardViewModel::measurementReady);
+        ivi::VehicleSnapshot snapshot;
+        snapshot.vehicle.valid = true;
+        snapshot.measurement_sequence = 7;
+        snapshot.t1_received_ns = 100;
+        snapshot.t2_published_ns = 200;
+
+        model.updateSnapshot(snapshot);
+        QCOMPARE(measurements.count(), 1);
+        const auto values = measurements.takeFirst();
+        QCOMPARE(values.at(0).toULongLong(), qulonglong{7});
+        QCOMPARE(values.at(1).toULongLong(), qulonglong{100});
+        QCOMPARE(values.at(2).toULongLong(), qulonglong{200});
+        QVERIFY(values.at(3).toULongLong() >= qulonglong{200});
+
+        model.updateSnapshot(snapshot);
+        QCOMPARE(measurements.count(), 0);
+    }
+
     void queuedUpdateLatencyMeetsHostTarget() {
         DashboardViewModel model;
         std::vector<qint64> latencies;
