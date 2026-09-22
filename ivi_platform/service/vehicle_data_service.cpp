@@ -260,8 +260,12 @@ ProcessResult VehicleDataService::processAuth(std::uint32_t original_id,
         snapshot_.vehicle.valid = true;
         snapshot_.vehicle.stale = false;
         snapshot_.last_good_age_ms = 0;
+        const auto original_received_at = *state.pending_received_at;
         last_good_bms_at_ = received_at;
-        snapshot_.vehicle.received_monotonic_ns = monotonicNanoseconds(received_at);
+        snapshot_.vehicle.received_monotonic_ns = monotonicNanoseconds(original_received_at);
+        ++snapshot_.measurement_sequence;
+        snapshot_.t1_received_ns = monotonicNanoseconds(original_received_at);
+        snapshot_.t2_published_ns = monotonicNanoseconds(Clock::now());
     } else {
         const auto parsed = parseFailSafeEvent(*state.pending_payload);
         if (!parsed.has_value()) {

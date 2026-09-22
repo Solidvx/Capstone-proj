@@ -3,6 +3,8 @@
 #include <QMetaObject>
 #include <QThread>
 
+#include <chrono>
+
 DashboardViewModel::DashboardViewModel(QObject* parent) : QObject(parent) {}
 
 bool DashboardViewModel::valid() const { return snapshot_.vehicle.valid; }
@@ -87,6 +89,18 @@ void DashboardViewModel::updateSnapshot(const ivi::VehicleSnapshot& snapshot) {
     }
     snapshot_ = snapshot;
     emit dataChanged();
+    if (snapshot.measurement_sequence != 0U &&
+        snapshot.measurement_sequence != last_measurement_sequence_) {
+        last_measurement_sequence_ = snapshot.measurement_sequence;
+        const auto now = std::chrono::steady_clock::now();
+        const auto t3_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                               now.time_since_epoch())
+                               .count();
+        emit measurementReady(static_cast<qulonglong>(snapshot.measurement_sequence),
+                              static_cast<qulonglong>(snapshot.t1_received_ns),
+                              static_cast<qulonglong>(snapshot.t2_published_ns),
+                              static_cast<qulonglong>(t3_ns));
+    }
 }
 
 void DashboardViewModel::acknowledgeSecurityAlert() {
