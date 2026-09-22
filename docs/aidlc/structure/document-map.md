@@ -88,3 +88,7 @@ playbooks/·templates/·verification/·q2_validation/는 기존 위치를 유지
 ## IVI Qt Plan B P1 구현 — 2026-09-22
 
 [CHG-003](../changes/CHG-003/aidlc-state.md)은 로컬 보관본과 ECU 제공물을 기준으로 선택 이관한 IVI P1, CAN·SecOC 정책을 완성한 P2와 P3~P6 상태를 연결한다. 제품 코드는 `ivi_platform/`, 단계별 설명은 [P1 결과](../changes/CHG-003/construction/P1_구현_결과.md)와 [P2 결과](../changes/CHG-003/construction/P2_구현_결과.md), 실제 명령과 제한은 각 build-and-test 증거에 있다. Qt 화면·Linux vcan·물리 CAN은 현재 기록에서 통과로 판정하지 않는다.
+
+## IVI Qt 현행 안내 정정 — 2026-09-23
+
+현재 실행 진입점과 과거 Android 절차를 분리한 범위·검증은 [CHG-004](../changes/CHG-004/aidlc-state.md)에 기록한다. CHG-003의 P1 구현 기록도 develop 병합으로 현재 브랜치에 포함됐다.

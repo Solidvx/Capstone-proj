@@ -241,3 +241,6 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,ivi_platform/test/test_can_frame_validator.cpp,add,CHG-003 IVI Plan B P2 implementation
 ,ivi_platform/test/test_receive_retry_policy.cpp,add,CHG-003 IVI Plan B P2 implementation
 ,ivi_platform/test/test_vehicle_data_service_security.cpp,add,CHG-003 IVI Plan B P2 implementation
+,docs/aidlc/changes/CHG-004/spec.md,add,Qt current guidance consistency record
+,docs/aidlc/changes/CHG-004/aidlc-state.md,add,Qt current guidance consistency record
+,docs/aidlc/changes/CHG-004/audit.md,add,Qt current guidance consistency record

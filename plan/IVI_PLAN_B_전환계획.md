@@ -182,7 +182,7 @@ ivi_platform/
 **작업**
 
 - `vcan0` 준비 스크립트와 정상·변조·replay·timeout 시나리오를 자동화한다.
-- `send_ivi_test_vectors.py`를 현행 payload와 sensorState에 맞춘다.
+- `send_ivi_test_vectors.py`는 ICD §1~2의 현행 payload를 사용한다. sensorState는 §8 동시 전환 전에는 별도 목표 계약 시험으로 분리하며 현행 wire에 섞지 않는다.
 - `measure_latency.py`가 T1 CAN 송신, T2 수신, T3 상태 게시, T4 화면 반영을 구분해 수집하도록 보강한다.
 - 표본 수, 손실 수, 평균, p95, p99, 최대값을 결과에 기록한다.
 
@@ -220,7 +220,7 @@ ivi_platform/
 | `docs/ICD.md` | CAN/SecOC 계약 유지 | HIDL 전용 API 절의 적용 상태와 Plan B C++ 데이터 모델을 명확히 구분 |
 | `README.md` | 실제 IVI 빌드·실행 진입점 | 미구현 Android 명령 제거, vcan/can0 절차와 제한 기록 |
 
-이전 문서를 파일 단위로 덮어쓰지 않는다. 현 문서가 더 최신인 ICD v1.4, SRS v1.5, sensorState/stale 정책과 보안 후속 결정을 보존하면서 Plan B 관련 문단만 병합한다.
+이전 문서를 파일 단위로 덮어쓰지 않는다. 현행 ICD v1.5, SRS v1.6, SDD-IVI v2.0과 sensorState/stale 정책 및 보안 후속 결정을 보존하면서 Plan B 관련 문단만 병합한다.
 
 **CI 최소 범위**
 
