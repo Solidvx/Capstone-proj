@@ -6,10 +6,10 @@
 
 | 문서 | 역할 |
 |---|---|
-| [ICD](ICD.md) | CAN/SecOC/HAL 계약 |
+| [ICD](ICD.md) | CAN/SecOC와 Node B C++ Service 계약 |
 | [SRS](SRS.md) | 기능·비기능 요구사항과 추적성 |
 | [SDD-ECU](SDD-ECU.md) | Node A 설계 |
-| [SDD-IVI](SDD-IVI.md) | Android AOSP 주 경로의 Node B 설계 |
+| [SDD-IVI](SDD-IVI.md) | Ubuntu/C++/Qt Plan B의 Node B 설계 |
 | [TEST_PLAN](TEST_PLAN.md) | 공식 TC와 합격 기준 |
 | [ADR](ADR.md) | 채택 결정과 전환 대안 |
 | [TARA](TARA.md) | 위협·위험·완화 및 보안 실험 |
@@ -29,7 +29,8 @@
 - [계획 검토](development/reviews/계획_검토.md): 개선 제안·계획 인수 이력과 문서 검토 D1~D6·실행 관문 E1~E6
 - [의사결정 기록](development/governance/의사결정_기록.md): 질문·사용자 답변·반영 기록의 ID 색인, 하드웨어 정보
 - [현재 요구→역할 과제→시험 연결](../plan/detail/common/01_연계_의존성.md#10-공식-요구사항에서-수행검증까지의-매핑): 전체 49개 요구
-- [Android 환경설정](development/environment/안드로이드_환경설정.md): 후보 선정/서버 실행 인계, 실제 빌드 인수 미완료
+- [IVI Plan B 진행·구조 안내](development/governance/IVI_Plan_B_진행상황_및_구조_안내.md): 현재 상태, M/P 단계, 폴더 구조, 다음 작업
+- [Android 환경설정](development/environment/안드로이드_환경설정.md): superseded된 과거 포팅 조사 자료; 현 실행 기준 아님
 - [SOC·센서 구현 및 사전 검증 기록](development/experiments/SOC_합성실험_결과.md): 최신 절과 제품 실행 한계 구분
 - [세션 인증 후보](development/security/CAN_세션인증_설계안.md): 최신 §27~31의 승인 방향·상세 계약 관문; 현행 ICD 대체 아님
 - [보안 계획 구현 전 인계·진행현황](development/security/보안계획_구현전_인계_및_진행현황.md#planning-complete): 보안 계획의 읽기 순서·담당·설정 확정 절차와 계획/구현 인수 구분

@@ -1,6 +1,6 @@
 > **문서명**: Software Design Document — Node A (ECU) (SDD-ECU)  
 > **버전**: v1.6 | **작성일**: 2026-03-15 | **최종 수정**: 2026-09-08 | **작성자**: 팀원A  
-> **참조**: ICD v1.4, SRS v1.5 (FR-BSW-*, FR-BMS-*, FR-SEC-*), ADR-001/002/003/005/008/009/011/012
+> **참조**: ICD v1.5, SRS v1.6 (FR-BSW-*, FR-BMS-*, FR-SEC-*), ADR-001/002/003/005/008/009/011/012
 
 ---
 
@@ -14,7 +14,7 @@ Node A(ECU) 소프트웨어의 모듈 구조, 클래스 설계, 알고리즘, �
 
 ## 1.2. 참조 문서
 
-- ICD v1.4 (CAN 메시지 규격, HAL API 명세, SecOC 시퀀스 다이어그램)
+- ICD v1.5 (CAN 메시지 규격, Node B C++ Service API, SecOC 시퀀스 다이어그램)
 - SRS v1.5 (FR-BSW-*, FR-BMS-*, FR-SEC-*)
 - ADR.md (주요 기술 선택 근거)
 - AUTOSAR Adaptive Platform Specification R22-11

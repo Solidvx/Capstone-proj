@@ -1,12 +1,12 @@
 > **문서명**: CI/CD Pipeline Specification (CICD_SPEC)
-> **최종 검토**: 2026-09-08 · **상태**: 예정 명세. `.github/`, Dockerfile, toolchain, 배포 스크립트는 현재 없다.
+> **최종 검토**: 2026-09-22 · **상태**: 예정 명세. `.github/`, Dockerfile, toolchain, 배포 스크립트는 현재 없다.
 > **원천**: [SRS](SRS.md) FR-CI-001~006/NFR-QA, [TEST_PLAN](TEST_PLAN.md) TC-CI-001~006, ADR-006/007
 
 # 1. 개요
 
 ## 1.1. 목적
 
-Node A ECU의 정적 분석→ARM64 빌드→시험/커버리지→대상 배포를 자동화한다. Node B Android의 AOSP 모듈·앱 빌드/설치 증거는 별도 연결한다. 현재 폴더에는 Git 메타데이터도 없어 push/PR/required check는 실행할 수 없다.
+Node A ECU와 Node B C++/Qt IVI의 정적 분석→ARM64 빌드→시험/커버리지→대상 배포를 자동화한다. Git 원격과 `main`·`develop`은 존재하지만 `.github/` workflow와 배포 자동화는 아직 없다.
 
 ## 1.2. 파이프라인 4단계 요약
 
@@ -20,7 +20,7 @@ Stage 1 정적 분석 → Stage 2 ARM64 빌드 → Stage 3 시험·커버리지 
 | `.github/workflows/ci.yml` | 예정. 이벤트·jobs·품질 게이트 |
 | `Dockerfile.arm64`, `toolchain-aarch64.cmake` | 예정. 대상 compiler/runtime/의존성 |
 | `scripts/health_check.sh` | 예정. Node A 정상 데이터 확인·실패 코드 |
-| `ivi_platform/` | 미구현. Android 빌드/설치/시험을 Node A와 구분 |
+| `ivi_platform/` | 미구현. Qt 6/CMake 빌드·Qt Test·QML Test를 Node A와 구분해 추가할 대상 |
 
 # 2. GitHub Actions 파이프라인 상세
 
@@ -36,7 +36,7 @@ cppcheck Error 0건을 검사한다. SRS의 Critical/Error 표현을 실제 도�
 
 ## 2.3. Stage 2 — ARM64 크로스컴파일 빌드 (FR-CI-003)
 
-Docker에서 실제 CMake 타겟 `adaptive_ecu`를 빌드한다. 예를 들어 빌드 경로가 `build-arm64/`면 artifact는 `build-arm64/adaptive_ecu`다. `ecu_node_a`라는 없는 타겟명을 사용하지 않는다. compiler·sysroot·OpenSSL·GoogleTest의 ARM64 ABI를 확인하고 ELF 아키텍처·소스 revision·artifact hash를 보존한다.
+Docker에서 실제 CMake 타겟 `adaptive_ecu`를 빌드한다. IVI 소스가 생기면 Qt 6 ARM64 개발 패키지를 고정하고 `ivi_platform`의 CMake target도 별도 artifact로 빌드한다. 예를 들어 빌드 경로가 `build-arm64/`면 artifact는 `build-arm64/adaptive_ecu`다. `ecu_node_a`라는 없는 타겟명을 사용하지 않는다. compiler·sysroot·OpenSSL·GoogleTest의 ARM64 ABI를 확인하고 ELF 아키텍처·소스 revision·artifact hash를 보존한다.
 
 각 CI job은 독립 실행 환경이다. 앞 job에서 로컬로 만든 Docker 이미지를 다음 job에 존재한다고 가정하지 않는다. 고정 digest로 가져오거나 동일 정의로 재빌드하거나 save/load artifact 전달을 구현하고 검증한다.
 
@@ -51,7 +51,7 @@ Docker에서 실제 CMake 타겟 `adaptive_ecu`를 빌드한다. 예를 들어 �
 | Fail-safe Branch | `failsafe_sm.cpp`의 계측 분기 100% | BRDA/분기 분모 누락, 일부 분기 미계측 |
 | 결과 게시 | 원시 보고서·환경·제외 목록·요약 및 Codecov | 업로드 성공으로 실제 게이트 통과 대체 |
 
-동일 compiler 버전의 gcov와 lcov branch 수집 옵션을 확인한다. source/data mismatch를 무시하지 않는다. 미실행 소스도 분모에서 사라지지 않게 초기 계측 데이터를 병합한다. Python/Android 결과를 C++ coverage에 합산하지 않는다. TC-CI-004와 TC-BMS-004를 연결한다.
+동일 compiler 버전의 gcov와 lcov branch 수집 옵션을 확인한다. source/data mismatch를 무시하지 않는다. 미실행 소스도 분모에서 사라지지 않게 초기 계측 데이터를 병합한다. Python/Qt QML 결과를 ECU C++ coverage에 합산하지 않는다. IVI C++ coverage도 대상·분모를 별도로 보고한다. TC-CI-004와 TC-BMS-004를 연결한다.
 
 ## 2.5. Stage 4 — RPi4 자동 배포 + Health Check (FR-CI-005, FR-CI-006)
 
@@ -97,7 +97,7 @@ CI에서 Mock/가상 입력 단위시험과 실제 장비 시험을 구분한다
 
 # 7. ecu-node-a.service systemd 유닛
 
-Node A 대상 파일은 `/etc/systemd/system/ecu-node-a.service`다. 실행 파일·인자·작업 디렉토리·profile/키 권한의 정본은 [IVI M4 §3.4](../plan/detail/ivi/M4_대시보드_Alert_배포.md#34-systemd-유닛)에 둔다. Node B Android에 이 유닛을 적용하지 않는다. 서비스 재기동·완료 heartbeat·CAN 재개를 확인하며 SecOC counter/세션 복구는 별도 인수한다.
+Node A 대상 파일은 `/etc/systemd/system/ecu-node-a.service`다. 실행 파일·인자·작업 디렉토리·profile/키 권한의 정본은 [IVI M4 §3.4](../plan/detail/ivi/M4_대시보드_Alert_배포.md#34-systemd-유닛)에 둔다. Node B Qt 앱에는 별도 systemd 서비스/그래픽 세션 정책을 정의하고 이 Node A 유닛을 적용하지 않는다. 서비스 재기동·완료 heartbeat·CAN 재개를 확인하며 SecOC counter/세션 복구는 별도 인수한다.
 
 # 8. 요구사항 추적 매트릭스
 
