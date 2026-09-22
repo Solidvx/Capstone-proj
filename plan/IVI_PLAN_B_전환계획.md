@@ -275,9 +275,9 @@ ivi_platform/
 | 단계 | 상태 | 산출물/검증 | 차단 요인 |
 |---|---|---|---|
 | P0 전환 기록 | 완료 | ADR·SRS·ICD·SDD-IVI·TEST_PLAN·진행 안내 동기화 | 없음 |
-| P1 선택 이관 | 미착수 |  |  |
-| P2 CAN·SecOC 수정 | 미착수 |  |  |
-| P3 상태·UI | 미착수 |  |  |
-| P4 vcan·계측 | 미착수 |  |  |
+| P1 선택 이관 | 완료 | CMake/core/SocketCAN/Qt 기준 코드, Debug·Release CTest 각 3/3 | Qt 앱 빌드는 P3에서 검증 |
+| P2 CAN·SecOC 수정 | 일부 기반 반영 | 인증 후 게시, 상태 분리, counter wrap, IDS 유지 | timeout·덮어쓰기·수신 복구·전체 경계 시험 |
+| P3 상태·UI | 기준 화면 준비 | QObject view model과 QML 기본 화면 | stale·IDS ack·전체 화면 경고·Qt 시험 |
+| P4 vcan·계측 | 준비물 일부 추가 | 벡터 송신기·latency 요약기 | Linux vcan·T1~T4 자동 계측 |
 | P5 물리 통합 | 미착수 |  | 장비 가용성 |
-| P6 문서·CI·데모 | 미착수 |  |  |
+| P6 문서·CI·데모 | 기록 기반 준비 | `docs/aidlc/changes/CHG-003/` | CI·공식 증거·데모 |

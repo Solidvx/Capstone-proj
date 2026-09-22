@@ -85,6 +85,10 @@ playbooks/·templates/·verification/·q2_validation/는 기존 위치를 유지
 
 [IVI Plan B 진행·구조 안내](../../development/governance/IVI_Plan_B_진행상황_및_구조_안내.md)를 governance에 추가했다. 이 문서는 IVI 담당자의 탐색·인계용이며 공식 계약은 ICD/SRS/SDD-IVI/TEST_PLAN, 실행 순서는 plan/IVI와 Plan B 전환 계획이 원본이다. 변경 범위와 검증은 [CHG-002](../changes/CHG-002/aidlc-state.md)에 기록한다.
 
+## IVI Qt Plan B P1 구현 — 2026-09-22
+
+[CHG-003](../changes/CHG-003/aidlc-state.md)은 로컬 보관본과 ECU 제공물을 기준으로 선택 이관한 IVI P1 구현, 실제 core 빌드·시험, P2~P6 상태를 연결한다. 제품 코드는 `ivi_platform/`, 변경 설명은 [P1 구현 결과](../changes/CHG-003/construction/P1_구현_결과.md), 실제 명령과 제한은 [P1 증거](../changes/CHG-003/construction/build-and-test/evidence.md)에 있다. Qt 화면·Linux vcan·물리 CAN은 이 기록에서 통과로 판정하지 않는다.
+
 ## IVI Qt 현행 안내 정정 — 2026-09-23
 
-현재 실행 진입점과 과거 Android 절차를 분리한 범위·검증은 [CHG-004](../changes/CHG-004/aidlc-state.md)에 기록한다. CHG-003은 다른 브랜치의 기존 작업 번호로 보존한다.
+현재 실행 진입점과 과거 Android 절차를 분리한 범위·검증은 [CHG-004](../changes/CHG-004/aidlc-state.md)에 기록한다. CHG-003의 P1 구현 기록도 develop 병합으로 현재 브랜치에 포함됐다.

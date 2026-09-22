@@ -6,7 +6,15 @@
 - [참조 수정 기록](structure/reference-changes.md) · [보존·검증 결과](structure/verification.md)
 - [작업 흐름](../development/workflow.md) · [기록 양식](../development/README.md)
 
-실제 개발 작업이 생기면 changes/CHG-번호/에 기록한다. 현재는 제품 작업을 시작하지 않았으므로 가상의 CHG나 빈 inception/construction 폴더를 만들지 않았다. 작은 변경은 change.md, 다단계는 spec.md와 aidlc-state.md를 사용하며 상태를 중복 관리하지 않는다.
+실제 개발 작업은 changes/CHG-번호/에 기록한다. 작은 변경은 change.md, 다단계는 spec.md와 aidlc-state.md를 사용하며 상태를 중복 관리하지 않는다.
+
+## 실제 작업 기록
+
+- [CHG-001](changes/CHG-001/aidlc-state.md): 커밋 지침 배치
+- [CHG-002](changes/CHG-002/aidlc-state.md): IVI Qt Plan B P0 문서 기준
+- [CHG-003](changes/CHG-003/aidlc-state.md): IVI Plan B P1~P6 진행 상태
+  - [P1 구현 결과](changes/CHG-003/construction/P1_구현_결과.md)
+  - [P1 빌드·시험 증거](changes/CHG-003/construction/build-and-test/evidence.md)
 
 inception/은 기존 구현 조사·요구·설계·작업 분해, construction/은 작업 단위별 설계·실제 변경 경로·build-and-test/의 검증 근거를 수용한다. 조건부 폴더는 필요할 때 생성한다. construction/.../code/에도 제품 코드를 복제하지 않고 원래 소스 경로와 변경 요약을 둔다.
 

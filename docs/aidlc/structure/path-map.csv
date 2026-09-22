@@ -207,6 +207,32 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,docs/aidlc/changes/CHG-002/spec.md,add,IVI Qt Plan B P0 scope
 ,docs/aidlc/changes/CHG-002/aidlc-state.md,add,IVI Qt Plan B P0 state
 ,docs/aidlc/changes/CHG-002/audit.md,add,IVI Qt Plan B P0 verification evidence
+,docs/aidlc/changes/CHG-003/spec.md,add,CHG-003 IVI Qt Plan B P1 implementation or evidence
+,docs/aidlc/changes/CHG-003/aidlc-state.md,add,CHG-003 IVI Qt Plan B P1 implementation or evidence
+,docs/aidlc/changes/CHG-003/audit.md,add,CHG-003 IVI Qt Plan B P1 implementation or evidence
+,docs/aidlc/changes/CHG-003/construction/build-and-test/evidence.md,add,CHG-003 IVI Qt Plan B P1 implementation or evidence
+,ivi_platform/CMakeLists.txt,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/hal/can_types.h,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/hal/can_parser.h,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/hal/can_parser.cpp,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/hal/secoc_verifier.h,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/hal/secoc_verifier.cpp,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/hal/socketcan_receiver.h,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/hal/socketcan_receiver.cpp,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/service/vehicle_data_service.h,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/service/vehicle_data_service.cpp,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/ui_qml/main.cpp,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/ui_qml/dashboard_view_model.h,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/ui_qml/dashboard_view_model.cpp,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/ui_qml/qml/Main.qml,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/scripts/check_qt_ivi_env.sh,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/scripts/send_ivi_test_vectors.py,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/scripts/measure_latency.py,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/test/test_support.h,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/test/test_can_parser.cpp,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/test/test_secoc_verifier.cpp,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/test/test_vehicle_data_service.cpp,add,CHG-003 IVI Qt Plan B P1 implementation
+,docs/aidlc/changes/CHG-003/construction/P1_구현_결과.md,add,CHG-003 IVI Plan B P1 implementation summary
 ,docs/aidlc/changes/CHG-004/spec.md,add,Qt current guidance consistency record
 ,docs/aidlc/changes/CHG-004/aidlc-state.md,add,Qt current guidance consistency record
 ,docs/aidlc/changes/CHG-004/audit.md,add,Qt current guidance consistency record

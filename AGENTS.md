@@ -34,12 +34,12 @@
 |---|---|---|
 | Node A ECU | `adaptive_ecu/` | C++17, CMake, GoogleTest/CTest. 소스 존재와 시험 통과를 구분한다. |
 | Security/IDS | `security/` | Python SecOC, 공격·IDS·실험. 의존성은 `security/requirements.txt`. |
-| Node B IVI | `ivi_platform/` (예정) | 현재 제품 구현 없음. ADR-010에 따라 Ubuntu/C++17/SocketCAN/Qt Quick Plan B가 현 실행 기준이다. |
+| Node B IVI | `ivi_platform/` | Ubuntu/C++17/SocketCAN/Qt Quick Plan B. P1 core·기준 UI가 있으며 후속 단계 완료 여부는 시험 증거로 판단한다. |
 | 공식 문서 | `docs/` | 계약·요구사항·설계·시험의 source of truth. |
 | 실행 계획 | `plan/ECU.md`, `plan/IVI.md`, `plan/detail/common/00_협업_규약.md` | 상위 2개 계획과 `plan/detail/ecu/`, `ivi/`, `common/`의 상세 절차를 사용한다. 원문 보관 위치는 `plan/_archive/`다. 과거 별도 `Plan/` 원문은 통합·보관했으며 현재 실행 디렉토리는 소문자 `plan/`이다. 현재 구현의 증거가 아니다. |
 | 임시 산출물 | `tmp/` | `.gitignore` 대상. 보존이 필요한 최종 문서는 두지 않는다. |
 
-**스냅샷 갱신일 2026-09-23.** 현재 저장소는 Git 원격과 `main`·`develop` 브랜치가 있으며 실제 작업 시작 때 branch와 dirty 상태를 다시 확인한다. ECU와 Python 보안·IDS 소스는 존재하지만 문서 정리가 동작 검증을 의미하지 않는다. IVI 제품 코드는 아직 없고 `ivi_platform/README.md`만 있다. ADR-010에 따라 Ubuntu/C++17/SocketCAN/Qt Quick Plan B를 현 제출 경로로 선택했으며 P0 문서 기준을 동기화했다. 2026-09-23 현재 `chore/ecu-m1-baseline`의 기준 커밋은 `8907445`이며 IVI 제품 파일은 README뿐이다. 다른 브랜치의 P1 구현을 현재 구현으로 간주하지 않는다. Qt 현행 안내와 역사 자료의 읽기 경계를 재정리했다. Android 포팅 자료는 역사 자료다. 단계 완료는 실제 빌드·시험 증거로만 판정한다.
+**스냅샷 갱신일 2026-09-23.** 현재 저장소는 Git 원격과 `main`·`develop` 브랜치가 있으며 실제 작업 시작 때 branch와 dirty 상태를 다시 확인한다. ECU와 Python 보안·IDS 소스가 존재한다. `docs/ivi-qt-guidance`에 `develop`의 P1 구현을 병합하여 IVI의 C++ SocketCAN·SecOC·Service·Qt/QML 소스와 시험이 현재 작업 트리에 있다. ADR-010의 Ubuntu/C++17/SocketCAN/Qt Quick Plan B를 현 제출 기준으로 유지한다. CHG-003에는 core Debug/Release 시험 각 3/3 통과가 기록돼 있으나 이번 문서 충돌 해결에서 재실행한 결과는 아니다. Qt·vcan·물리 통합·CI는 후속 증거가 필요하다. Qt 현행 안내와 역사 자료의 읽기 경계를 정리했으며 Android 포팅 자료는 역사 자료다. 단계 완료는 실제 빌드·시험 증거로만 판정한다.
 
 현재 폴더에 없는 `CAR-ECU/`, `.github/` CI, `Dockerfile.arm64`, ARM64 toolchain, `.clang-format`, AOSP 소스는 존재한다고 가정하지 않는다. 초기 제안서는 `docs/archive/project-overview.md`에서 배경 자료로 보존한다.
 
