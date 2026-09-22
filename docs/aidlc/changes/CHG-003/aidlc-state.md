@@ -6,6 +6,8 @@
 
 이 문서는 Plan B 실행 단계 P1~P6의 실제 상태와 결과물 위치를 갱신하는 작업 원본이다. 계획의 정의와 순서는 `plan/IVI_PLAN_B_전환계획.md`, CAN/SecOC 계약은 `docs/ICD.md`가 우선한다.
 
+P1에서 실제로 구현한 내용과 결과물별 설명은 [P1 구현 결과](construction/P1_구현_결과.md), 실행 명령과 시험 근거는 [P1 빌드·시험 증거](construction/build-and-test/evidence.md)에 정리한다.
+
 ## 전체 상태
 
 | 단계 | 상태 | 이번 결과 | 남은 완료 조건 |
@@ -31,6 +33,7 @@
 | 단위 시험 | `ivi_platform/test/` | parser, verifier, 인증 게시 정책 회귀 시험 |
 | 실행 보조 | `ivi_platform/scripts/` | 환경 점검, 벡터 송신, latency 요약 |
 | 사용 안내 | `ivi_platform/README.md` | 빌드·실행·현재 제한 |
+| P1 구현 결과 | `construction/P1_구현_결과.md` | 반입 근거, 구현 내용, 결과물, 검증과 남은 범위 |
 | 실행 증거 | `construction/build-and-test/evidence.md` | 실제 명령, 환경, 결과, 미실행 범위 |
 
 ## 다음 실행 순서

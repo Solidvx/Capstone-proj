@@ -232,3 +232,4 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,ivi_platform/test/test_can_parser.cpp,add,CHG-003 IVI Qt Plan B P1 implementation
 ,ivi_platform/test/test_secoc_verifier.cpp,add,CHG-003 IVI Qt Plan B P1 implementation
 ,ivi_platform/test/test_vehicle_data_service.cpp,add,CHG-003 IVI Qt Plan B P1 implementation
+,docs/aidlc/changes/CHG-003/construction/P1_구현_결과.md,add,CHG-003 IVI Plan B P1 implementation summary

@@ -33,4 +33,4 @@ Qt 앱 실행 시 32바이트 SecOC 키와 CAN 인터페이스를 명시한다. 
 
 ## 다음 단계
 
-P2에서 pending timeout, 새 원본 덮어쓰기 정책, SocketCAN 오류 재시도 및 전체 counter/프레임 경계 시험을 완성한다. P3에서 stale timer, IDS 확인 동작, CRITICAL/SHUTDOWN 전체 화면 경고와 Qt 시험을 추가한다. 전체 상태는 [CHG-003](../docs/aidlc/changes/CHG-003/aidlc-state.md)에 기록한다.
+P2에서 pending timeout, 새 원본 덮어쓰기 정책, SocketCAN 오류 재시도 및 전체 counter/프레임 경계 시험을 완성한다. P3에서 stale timer, IDS 확인 동작, CRITICAL/SHUTDOWN 전체 화면 경고와 Qt 시험을 추가한다. P1의 상세 구현과 결과는 [P1 구현 결과](../docs/aidlc/changes/CHG-003/construction/P1_구현_결과.md), 전체 상태는 [CHG-003](../docs/aidlc/changes/CHG-003/aidlc-state.md)에 기록한다.
