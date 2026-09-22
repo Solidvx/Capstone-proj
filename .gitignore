@@ -96,6 +96,7 @@ out/
 .gradle/
 ivi_platform/app/build/
 ivi_platform/*/build/
+ivi_platform/build*/
 
 # Android 로컬 설정 (개발자마다 경로 다름)
 local.properties
