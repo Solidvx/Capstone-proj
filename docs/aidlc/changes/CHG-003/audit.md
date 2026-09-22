@@ -1,0 +1,22 @@
+# CHG-003 감사 기록
+
+## 계약 대조
+
+- CAN ID `0x100`, `0x101`, `0x102`, `0x103`, `0x200`을 변경하지 않았다.
+- 모든 Classic CAN payload는 8바이트로 처리한다.
+- SecOC 입력은 `CAN_ID(2B BE) || rolling_counter(4B BE) || payload(8B)`이며 HMAC-SHA256 앞 4바이트를 비교한다.
+- 테스트 더미 키는 ECU 시험과 같은 `00 01 ... 1f`이며 제품 키 파일은 추가하지 않았다.
+- ECU BMS 예제 `96 BE 10 68 FF EC 41 00`과 counter 0의 MAC `D0 DD FC 05`를 회귀 시험에 사용했다.
+
+## 보관본 처리
+
+- 계획에 고정된 6개 파일의 SHA-256 일치를 확인했다.
+- 과거 저장소 전체, `.git`, Android 자리표시자, 빌드 산출물은 반입하지 않았다.
+- 과거 구현의 인증 전 게시, signed counter 비교, BMS 갱신 시 IDS 해제 동작은 현재 서비스에 반영하지 않았다.
+
+## 완료 판정 제한
+
+- P1 core 빌드·단위 시험만 이 호스트에서 통과로 판정한다.
+- macOS에는 Qt 6가 없어 Qt target 및 화면은 미검증이다.
+- macOS에는 Linux SocketCAN/vcan이 없어 실제 수신·통합은 미실행이다.
+- RPi4, 물리 `can0`, 성능, 장시간 안정성, CI는 P4~P6의 후속 증거가 필요하다.

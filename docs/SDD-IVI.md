@@ -6,7 +6,7 @@
 
 이 문서는 Node B를 Ubuntu 22.04, C++17, SocketCAN, Qt Quick/QML로 구현하기 위한 설계 기준이다. CAN ID·DLC·바이트 순서·SecOC MAC/rolling counter 계약은 [ICD](ICD.md)를 그대로 따른다.
 
-2026-09-22 현재 `ivi_platform/`에는 안내 README만 있고 제품 소스·빌드·시험 결과는 없다. 아래 트리와 클래스는 P1 이후 만들 목표이며 구현 완료를 뜻하지 않는다. Android AOSP, HIDL, Binder/AIDL, Jetpack Compose 설계는 과거 결정 기록으로만 유지한다.
+2026-09-22 현재 `ivi_platform/`에는 P1 parser·SecOC·service·SocketCAN과 Qt/QML 기준 코드가 있다. Qt와 Linux SocketCAN을 제외한 core는 macOS arm64의 CMake Debug/Release에서 각 3개 시험을 통과했다. 아래 설계 중 pending timeout, stale, IDS 확인, 전체 화면 경고와 실 CAN 복구는 P2~P4 목표이며 아직 완료를 뜻하지 않는다. Android AOSP, HIDL, Binder/AIDL, Jetpack Compose 설계는 과거 결정 기록으로만 유지한다.
 
 # 2. 구조와 책임
 
@@ -29,25 +29,27 @@ VehicleDataService
 ivi_platform/
 ├── CMakeLists.txt
 ├── README.md
-├── app/main.cpp
 ├── hal/
 │   ├── socketcan_receiver.{h,cpp}
 │   ├── can_parser.{h,cpp}
 │   └── secoc_verifier.{h,cpp}
 ├── service/vehicle_data_service.{h,cpp}
 ├── ui_qml/
+│   ├── main.cpp
 │   ├── dashboard_view_model.{h,cpp}
 │   └── qml/
-│       ├── Main.qml
-│       ├── SocGauge.qml
-│       ├── AlertBanner.qml
-│       └── FailSafeOverlay.qml
+│       └── Main.qml
+├── scripts/
+│   ├── check_qt_ivi_env.sh
+│   ├── send_ivi_test_vectors.py
+│   └── measure_latency.py
 └── test/
     ├── test_can_parser.cpp
     ├── test_secoc_verifier.cpp
-    ├── test_vehicle_data_service.cpp
-    └── tst_dashboard.qml
+    └── test_vehicle_data_service.cpp
 ```
+
+이 트리의 파일은 현재 존재한다. QML 컴포넌트 분리와 Qt Quick Test는 P3에서 필요에 따라 추가한다.
 
 # 3. 모듈 설계
 
