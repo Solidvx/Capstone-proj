@@ -16,10 +16,17 @@
 
 ## 완료 판정 제한
 
-- P1~P2 core 빌드·단위 시험만 이 호스트에서 통과로 판정한다.
-- macOS에는 Qt 6가 없어 Qt target 및 화면은 미검증이다.
+- P1~P3 core·Qt Debug/Release 빌드와 단위 시험만 이 호스트에서 통과로 판정한다.
+- Homebrew Qt 6.11.2 앱 빌드, ViewModel 시험과 offscreen demo 렌더를 검증했다. 실제 Linux/RPi 화면 증거는 아니다.
 - macOS에는 Linux SocketCAN/vcan이 없어 실제 수신·통합은 미실행이다.
 - RPi4, 물리 `can0`, 성능, 장시간 안정성, CI는 P4~P6의 후속 증거가 필요하다.
+
+## P3 정책 판단
+
+- stale은 마지막 인증 성공 BMS 기준 300ms이며 Fail-safe·IDS 이벤트가 이 시각을 갱신하지 않는다.
+- IDS 확인은 sequence가 일치할 때만 현재 경보를 닫아 새 경보와의 경쟁을 방지한다.
+- ICD §8이 아직 활성 wire 계약이 아니므로 sensorState를 UI 모델에 준비하되 현행 byte 7은 해석하지 않았다.
+- Qt T2→T3 측정은 host signal 구간으로 한정하고 CAN·scene graph·display 지연으로 확대하지 않았다.
 
 ## P2 정책 판단
 

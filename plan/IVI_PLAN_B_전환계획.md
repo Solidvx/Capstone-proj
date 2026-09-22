@@ -275,9 +275,9 @@ ivi_platform/
 | 단계 | 상태 | 산출물/검증 | 차단 요인 |
 |---|---|---|---|
 | P0 전환 기록 | 완료 | ADR·SRS·ICD·SDD-IVI·TEST_PLAN·진행 안내 동기화 | 없음 |
-| P1 선택 이관 | 완료 | CMake/core/SocketCAN/Qt 기준 코드, Debug·Release CTest 각 3/3 | Qt 앱 빌드는 P3에서 검증 |
+| P1 선택 이관 | 완료 | CMake/core/SocketCAN/Qt 기준 코드, Debug·Release CTest 각 3/3 | Qt 앱 빌드는 P3에서 완료 |
 | P2 CAN·SecOC 수정 | 완료 | pending 만료·교체·orphan, 두 쌍 분리, frame validator, retry 정책, Debug·Release 각 6/6 | Linux 실제 수신은 P4 vcan에서 검증 |
-| P3 상태·UI | 기준 화면 준비 | QObject view model과 QML 기본 화면 | stale·IDS ack·전체 화면 경고·Qt 시험 |
+| P3 상태·UI | 완료 | 300ms stale/last-good, IDS sequence ack, 전체 화면 경고, Qt Debug·Release 각 8/8 | sensorState wire 전환은 별도 변경, Linux 화면은 P4~P5 |
 | P4 vcan·계측 | 준비물 일부 추가 | 벡터 송신기·latency 요약기 | Linux vcan·T1~T4 자동 계측 |
 | P5 물리 통합 | 미착수 |  | 장비 가용성 |
 | P6 문서·CI·데모 | 기록 기반 준비 | `docs/aidlc/changes/CHG-003/` | CI·공식 증거·데모 |
