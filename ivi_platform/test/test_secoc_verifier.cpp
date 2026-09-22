@@ -26,6 +26,10 @@ void run() {
     const auto first = verifier.verify(0x100, 0, payload, known, std::nullopt);
     EXPECT_TRUE(first.accepted);
 
+    const auto plus_1_mac = verifier.computeTruncatedMac(0x100, 1, payload);
+    EXPECT_TRUE(verifier.verify(0x100, 1, payload, plus_1_mac, 0).accepted);
+    EXPECT_FALSE(verifier.verify(0x100, 0, payload, known, 0).counter_valid);
+
     const auto plus_100_mac = verifier.computeTruncatedMac(0x100, 100, payload);
     EXPECT_TRUE(verifier.verify(0x100, 100, payload, plus_100_mac, 0).accepted);
 

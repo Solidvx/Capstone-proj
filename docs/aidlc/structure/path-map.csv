@@ -233,3 +233,14 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,ivi_platform/test/test_secoc_verifier.cpp,add,CHG-003 IVI Qt Plan B P1 implementation
 ,ivi_platform/test/test_vehicle_data_service.cpp,add,CHG-003 IVI Qt Plan B P1 implementation
 ,docs/aidlc/changes/CHG-003/construction/P1_구현_결과.md,add,CHG-003 IVI Plan B P1 implementation summary
+,docs/aidlc/changes/CHG-003/construction/P2_구현_결과.md,add,CHG-003 IVI Plan B P2 implementation summary
+,docs/aidlc/changes/CHG-003/construction/build-and-test/P2_빌드_시험_증거.md,add,CHG-003 IVI Plan B P2 build and test evidence
+,ivi_platform/hal/can_frame_validator.h,add,CHG-003 IVI Plan B P2 implementation
+,ivi_platform/hal/can_frame_validator.cpp,add,CHG-003 IVI Plan B P2 implementation
+,ivi_platform/hal/receive_retry_policy.h,add,CHG-003 IVI Plan B P2 implementation
+,ivi_platform/test/test_can_frame_validator.cpp,add,CHG-003 IVI Plan B P2 implementation
+,ivi_platform/test/test_receive_retry_policy.cpp,add,CHG-003 IVI Plan B P2 implementation
+,ivi_platform/test/test_vehicle_data_service_security.cpp,add,CHG-003 IVI Plan B P2 implementation
+,docs/aidlc/changes/CHG-004/spec.md,add,Qt current guidance consistency record
+,docs/aidlc/changes/CHG-004/aidlc-state.md,add,Qt current guidance consistency record
+,docs/aidlc/changes/CHG-004/audit.md,add,Qt current guidance consistency record

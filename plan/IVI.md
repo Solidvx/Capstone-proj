@@ -36,20 +36,20 @@ SocketCAN(can0/vcan0)
 
 ## 2. 현재 상태
 
-확인 기준일은 2026-09-22이다.
+확인 기준일은 2026-09-23이다.
 
 | 영역 | 상태 | 근거 |
 |---|---|---|
 | Plan B 결정 | 완료 | ADR-010, 본 계획, 전환 계획 |
-| `ivi_platform/` 제품 코드 | P1 선택 이관 완료 | parser·SecOC·service·SocketCAN·Qt/QML 기준 코드 존재 |
+| `ivi_platform/` 제품 코드 | P2 core 완료 | parser·SecOC·pending service·SocketCAN·Qt/QML 기준 코드 존재 |
 | 이전 Qt/C++ 구현 | 선별 반영 완료 | 출처 해시 확인 후 현 ICD와 ECU 벡터에 맞춰 재구성 |
 | CMake/core 빌드 | 검증 완료 | macOS arm64 Debug/Release 빌드 통과; Qt target은 미검증 |
-| IVI 단위시험 | core 3종 통과 | Debug 3/3, Release 3/3; Qt/vcan/물리 시험은 미실행 |
+| IVI 단위시험 | core 6종 통과 | Debug 6/6, Release 6/6; Qt/vcan/물리 시험은 미실행 |
 | GitHub Actions | 미구현 | `.github/workflows/` 없음 |
 | ARM64 toolchain | 미구현 | Dockerfile/toolchain 없음 |
 | 물리 CAN·RPi4 | 미검증 | 장비 증거 없음 |
 
-이전 구현은 인증 전에 원본 데이터를 게시하는 문제, counter wrap-around 오류, IDS 자동 해제 등 현행 계약과 맞지 않는 부분이 있었다. P1에서는 해당 동작을 반입하지 않고 인증 후 게시, unsigned counter 경계, IDS 상태 유지 기반을 구현했다. pending timeout·수신 복구·stale·확인형 경고는 P2~P3에서 완성한다.
+이전 구현은 인증 전에 원본 데이터를 게시하는 문제, counter wrap-around 오류, IDS 자동 해제 등 현행 계약과 맞지 않는 부분이 있었다. P1에서 안전한 기준선을 만들고 P2에서 pending 100ms 만료·최신 원본 교체·orphan 폐기, unsigned counter 경계, 두 인증 쌍 분리, CAN frame 검사와 제한 수신 재시도를 완성했다. stale·확인형 경고는 P3에서 구현한다.
 
 ## 3. 지켜야 할 계약
 
@@ -95,11 +95,10 @@ SocketCAN(can0/vcan0)
 
 ## 6. 다음 실행 순서
 
-1. P2에서 pending timeout·덮어쓰기 정책, SocketCAN 오류 복구와 나머지 경계 시험을 완성한다.
-2. P3에서 stale, sensor 상태, IDS 확인, Fail-safe 전체 화면 경고를 구현한다.
-3. P4에서 공식 TC와 연결된 `vcan0` 자동 시나리오와 T1~T4 계측을 만든다.
-4. P5에서 RPi4 Ubuntu와 물리 `can0`을 검증한다.
-5. P6에서 CI, 성능 결과, 최종 문서와 데모를 마감한다.
+1. P3에서 stale, sensor 상태, IDS 확인, Fail-safe 전체 화면 경고를 구현한다.
+2. P4에서 공식 TC와 연결된 `vcan0` 자동 시나리오와 T1~T4 계측을 만든다.
+3. P5에서 RPi4 Ubuntu와 물리 `can0`을 검증한다.
+4. P6에서 CI, 성능 결과, 최종 문서와 데모를 마감한다.
 
 ## 7. ECU 인계물
 
@@ -119,7 +118,7 @@ IVI 작업에 필요한 ECU 제공물은 다음과 같다.
 |---|---|---|---|
 | P0 | 완료 | Plan B 계약·요구·설계·시험 문서 동기화 | 구현 시 drift 재검토 |
 | P1 | 완료 | `ivi_platform/` 선택 이관, Debug/Release core 시험 각 3/3 | Qt 실빌드는 P3에서 검증 |
-| P2 | 일부 기반 반영 | 인증 후 게시·상태 분리·counter wrap·IDS 유지 시험 | timeout·덮어쓰기·수신 복구·전체 경계 시험 |
+| P2 | 완료 | pending·SecOC·frame·retry 정책, Debug/Release 각 6/6. [결과](../docs/aidlc/changes/CHG-003/construction/P2_구현_결과.md) | Linux 실제 SocketCAN은 P4에서 검증 |
 | P3 | 기준 화면 준비 | QObject/QML WAITING·수치·경고 표시 골격 | stale·ack·전체 화면 경고·Qt 시험 |
 | P4 | 준비물 일부 추가 | 벡터 송신·latency 요약 스크립트 | Linux vcan 자동화·T1~T4 계측 |
 | P5 | 미착수 | 장비 보유 정보 | 대상 배포·물리 통합 |
