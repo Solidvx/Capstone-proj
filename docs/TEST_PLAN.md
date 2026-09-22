@@ -1,8 +1,8 @@
 # Test Plan — 소프트웨어 검증 계획
 
-> **문서 버전**: v1.4 | **작성일**: 2026-03-15 | **최종 수정**: 2026-09-08  
-> **참조**: SRS v1.5 (요구사항 추적), ICD v1.4, SDD-ECU v1.6, SDD-IVI v1.3, TARA v1.2 (위협 시나리오 → Ablation Study)  
-> **테스트 프레임워크**: GoogleTest (C++), pytest (Python), Android Instrumentation (Java/Kotlin)  
+> **문서 버전**: v1.5 | **작성일**: 2026-03-15 | **최종 수정**: 2026-09-22
+> **참조**: SRS v1.6 (요구사항 추적), ICD v1.5, SDD-ECU v1.6, SDD-IVI v2.0, TARA v1.2 (위협 시나리오 → Ablation Study)
+> **테스트 프레임워크**: GoogleTest (C++), pytest (Python), Qt Test (C++), Qt Quick Test (QML)
 > **커버리지 도구**: gcov / lcov (C++), pytest-cov (Python)  
 > **품질 게이트** (프로젝트 승인 기준, S-8=B): C++ Line ≥80%, Fail-safe Branch 100%, cppcheck 0건
 
@@ -13,7 +13,7 @@
 1. [테스트 전략](#1-테스트-전략)
 2. [단위 테스트 — Node A (C++)](#2-단위-테스트--node-a-c)
 3. [단위 테스트 — 보안 모듈 (Python)](#3-단위-테스트--보안-모듈-python)
-4. [단위 테스트 — Node B (Java/Kotlin)](#4-단위-테스트--node-b-javakotlin)
+4. [단위 테스트 — Node B (C++/Qt)](#4-단위-테스트--node-b-cqt)
 5. [통합 테스트 — end-to-end CAN 통신](#5-통합-테스트--end-to-end-can-통신)
 6. [보안 실험 테스트 (Ablation Study)](#6-보안-실험-테스트-ablation-study)
 7. [성능 테스트](#7-성능-테스트)
@@ -311,99 +311,67 @@ TC-{모듈}-{번호}
 
 ---
 
-## 4. 단위 테스트 — Node B (Java/Kotlin)
+## 4. 단위 테스트 — Node B (C++/Qt)
 
-### TC-IVI-001: Vehicle HAL CAN 수신 콜백 호출
+> 2026-09-22 현재 제품 소스가 없으므로 아래는 P1 이후 실행할 시험 명세이며 PASS 기록이 아니다.
+
+### TC-IVI-001: SocketCAN 수신 콜백과 종료
 
 | 항목 | 내용 |
-|------|------|
+| --- | --- |
 | **요구사항** | FR-IVI-001 |
-| **목적** | 가상 CAN 프레임 전달 시 HAL 콜백 `onVehicleDataChanged()` 호출 확인 |
-| **절차** | `VehicleHalImpl` 초기화 → Mock CanReader로 0x100 프레임 주입 → 콜백 수신 확인 |
-| **기대 결과** | 콜백 1회 호출, `data.soc ≈ 75.0f` |
-| **파일** | `ivi_platform/test/test_can_parser.cpp` |
+| **절차** | `vcan0`에 허용 ID, 미등록 ID, 잘못된 DLC, RTR/ERR 프레임을 전송하고 콜백 수와 종료 시간을 기록 |
+| **기대 결과** | 허용된 DLC 8 데이터 프레임만 1회 전달되고 receiver가 대기 없이 종료 |
+| **파일** | `ivi_platform/test/test_socketcan_receiver.cpp` |
 
-### TC-IVI-002: CAN ID별 파싱 정확도
-
-| 항목 | 내용 |
-|------|------|
-| **요구사항** | FR-IVI-002 |
-| **파일** | `ivi_platform/test/test_can_parser.cpp` |
-
-| 케이스 | CAN ID | 입력 페이로드 | 기대 출력 |
-|--------|--------|--------------|-----------|
-| TC-IVI-002-a | 0x100 | [150, 190, 0x10, 0x68, 0x00, 0x14, 65, 0x00] | SOC=75.0%, SOH=95.0%, Voltage=42.00V, Current=2.0A, Temp=25°C |
-| TC-IVI-002-b | 0x101 | [0x00, 0x01, 0x01, 150, 65, 0,0,0] | PrevState=NORMAL, NewState=WARNING, Reason=0x01, SOC=75.0% |
-| TC-IVI-002-c | 0x200 | [0x04, 0xFF, 0x00, 0x01, timestamp(4B)] | AttackType=Flooding, AnomalyScore=2.55, SuspectCANID=0x0001 |
-
-### TC-IVI-003: VehicleDataService getSystemService 접근
+### TC-IVI-002: CAN 파싱과 SecOC 인증
 
 | 항목 | 내용 |
-|------|------|
+| --- | --- |
+| **요구사항** | FR-IVI-002, FR-SEC-002, FR-SEC-003 |
+| **절차** | ICD 정상 벡터와 음수 전류·온도 경계, 변조 MAC, 같은 counter, +100/+101, uint32 wrap을 입력 |
+| **기대 결과** | 정상/허용 경계만 게시되고 실패 MAC은 counter와 last-good를 변경하지 않음 |
+| **파일** | `test_can_parser.cpp`, `test_secoc_verifier.cpp` |
+
+### TC-IVI-003: VehicleDataService snapshot/observer
+
+| 항목 | 내용 |
+| --- | --- |
 | **요구사항** | FR-IVI-003 |
-| **목적** | `context.getSystemService("vehicle_data")`로 `VehicleDataManager` 인스턴스 반환 확인 |
-| **기대 결과** | 반환값 != null, `instanceof VehicleDataManager` |
-| **파일** | `ivi_platform/test/test_vehicle_service.java` |
+| **절차** | 최초 상태, 인증 성공, timeout, 재수신과 observer 등록/해제를 순서대로 주입 |
+| **기대 결과** | 최초 `valid=false`, 성공 시 원자적 snapshot, timeout 시 last-good+`stale=true`, 해제 observer 미호출 |
+| **파일** | `test_vehicle_data_service.cpp` |
 
-### TC-IVI-004: Binder IPC StateFlow 업데이트
+### TC-IVI-004: Service에서 DashboardViewModel 전달
 
 | 항목 | 내용 |
-|------|------|
+| --- | --- |
 | **요구사항** | FR-IVI-004 |
-| **목적** | HAL 콜백 → Binder IPC → ViewModel StateFlow emit 경로 확인 |
-| **절차** | Mock HAL에서 데이터 주입 → ViewModel `vehicleState.value` 변경 확인 |
-| **기대 결과** | `vehicleState.value.soc == 75.0f` |
-| **파일** | `ivi_platform/test/test_vehicle_service.java` |
+| **절차** | worker thread에서 snapshot을 발행하고 `QSignalSpy`로 property 변경 signal과 실행 thread를 확인 |
+| **기대 결과** | queued signal로 GUI thread에서 한 번에 갱신되고 혼합 snapshot이 없음 |
+| **파일** | `test_dashboard_view_model.cpp` |
 
-### TC-IVI-005: SOC 게이지 색상 코드 로직
+### TC-IVI-005: SOC 게이지 색상
 
-| 항목 | 내용 |
-|------|------|
-| **요구사항** | FR-IVI-005 |
-| **파일** | `ivi_platform/app/test/SocGaugeTest.kt` |
+| 입력 SOC | 기대 색상 |
+| --- | --- |
+| 50.0, 100.0 | 초록 |
+| 20.0, 49.5 | 주황 |
+| 0.0, 19.5 | 빨강 |
 
-| SOC 값 | 기대 색상 | 색상 코드 |
-|--------|-----------|-----------|
-| 75.0f | Green | `Color(0xFF4CAF50)` |
-| 35.0f | Orange | `Color(0xFFFF9800)` |
-| 10.0f | Red | `Color(0xFFF44336)` |
-| 50.0f | Green (경계) | `Color(0xFF4CAF50)` |
-| 20.0f | Orange (경계) | `Color(0xFFFF9800)` |
-| 19.9f | Red | `Color(0xFFF44336)` |
+initial/invalid/stale에는 정상 SOC 색상만 표시하지 않고 상태 표식도 함께 확인한다. 파일은 `ivi_platform/test/tst_dashboard.qml`이다.
 
-### TC-IVI-006: 공격 탐지 AlertBanner 즉시 표시 및 장식 효과
+### TC-IVI-006: IDS 경보 표시와 확인
 
-| 항목 | 내용 |
-|------|------|
-| **요구사항** | FR-IVI-006 |
-| **목적** | `attackDetected=true` 상태에서 AlertBanner Composable이 화면에 표시되는지 확인 |
-| **절차** | `VehicleUiState(attackDetected=true, attackType="Flooding")` → Compose UI 테스트에서 배너 텍스트 확인 |
-| **기대 결과** | "⚠ Flooding Attack Detected!" 텍스트 표시됨 |
-| **파일** | `ivi_platform/app/test/DashboardScreenTest.kt` |
+경보 발생 즉시 유형 전체가 표시되고 확인 전까지 유지되는지, 확인과 동시에 들어온 새 경보가 소실되지 않는지, 확인이 stale·센서 오류·Fail-safe를 해제하지 않는지 Qt Quick Test로 확인한다.
 
-### TC-IVI-007: CRITICAL/SHUTDOWN 풀스크린 경고 팝업
+### TC-IVI-007: CRITICAL/SHUTDOWN 전체 화면 경고
 
-| 항목 | 내용 |
-|------|------|
-| **요구사항** | FR-IVI-007 |
-| **목적** | `failSafeState=2(CRITICAL)` 시 풀스크린 Dialog 표시 확인 |
-| **기대 결과** | Dialog 컴포넌트가 표시됨, NORMAL 상태에서는 미표시 |
-| **파일** | `ivi_platform/app/test/DashboardScreenTest.kt` |
+NORMAL/WARNING에는 overlay가 없고 CRITICAL과 SHUTDOWN 각각에 전체 화면 경고가 나타나는지 확인한다.
 
----
+### TC-IVI-008: Qt property 반영 레이턴시
 
-### TC-IVI-008: StateFlow CAN 데이터 반영 레이턴시
-
-| 항목 | 내용 |
-|------|------|
-| **요구사항** | FR-IVI-008 |
-| **목적** | StateFlow + collectAsState()로 100ms 주기 CAN 데이터가 UI에 지연 없이 반영되는지 검증 |
-| **사전 조건** | VehicleDataService가 100ms 주기로 BmsStatusData를 발행하는 상태 |
-| **절차** | 1. Service에서 BmsStatusData 발행 시 타임스탬프 기록 2. DashboardViewModel의 StateFlow가 갱신되는 시점의 타임스탬프 기록 3. 두 타임스탬프 차이(레이턴시)를 100회 반복 측정 |
-| **기대 결과** | 평균 레이턴시 ≤ 20ms, 99퍼센타일 ≤ 50ms |
-| **파일** | `ivi_platform/app/test/DashboardViewModelTest.kt` |
-
----
+Service snapshot 발행(T2)부터 DashboardViewModel property 변경(T3)까지 100회 측정한다. 평균 20ms 이하, 99퍼센타일 50ms 이하를 목표로 하며 전체 CAN→렌더 성능은 TC-PERF-001에서 별도로 측정한다.
 
 ## 5. 통합 테스트 — end-to-end CAN 통신
 
@@ -414,9 +382,9 @@ TC-{모듈}-{번호}
 | 항목 | 내용 |
 |------|------|
 | **요구사항** | FR-IVI-001, FR-IVI-002, FR-IVI-004 |
-| **목적** | Node A BMS 데이터가 CAN → HAL → Service → ViewModel까지 정확히 전달되는지 확인 |
-| **절차** | 1) Node A ECU 실행 → 2) Node B `logcat -s VehicleHAL` 모니터링 → 3) SOC/전압 값 확인 |
-| **기대 결과** | Node B logcat에서 0x100 파싱 성공 로그 + 대시보드 SOC 표시 확인 |
+| **목적** | Node A BMS 데이터가 CAN → SocketCanReceiver → VehicleDataService → DashboardViewModel까지 정확히 전달되는지 확인 |
+| **절차** | 1) Node A ECU 실행 → 2) Node B 구조화 로그와 Qt 대시보드 모니터링 → 3) SOC/전압 값 확인 |
+| **기대 결과** | Node B 로그에서 0x100/0x102 인증·파싱 성공 + Qt 대시보드 SOC 표시 확인 |
 | **증적** | 동작 영상 녹화 |
 
 ### TC-INT-002: SecOC 인증 포함 end-to-end 검증
@@ -424,7 +392,7 @@ TC-{모듈}-{번호}
 | 항목 | 내용 |
 |------|------|
 | **요구사항** | FR-SEC-001, FR-SEC-002, FR-SEC-003 |
-| **목적** | SecOC 활성화 시 Node B HAL에서 검증 성공 후 데이터 전달 확인 |
+| **목적** | SecOC 활성화 시 Node B SecOcVerifier에서 검증 성공 후 데이터 전달 확인 |
 | **절차** | 동일 공유 키 양 노드 배포 → 정상 통신 확인 → Node A 키 변경 → Node B 수신 거부 확인 |
 | **기대 결과** | 키 불일치 시 ERR_HMAC_VERIFY_FAIL 로그 + 데이터 갱신 없음 |
 
@@ -508,7 +476,7 @@ TC-{모듈}-{번호}
 
 ## 7. 성능 테스트
 
-### TC-PERF-001: CAN 수신 → Android UI 반영 end-to-end 레이턴시
+### TC-PERF-001: CAN 수신 → Qt/QML UI 반영 end-to-end 레이턴시
 
 | 항목 | 내용 |
 |------|------|
@@ -516,7 +484,7 @@ TC-{모듈}-{번호}
 | **목표** | 평균 ≤50ms, 최대 ≤100ms |
 | **측정 구간** | **시작(T1)** = Node B가 원본 CAN 프레임을 수신한 시각 / **종료(T4)** = 해당 값이 화면에 그려진 시각. SecOC 인증 대기 시간은 T1 이후에 포함된다 |
 | **측정 방법** | 두 시각의 차이를 1,000회 이상 샘플링. **Node B 단독 단조 시계**를 사용하므로 노드 간 시계 동기가 필요 없다 |
-| **진단 측정** | Node A 송신(T0) → Node B 원본 수신(T1) 구간, 인증/HAL→Service 게시(T1→T2), Service→StateFlow(T2→T3), 렌더(T3→T4)는 병목 분석용 **진단값**이며 본 TC의 합격 판정에는 쓰지 않는다. 서로 다른 노드의 monotonic 값을 직접 빼지 않는다 |
+| **진단 측정** | Node A 송신(T0) → Node B 원본 수신(T1) 구간, 인증→Service 게시(T1→T2), Service→ViewModel property(T2→T3), QML 렌더(T3→T4)는 병목 분석용 **진단값**이며 본 TC의 합격 판정에는 쓰지 않는다. 서로 다른 노드의 monotonic 값을 직접 빼지 않는다 |
 | **유효성** | 렌더되지 않은 표본·수집 손실을 분모에 포함해 보고한다. 손실이 있으면 PASS를 보류하고 재측정한다 |
 
 > **측정 구간 정정 이력**: 본 TC의 제목은 SRS NFR-PERF-001("CAN 수신 → UI 반영")과 일치하나, 이전 측정 방법은 "Node A 전송 → 콜백 수신"으로 서술되어 상위 요구와 구간이 달랐다. 상위 문서인 SRS를 기준으로 T1→T4로 통일하고, ECU→HAL 구간은 진단값으로 분리했다.
@@ -595,6 +563,7 @@ TC-{모듈}-{번호}
 | v1.1 | 2026-04-01 | TC-EXP-001~005 Ablation Study 실험 케이스 추가 | 팀원A |
 | v1.2 | 2026-05-09 | TC-BSW-006~008 추가 (WatchdogManager, SensorSimulator), TC-BSW-008-d (ADS1115_HARDWARE) + CI 제외 사유 명시. 참조 문서 SRS v1.3, SDD-ECU v1.4, SDD-IVI v1.3 반영 | 팀원A |
 | v1.3 | 2026-05-09 | TC-IVI-008 레이턴시 목표 수정 (≤20ms/≤50ms), TC-EXP-002·004 실험 테이블 보완, 참조 SRS v1.4·SDD-ECU v1.5 반영 | 팀원A |
+| v1.5 | 2026-09-22 | Node B 시험을 C++/Qt Test/Qt Quick Test 기준으로 전환 | 팀원B |
 | v1.4 | 2026-09-06 | TC-PERF-001 측정 구간을 상위 요구(SRS NFR-PERF-001)에 맞춰 T1(CAN 수신)→T4(UI 반영)로 통일하고 ECU→HAL 구간은 진단값으로 분리, TC-BMS-001 입력 100→1,000 타임스텝 정정, TC-SEC-005-d 기준을 프레임 수→버스 점유율 ≥50%로 변경, TC-PERF-003과 TC-INT-004의 측정 범위 구분 명시, TC-BSW-007 사유 코드 `0x07` 반영 | 팀원A, 팀원B |
 
 
@@ -645,7 +614,7 @@ TC-BSW-007의 3회는 실제 복구 시도의 연속 실패 횟수다. Watchdog 
 
 ### S-8=B — TC-CI-004 지표와 증거
 
-합격 기준은 C++ 실행 가능 소스 줄 중 실행된 줄의 비율 80% 이상이며, Statement 지표로 보고하지 않는다. C++ 계측 대상과 제외 경로·이유, 도구 버전, 실행 시험 수, 원시 lcov와 요약 결과를 함께 보존한다. Python 또는 Android 앱의 별도 지표로 C++ 기준을 대신하지 않는다. Fail-safe Branch 100%와 cppcheck 0건은 유지한다. 시험 0개·빈 보고서·비유한 수치·분모 0·파싱 실패는 INVALID/실패로 처리한다. Codecov 업로드 성공만으로 품질 게이트 통과로 판정하지 않는다.
+합격 기준은 C++ 실행 가능 소스 줄 중 실행된 줄의 비율 80% 이상이며, Statement 지표로 보고하지 않는다. C++ 계측 대상과 제외 경로·이유, 도구 버전, 실행 시험 수, 원시 lcov와 요약 결과를 함께 보존한다. Python 또는 Qt UI의 별도 지표로 C++ 기준을 대신하지 않는다. Fail-safe Branch 100%와 cppcheck 0건은 유지한다. 시험 0개·빈 보고서·비유한 수치·분모 0·파싱 실패는 INVALID/실패로 처리한다. Codecov 업로드 성공만으로 품질 게이트 통과로 판정하지 않는다.
 
 
 ### S-21=A — TC-BMS-002 고정 시나리오와 합격 적용
