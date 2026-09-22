@@ -70,6 +70,8 @@ public:
                                const CanPayload& payload,
                                Clock::time_point received_at = Clock::now());
     VehicleSnapshot latest() const;
+    // Runtime timer hook; no CAN or observer contract changes.
+    void pollTimeouts(Clock::time_point now = Clock::now());
 
 private:
     struct ProtectedState {
@@ -98,6 +100,7 @@ private:
     mutable std::mutex mutex_;
     VehicleSnapshot snapshot_{};
     std::optional<SecOcVerifier> verifier_;
+    std::optional<Clock::time_point> last_authenticated_bms_;
     ProtectedState bms_state_;
     ProtectedState fail_safe_state_;
     std::map<ObserverId, Observer> observers_;

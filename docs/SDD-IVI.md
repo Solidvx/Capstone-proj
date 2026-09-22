@@ -145,3 +145,7 @@ struct VehicleData {
 | v1.3 | 2026-09-09 | Android/HIDL 기반 설계 보완 |
 | v2.0 | 2026-09-22 | ADR-010 활성화에 따라 Ubuntu/C++17/SocketCAN/Qt Quick 구조로 전환 |
 | v2.1 | 2026-09-23 | P2 pending 100ms·교체·orphan, frame validator와 제한 수신 retry 구현 상태 반영 |
+
+## SecOC 런타임 보강 (CHG-006)
+
+P2 위에 무수신 pending 만료, 인증된 BMS 기준 stale, 실패 observer 진단 전달과 CRITICAL QML 경고를 구현했다. `VehicleDataService::pollTimeouts()`는 구현 내부 타이머 진입점이며 ICD의 observer/wire 계약은 유지한다. 기존 100ms pending과 300ms stale를 구분한다. 실패 auth 뒤 원본 유지·새 원본 교체 정책은 유지하며, 키 재설정은 pending만 폐기하고 counter를 초기화하지 않는다. 상세 동작·재현은 [IVI README](../ivi_platform/README.md), 결과는 [CHG-006](aidlc/changes/CHG-006/audit.md)을 따른다. 물리 수신 복구·인증 세션 전환·P3 전체 UI 완료를 뜻하지 않는다.

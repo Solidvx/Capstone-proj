@@ -649,3 +649,7 @@ TC-BSW-007의 3회는 실제 복구 시도의 연속 실패 횟수다. Watchdog 
 TC-SEC-003에 ICD §2.3~2.5의 동일 counter 거부, +1/+100 허용, +101 거부, uint32 래핑, 과거 유효 MAC·송신기 재부팅 0 거부를 연결한다. TC-SEC-002에는 윈도우 안 변조 MAC 거부 후 동일 counter의 정상 MAC 수락을 추가해 실패 시 상태 보존을 확인한다. TC-SEC-004의 constant-time 비교 기준은 유지한다.
 
 양측 언어의 `adaptive_ecu/test/test_secoc.cpp`와 `security/tests/test_secoc.py`에 같은 공개 더미 고정 벡터를 사용한다. 수신 이력이 없는 수신기가 과거 42 또는 0의 유효 MAC을 수락하는 사례는 현행 고정키 한계 재현이며 보안 합격 사례가 아니다. 최종 재부팅 replay 방어는 세션 상세 승인·교차 구현 시험으로 판정한다. 실제 IVI 콜백·에러 로그는 아직 없는 수신 통합 구현 후 검증하며 bool 단위 결과로 대체하지 않는다.
+
+## CHG-006 소프트웨어 회귀 연결
+
+FR-SEC-002/003/004, TC-SEC-002/003/004 및 TC-IVI-008 관련 보조 시험으로 `test_secoc_runtime`과 `test_dashboard_security`를 추가했다. 변조 100회·재사용 100회 거부/last-good 보존, +100/+101·wrap·두 쌍 독립, 99/100ms 무수신 만료, 299/300ms stale, 10회 실패 경고와 복구를 확인한다. 테스트용 더미 키만 사용한다. [CHG-006 증거](aidlc/changes/CHG-006/audit.md)는 물리 CAN과 공식 성능 목표의 인수를 대신하지 않는다.

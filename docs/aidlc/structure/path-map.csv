@@ -244,3 +244,9 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,docs/aidlc/changes/CHG-004/spec.md,add,Qt current guidance consistency record
 ,docs/aidlc/changes/CHG-004/aidlc-state.md,add,Qt current guidance consistency record
 ,docs/aidlc/changes/CHG-004/audit.md,add,Qt current guidance consistency record
+
+,docs/aidlc/changes/CHG-006/spec.md,add,SecOC 무수신 만료와 인증 진단
+
+,docs/aidlc/changes/CHG-006/aidlc-state.md,add,SecOC 무수신 만료와 인증 진단
+
+,docs/aidlc/changes/CHG-006/audit.md,add,SecOC 무수신 만료와 인증 진단

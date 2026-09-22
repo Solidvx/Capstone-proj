@@ -92,3 +92,5 @@ playbooks/·templates/·verification/·q2_validation/는 기존 위치를 유지
 ## IVI Qt 현행 안내 정정 — 2026-09-23
 
 현재 실행 진입점과 과거 Android 절차를 분리한 범위·검증은 [CHG-004](../changes/CHG-004/aidlc-state.md)에 기록한다. CHG-003의 P1 구현 기록도 develop 병합으로 현재 브랜치에 포함됐다.
+
+- [CHG-006: SecOC 무수신 만료와 인증 진단](../changes/CHG-006/aidlc-state.md) — 구현·시험 근거와 하드웨어 미검증 범위.
