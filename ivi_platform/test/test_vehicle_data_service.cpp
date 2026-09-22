@@ -81,6 +81,7 @@ void run() {
     service.processFrame(ivi::kCanIdBmsStatus, bms);
     service.processFrame(ivi::kCanIdBmsSecOc, bms_auth_2);
     EXPECT_TRUE(service.latest().security_alert.has_value());
+    EXPECT_EQ(service.latest().vehicle.fail_safe_state, 2U);
 
     EXPECT_TRUE(service.unregisterObserver(observer));
     EXPECT_FALSE(service.unregisterObserver(observer));

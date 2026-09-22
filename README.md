@@ -49,7 +49,7 @@ M1~M8 단계 순서는 유지한다. 사용자 지정 시연 마감은 2026-09-1
 
 ## 현재 상태
 
-2026-09-22 파일·Git 대조 기준 ECU C++와 Python 보안·IDS 소스가 있다. IVI는 Ubuntu/C++17/SocketCAN/Qt Quick Plan B의 P1 선택 이관을 완료했고 core Debug/Release 시험이 각 3/3 통과했다. Qt 화면·Linux vcan·RPi4 물리 통합과 CI·ARM64 Docker는 아직 미검증 또는 미구현이다. Git 원격과 `develop` 브랜치가 존재한다.
+2026-09-23 파일·Git 대조 기준 ECU C++와 Python 보안·IDS 소스가 있다. IVI는 Ubuntu/C++17/SocketCAN/Qt Quick Plan B의 P2 CAN·SecOC core까지 완료했고 Debug/Release 시험이 각 6/6 통과했다. Qt 화면·Linux vcan·RPi4 물리 통합과 CI·ARM64 Docker는 아직 미검증 또는 미구현이다. Git 원격과 `develop` 브랜치가 존재한다.
 
 - [공식 문서 목록](docs/README.md): 계약·요구사항·설계·시험
 - [공통 작업 지침 및 검증 명령](AGENTS.md): 환경 조건을 확인한 뒤 필요한 검증 실행
@@ -61,7 +61,7 @@ M1~M8 단계 순서는 유지한다. 사용자 지정 시연 마감은 2026-09-1
 
 - `adaptive_ecu/`: C++17 ECU, CMake, GoogleTest
 - `security/`: Python SecOC, 합성 공격·IDS 비교, 실험·측정
-- `ivi_platform/`: C++/Qt Node B 코드, core 시험과 실행 보조 스크립트. P1 결과와 후속 제한은 [CHG-003](docs/aidlc/changes/CHG-003/aidlc-state.md)에 기록한다.
+- `ivi_platform/`: C++/Qt Node B 코드, core 시험과 실행 보조 스크립트. P1~P2 결과와 후속 제한은 [CHG-003](docs/aidlc/changes/CHG-003/aidlc-state.md)에 기록한다.
 
 연구·배경 자료는 [문서 목록](docs/README.md)에서 연결한다. 제품 코드의 존재·완료 여부는 실제 파일과 검증 결과로 확인한다.
 

@@ -601,7 +601,7 @@ contamination은 학습 분포에서 이상치로 둘 비율에 따라 offset을
 
 ### 3.9.4. IDS 실행 환경
 
-> **중요**: IDS 엔진은 **Node A (Ubuntu)**에서 Python 프로세스로 실행된다. Node B(Android)가 아닌 Node A에서 CAN 트래픽을 모니터링하고, 탐지 결과를 CAN ID 0x200으로 전송하면 Node B의 HAL이 이를 수신하여 대시보드에 경보를 표시한다.
+> **중요**: IDS 엔진은 **Node A (Ubuntu)**에서 Python 프로세스로 실행된다. Node B(Qt IVI)가 아닌 Node A에서 CAN 트래픽을 모니터링하고, 탐지 결과를 CAN ID 0x200으로 전송하면 Node B의 HAL이 이를 수신하여 대시보드에 경보를 표시한다.
 > 
 
 | 항목 | 사양 |
