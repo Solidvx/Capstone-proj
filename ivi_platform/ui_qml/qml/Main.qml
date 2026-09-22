@@ -66,6 +66,16 @@ ApplicationWindow {
             }
         }
 
+        Label {
+            objectName: "authenticationErrorIndicator"
+            Layout.fillWidth: true
+            visible: vehicleModel.authenticationError
+            text: "인증 오류 — 마지막 정상값을 유지합니다"
+            color: root.red
+            font.bold: true
+            font.pixelSize: 22
+        }
+
         GridLayout {
             Layout.fillWidth: true
             columns: 3

@@ -17,6 +17,7 @@ class DashboardViewModel : public QObject {
     Q_PROPERTY(double temperature READ temperature NOTIFY dataChanged)
     Q_PROPERTY(QString failSafeState READ failSafeState NOTIFY dataChanged)
     Q_PROPERTY(QString failSafeReason READ failSafeReason NOTIFY dataChanged)
+    Q_PROPERTY(bool authenticationError READ authenticationError NOTIFY dataChanged)
     Q_PROPERTY(bool secocVerified READ secocVerified NOTIFY dataChanged)
     Q_PROPERTY(unsigned int secocFailureCount READ secocFailureCount NOTIFY dataChanged)
     Q_PROPERTY(bool securityAlertActive READ securityAlertActive NOTIFY dataChanged)
@@ -37,6 +38,7 @@ public:
     double temperature() const;
     QString failSafeState() const;
     QString failSafeReason() const;
+    bool authenticationError() const;
     bool secocVerified() const;
     unsigned int secocFailureCount() const;
     bool securityAlertActive() const;

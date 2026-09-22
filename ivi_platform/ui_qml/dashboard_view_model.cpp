@@ -21,6 +21,9 @@ QString DashboardViewModel::failSafeReason() const {
     return QString::fromLatin1(ivi::failSafeReasonName(snapshot_.vehicle.fail_safe_reason));
 }
 
+bool DashboardViewModel::authenticationError() const {
+    return snapshot_.consecutive_secoc_failure_count >= 10U;
+}
 bool DashboardViewModel::secocVerified() const { return snapshot_.last_secoc_verified; }
 unsigned int DashboardViewModel::secocFailureCount() const {
     return snapshot_.secoc_failure_count;

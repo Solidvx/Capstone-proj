@@ -27,6 +27,11 @@ bool VehicleDataService::loadSecOcKey(const std::string& path) {
 void VehicleDataService::setSecOcKey(SecOcKey key) {
     std::lock_guard<std::mutex> lock(mutex_);
     verifier_.emplace(key);
+    bms_state_.pending_payload.reset();
+    bms_state_.pending_received_at.reset();
+    fail_safe_state_.pending_payload.reset();
+    fail_safe_state_.pending_received_at.reset();
+    // Never reset accepted counters on key reload or transport recovery.
     appendLogLocked("SecOC key configured");
 }
 
@@ -61,6 +66,7 @@ ProcessResult VehicleDataService::processFrame(std::uint32_t can_id,
     {
         std::lock_guard<std::mutex> lock(mutex_);
         snapshot_.last_can_id = can_id;
+        const auto failures_before = snapshot_.secoc_failure_count;
 
         switch (can_id) {
             case kCanIdBmsStatus:
@@ -122,7 +128,11 @@ ProcessResult VehicleDataService::processFrame(std::uint32_t can_id,
                 break;
         }
 
+        // Rejections update security diagnostics, not last-good vehicle values.
+        should_notify = should_notify || result == ProcessResult::kRejected ||
+                        snapshot_.secoc_failure_count != failures_before;
         if (should_notify) {
+            notification = snapshot_;
             observers.reserve(observers_.size());
             for (const auto& entry : observers_) {
                 observers.push_back(entry.second);
@@ -148,18 +158,22 @@ ProcessResult VehicleDataService::processAuth(std::uint32_t original_id,
                                               VehicleSnapshot& notification) {
     const char* channel_name = original_id == kCanIdBmsStatus ? "BMS" : "Fail-safe";
     if (!verifier_.has_value()) {
-        recordSecOcFailureLocked("Rejected auth because SecOC key is unavailable");
+        recordSecOcFailureLocked("reason=KEY_UNAVAILABLE Rejected auth because SecOC key is unavailable");
         return ProcessResult::kRejected;
     }
     if (!state.pending_payload.has_value()) {
         ++snapshot_.orphan_auth_count;
-        recordSecOcFailureLocked(std::string("Rejected ") + channel_name +
+        recordSecOcFailureLocked(std::string("reason=AUTH_ORPHAN channel=") + channel_name +
                                  " auth without pending original");
         return ProcessResult::kRejected;
     }
     if (expirePending(state, received_at, channel_name)) {
-        recordSecOcFailureLocked(std::string("Rejected expired ") + channel_name +
-                                 " pending original");
+        // expirePending already records this failure exactly once.
+        return ProcessResult::kRejected;
+    }
+
+    if (received_at < *state.pending_received_at) {
+        recordSecOcFailureLocked("reason=TIME_REGRESSION auth precedes original");
         return ProcessResult::kRejected;
     }
 
@@ -169,9 +183,15 @@ ProcessResult VehicleDataService::processAuth(std::uint32_t original_id,
                                                  auth.truncated_mac,
                                                  state.last_accepted_counter);
     if (!verification.accepted) {
-        recordSecOcFailureLocked(verification.mac_valid
-                                     ? "Rejected SecOC rolling counter"
-                                     : "Rejected SecOC MAC");
+        std::string reason = "MAC_FAIL";
+        if (!verification.counter_valid && state.last_accepted_counter) {
+            const std::uint32_t delta = auth.rolling_counter - *state.last_accepted_counter;
+            reason = delta == 0U ? "COUNTER_REUSE"
+                     : delta > 0x80000000U ? "COUNTER_BACKWARD" : "COUNTER_WINDOW";
+        }
+        recordSecOcFailureLocked("reason=" + reason + " can_id=" +
+                                std::to_string(original_id) + " counter=" +
+                                std::to_string(auth.rolling_counter));
         return ProcessResult::kRejected;
     }
 
@@ -187,6 +207,7 @@ ProcessResult VehicleDataService::processAuth(std::uint32_t original_id,
         snapshot_.vehicle.temperature_c = parsed->temperature_c;
         snapshot_.vehicle.valid = true;
         snapshot_.vehicle.stale = false;
+        last_authenticated_bms_ = received_at;
     } else {
         const auto parsed = parseFailSafeEvent(*state.pending_payload);
         if (!parsed.has_value()) {
@@ -218,7 +239,7 @@ void VehicleDataService::storePending(const CanPayload& payload,
     if (state.pending_payload.has_value()) {
         ++snapshot_.pending_overwrite_count;
         appendLogLocked(std::string(channel_name) +
-                        " pending original replaced by newer original");
+                        " reason=PENDING_REPLACED original replaced by newer original");
     }
     state.pending_payload = payload;
     state.pending_received_at = received_at;
@@ -238,7 +259,7 @@ bool VehicleDataService::expirePending(ProtectedState& state,
     state.pending_payload.reset();
     state.pending_received_at.reset();
     ++snapshot_.pending_timeout_count;
-    appendLogLocked(std::string(channel_name) + " pending original expired");
+    recordSecOcFailureLocked(std::string("reason=AUTH_TIMEOUT channel=") + channel_name);
     return true;
 }
 
@@ -254,6 +275,28 @@ void VehicleDataService::recordSecOcFailureLocked(std::string message) {
     }
     snapshot_.last_message = std::move(message);
     appendLogLocked(snapshot_.last_message);
+}
+
+void VehicleDataService::pollTimeouts(Clock::time_point now) {
+    VehicleSnapshot notification;
+    std::vector<Observer> observers;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        bool changed = expirePending(bms_state_, now, "BMS");
+        changed = expirePending(fail_safe_state_, now, "Fail-safe") || changed;
+        if (last_authenticated_bms_ && now >= *last_authenticated_bms_ &&
+            now - *last_authenticated_bms_ >= std::chrono::milliseconds{300} &&
+            !snapshot_.vehicle.stale) {
+            snapshot_.vehicle.stale = true;
+            snapshot_.last_message = "reason=BMS_STALE last-good values retained";
+            appendLogLocked(snapshot_.last_message);
+            changed = true;
+        }
+        if (!changed) return;
+        notification = snapshot_;
+        for (const auto& entry : observers_) observers.push_back(entry.second);
+    }
+    notify(notification, observers);
 }
 
 void VehicleDataService::appendLogLocked(std::string message) {

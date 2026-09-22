@@ -2,6 +2,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QUrl>
+#include <QTimer>
 
 #include <iostream>
 #include <string>
@@ -64,7 +65,12 @@ int main(int argc, char* argv[]) {
         return 4;
     }
 
+    QTimer service_timer;
+    QObject::connect(&service_timer, &QTimer::timeout, &application,
+                     [&service]() { service.pollTimeouts(); });
+    service_timer.start(10);
     const int result = application.exec();
+    service_timer.stop();
     receiver.stop();
     service.unregisterObserver(observer_id);
     return result;
