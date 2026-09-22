@@ -244,3 +244,11 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,docs/aidlc/changes/CHG-004/spec.md,add,Qt current guidance consistency record
 ,docs/aidlc/changes/CHG-004/aidlc-state.md,add,Qt current guidance consistency record
 ,docs/aidlc/changes/CHG-004/audit.md,add,Qt current guidance consistency record
+
+,docs/aidlc/changes/CHG-007/spec.md,add,Node A 스트리밍 CAN IDS
+
+,docs/aidlc/changes/CHG-007/aidlc-state.md,add,Node A 스트리밍 CAN IDS
+
+,docs/aidlc/changes/CHG-007/audit.md,add,Node A 스트리밍 CAN IDS
+
+,security/ids/README.md,add,IDS runtime usage and validation scope
