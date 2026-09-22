@@ -44,7 +44,7 @@ SocketCAN(can0/vcan0)
 | `ivi_platform/` 제품 코드 | P3 상태·UI 완료 | parser·SecOC·pending/stale service·SocketCAN·Qt/QML dashboard 존재 |
 | 이전 Qt/C++ 구현 | 선별 반영 완료 | 출처 해시 확인 후 현 ICD와 ECU 벡터에 맞춰 재구성 |
 | CMake/Qt 빌드 | 검증 완료 | macOS arm64 Qt 6.11.2 Debug/Release 앱 빌드 통과 |
-| IVI 단위시험 | 8종 통과 | Debug 8/8, Release 8/8; Linux vcan/물리 시험은 미실행 |
+| IVI 시험 | P4까지 통과 | macOS Qt 8/8, Linux Qt Release 9/9, vcan T1→T4 1,000표본; 물리 시험은 미실행 |
 | GitHub Actions | 미구현 | `.github/workflows/` 없음 |
 | ARM64 toolchain | 미구현 | Dockerfile/toolchain 없음 |
 | 물리 CAN·RPi4 | 미검증 | 장비 증거 없음 |
@@ -95,9 +95,8 @@ SocketCAN(can0/vcan0)
 
 ## 6. 다음 실행 순서
 
-1. P4에서 공식 TC와 연결된 `vcan0` 자동 시나리오와 T1~T4 계측을 만든다.
-2. P5에서 RPi4 Ubuntu와 물리 `can0`을 검증한다.
-3. P6에서 CI, 성능 결과, 최종 문서와 데모를 마감한다.
+1. P5에서 RPi4 Ubuntu와 물리 `can0`을 검증한다.
+2. P6에서 CI, 성능 결과, 최종 문서와 데모를 마감한다.
 
 ## 7. ECU 인계물
 
@@ -119,6 +118,6 @@ IVI 작업에 필요한 ECU 제공물은 다음과 같다.
 | P1 | 완료 | `ivi_platform/` 선택 이관, Debug/Release core 시험 각 3/3 | Qt 실빌드는 P3에서 완료 |
 | P2 | 완료 | pending·SecOC·frame·retry 정책, Debug/Release 각 6/6. [결과](../docs/aidlc/changes/CHG-003/construction/P2_구현_결과.md) | Linux 실제 SocketCAN은 P4에서 검증 |
 | P3 | 완료 | stale·last-good·IDS ack·전체 화면 경고, Qt Debug/Release 각 8/8. [결과](../docs/aidlc/changes/CHG-003/construction/P3_구현_결과.md) | sensorState wire 전환은 별도 계약 변경, Linux 화면은 P4~P5 |
-| P4 | 준비물 일부 추가 | 벡터 송신·latency 요약 스크립트 | Linux vcan 자동화·T1~T4 계측 |
+| P4 | 완료 | [Linux vcan·T1~T4 결과](../docs/aidlc/changes/CHG-003/construction/P4_구현_결과.md): Release 9/9, 1,000표본 평균 6.037ms·최대 10.827ms·누락 0 | 물리 display/can0는 P5 |
 | P5 | 미착수 | 장비 보유 정보 | 대상 배포·물리 통합 |
 | P6 | 기록 기반 준비 | [CHG-003](../docs/aidlc/changes/CHG-003/aidlc-state.md) 상태·증거 문서 | CI·최종 증거·데모 |

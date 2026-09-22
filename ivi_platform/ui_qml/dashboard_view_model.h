@@ -65,8 +65,13 @@ public slots:
 
 signals:
     void dataChanged();
+    void measurementReady(qulonglong sequence,
+                          qulonglong t1ReceivedNs,
+                          qulonglong t2PublishedNs,
+                          qulonglong t3ViewModelNs);
     void securityAlertAcknowledgementRequested(qulonglong sequence);
 
 private:
     ivi::VehicleSnapshot snapshot_;
+    std::uint64_t last_measurement_sequence_ = 0;
 };

@@ -1,12 +1,12 @@
 > **문서명**: Software Design Document — Node B (IVI)
-> **버전**: v2.2 | **작성일**: 2026-03-15 | **최종 수정**: 2026-09-23 | **작성자**: 팀원B
+> **버전**: v2.3 | **작성일**: 2026-03-15 | **최종 수정**: 2026-09-23 | **작성자**: 팀원B
 > **참조**: ICD v1.5, SRS v1.6 (FR-IVI-*), ADR-010, IVI Plan B 전환 계획
 
 # 1. 목적과 현재 기준선
 
 이 문서는 Node B를 Ubuntu 22.04, C++17, SocketCAN, Qt Quick/QML로 구현하기 위한 설계 기준이다. CAN ID·DLC·바이트 순서·SecOC MAC/rolling counter 계약은 [ICD](ICD.md)를 그대로 따른다.
 
-2026-09-23 현재 `ivi_platform/`에는 P1 기준선, P2 CAN·SecOC 정책과 P3 상태·Qt UI가 있다. macOS arm64에서 Qt 6.11.2 앱 Debug/Release 빌드와 시험이 각 8/8 통과했다. Linux SocketCAN syscalls·vcan·물리 화면은 P4~P5에서 별도 검증한다. Android AOSP, HIDL, Binder/AIDL, Jetpack Compose 설계는 과거 결정 기록으로만 유지한다.
+2026-09-23 현재 `ivi_platform/`에는 P1 기준선, P2 CAN·SecOC, P3 상태·Qt UI와 P4 Linux vcan·계측이 있다. Linux aarch64 VM에서 Qt Release 9/9와 실제 `vcan0` 1,000표본을 검증했다. RPi4/MCP2515 `can0`와 물리 화면은 P5에서 별도 검증한다. Android AOSP, HIDL, Binder/AIDL, Jetpack Compose 설계는 과거 결정 기록으로만 유지한다.
 
 # 2. 구조와 책임
 
@@ -44,7 +44,9 @@ ivi_platform/
 ├── scripts/
 │   ├── check_qt_ivi_env.sh
 │   ├── send_ivi_test_vectors.py
-│   └── measure_latency.py
+│   ├── measure_latency.py
+│   ├── run_vcan_integration.sh
+│   └── run_vcan_latency.sh
 └── test/
     ├── test_can_parser.cpp
     ├── test_can_frame_validator.cpp
@@ -53,7 +55,8 @@ ivi_platform/
     ├── test_vehicle_data_service.cpp
     ├── test_vehicle_data_service_security.cpp
     ├── test_vehicle_data_service_state.cpp
-    └── test_dashboard_view_model.cpp
+    ├── test_dashboard_view_model.cpp
+    └── test_socketcan_receiver.cpp
 ```
 
 이 트리의 파일은 현재 존재한다. ViewModel은 Qt Test로 검증하고 QML 화면 상태는 deterministic demo/offscreen render로 확인한다.
@@ -128,6 +131,8 @@ struct VehicleData {
 
 프로세스는 수신 worker 한 개와 Qt GUI thread로 시작한다. 50ms Qt timer가 service의 monotonic stale 판정을 갱신한다. 종료 순서는 신규 이벤트 차단, 수신 대기 해제, worker join, SocketCAN 자원 해제, UI 종료다. 구성값은 CAN 인터페이스, 키 파일 경로, timeout이며 비밀키는 저장소에 넣지 않는다. `--demo`는 CAN·키 없이 P3 화면을 재현하는 개발·시험 진입점이다.
 
+P4 계측 모드의 `--latency-csv`와 `--latency-samples`는 T1~T4 stage row를 기록한다. T1~T4는 한 프로세스의 `steady_clock`을 사용하며 CAN payload에 timestamp나 sample id를 넣지 않는다. T4는 `QQuickWindow::frameSwapped`이고 종료는 signal callback 밖의 다음 event-loop tick에서 수행한다.
+
 개발 환경은 `vcan0`, 실제 RPi4는 `can0`을 사용한다. 배포 전 Node A와 bitrate 500 kbps, CAN ID, 키, counter 초기화 정책을 함께 확인한다.
 
 # 5. 검증 전략
@@ -135,10 +140,10 @@ struct VehicleData {
 - 순수 단위 시험: parser 경계값, signed 변환, HMAC 정상/변조, counter replay/wrap.
 - 서비스 시험: 인증 전 미게시, last-good/stale, Fail-safe·IDS 이벤트, ack 경쟁.
 - Qt 시험: Q_PROPERTY 갱신, SOC 색상, 전체 화면 경고, IDS 유지/재표시.
-- vcan 통합: `0x100→0x102`, `0x101→0x103`, `0x200` 순서와 변조·replay·timeout.
-- 물리 통합: RPi4 `can0`, Node A 송신, T1 수신부터 T4 QML 렌더까지 1,000회 계측.
+- vcan 통합: 실제 PF_CAN에서 filter·종료, `0x100→0x102`와 변조·replay·timeout, Qt offscreen T1→T4 1,000회 계측.
+- 물리 통합: RPi4 `can0`, Node A 송신과 실제 display·복구를 vcan 결과와 분리 검증.
 
-세부 합격 기준은 [TEST_PLAN](TEST_PLAN.md)을 따른다. P1~P3의 macOS core/Qt 결과와 Linux vcan·물리 CAN의 미실행 범위를 구분한다.
+세부 합격 기준은 [TEST_PLAN](TEST_PLAN.md)을 따른다. P1~P3의 macOS core/Qt 결과, P4 Linux vcan 결과, P5 물리 CAN 미실행 범위를 구분한다.
 
 # 6. 변경 이력
 
@@ -148,3 +153,4 @@ struct VehicleData {
 | v2.0 | 2026-09-22 | ADR-010 활성화에 따라 Ubuntu/C++17/SocketCAN/Qt Quick 구조로 전환 |
 | v2.1 | 2026-09-23 | P2 pending 100ms·교체·orphan, frame validator와 제한 수신 retry 구현 상태 반영 |
 | v2.2 | 2026-09-23 | P3 BMS 300ms stale, IDS sequence ack, Qt ViewModel·QML 경고와 실제 Qt 시험 반영 |
+| v2.3 | 2026-09-23 | P4 Linux vcan 통합시험, T1~T4 stage 계측·자동화와 1,000표본 결과 반영 |

@@ -110,7 +110,10 @@ void SocketCanReceiver::stop() {
 #if defined(__linux__)
     if (was_running && wake_fds_[1] >= 0) {
         const std::uint8_t signal = 1;
-        (void)::write(wake_fds_[1], &signal, sizeof(signal));
+        const auto written = ::write(wake_fds_[1], &signal, sizeof(signal));
+        if (written < 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
+            setError("wake pipe write failed");
+        }
     }
 #else
     (void)was_running;
@@ -177,6 +180,7 @@ void SocketCanReceiver::receiveLoop() {
 
         can_frame frame{};
         const auto received = ::read(socket_fd_, &frame, sizeof(frame));
+        const auto received_at = Clock::now();
         if (received != static_cast<ssize_t>(sizeof(frame))) {
             if (received < 0 && errno == EINTR) {
                 continue;
@@ -203,7 +207,7 @@ void SocketCanReceiver::receiveLoop() {
             callback = callback_;
         }
         if (callback) {
-            callback(can_id, payload);
+            callback(can_id, payload, received_at);
         }
     }
 #endif
