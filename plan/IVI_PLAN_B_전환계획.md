@@ -182,7 +182,7 @@ ivi_platform/
 **작업**
 
 - `vcan0` 준비 스크립트와 정상·변조·replay·timeout 시나리오를 자동화한다.
-- `send_ivi_test_vectors.py`를 현행 payload와 sensorState에 맞춘다.
+- `send_ivi_test_vectors.py`는 ICD §1~2의 현행 payload를 사용한다. sensorState는 §8 동시 전환 전에는 별도 목표 계약 시험으로 분리하며 현행 wire에 섞지 않는다.
 - `measure_latency.py`가 T1 CAN 송신, T2 수신, T3 상태 게시, T4 화면 반영을 구분해 수집하도록 보강한다.
 - 표본 수, 손실 수, 평균, p95, p99, 최대값을 결과에 기록한다.
 
@@ -220,7 +220,7 @@ ivi_platform/
 | `docs/ICD.md` | CAN/SecOC 계약 유지 | HIDL 전용 API 절의 적용 상태와 Plan B C++ 데이터 모델을 명확히 구분 |
 | `README.md` | 실제 IVI 빌드·실행 진입점 | 미구현 Android 명령 제거, vcan/can0 절차와 제한 기록 |
 
-이전 문서를 파일 단위로 덮어쓰지 않는다. 현 문서가 더 최신인 ICD v1.4, SRS v1.5, sensorState/stale 정책과 보안 후속 결정을 보존하면서 Plan B 관련 문단만 병합한다.
+이전 문서를 파일 단위로 덮어쓰지 않는다. 현행 ICD v1.5, SRS v1.6, SDD-IVI v2.0과 sensorState/stale 정책 및 보안 후속 결정을 보존하면서 Plan B 관련 문단만 병합한다.
 
 **CI 최소 범위**
 
@@ -275,9 +275,9 @@ ivi_platform/
 | 단계 | 상태 | 산출물/검증 | 차단 요인 |
 |---|---|---|---|
 | P0 전환 기록 | 완료 | ADR·SRS·ICD·SDD-IVI·TEST_PLAN·진행 안내 동기화 | 없음 |
-| P1 선택 이관 | 미착수 |  |  |
-| P2 CAN·SecOC 수정 | 미착수 |  |  |
-| P3 상태·UI | 미착수 |  |  |
-| P4 vcan·계측 | 미착수 |  |  |
+| P1 선택 이관 | 완료 | CMake/core/SocketCAN/Qt 기준 코드, Debug·Release CTest 각 3/3 | Qt 앱 빌드는 P3에서 검증 |
+| P2 CAN·SecOC 수정 | 일부 기반 반영 | 인증 후 게시, 상태 분리, counter wrap, IDS 유지 | timeout·덮어쓰기·수신 복구·전체 경계 시험 |
+| P3 상태·UI | 기준 화면 준비 | QObject view model과 QML 기본 화면 | stale·IDS ack·전체 화면 경고·Qt 시험 |
+| P4 vcan·계측 | 준비물 일부 추가 | 벡터 송신기·latency 요약기 | Linux vcan·T1~T4 자동 계측 |
 | P5 물리 통합 | 미착수 |  | 장비 가용성 |
-| P6 문서·CI·데모 | 미착수 |  |  |
+| P6 문서·CI·데모 | 기록 기반 준비 | `docs/aidlc/changes/CHG-003/` | CI·공식 증거·데모 |

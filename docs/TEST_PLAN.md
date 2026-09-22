@@ -24,7 +24,7 @@
 
 ## 1. 테스트 전략
 
-2026-09-08 정적 대조: 이 문서는 인수 명세이며 실행 결과가 아니다. C++ 파일 `test/`, `data/`는 `adaptive_ecu/` 기준이다. 존재 파일은 SDD-ECU §5, 예정 파일은 해당 plan 과제와 대조한다. `test_can_cdd.cpp`, `test_bms_component.cpp`, 1시간 CSV, 실 CAN 공격/IDS 시험, IVI·CI 파일은 아직 없다. API를 축약한 assertion은 시험 의도이며 실제 헤더에 없는 메서드를 구현돼 있다고 가정하지 않는다.
+2026-09-22 정적 대조: 이 문서는 인수 명세이며 표에 적힌 기대 결과 자체가 실행 결과는 아니다. C++ 파일 `test/`, `data/`는 기본적으로 `adaptive_ecu/` 기준이고 IVI 시험은 명시한 `ivi_platform/test/` 기준이다. `test_can_cdd.cpp`, `test_bms_component.cpp`, 1시간 CSV, 실 CAN 공격/IDS 시험과 CI는 아직 없다. IVI P1 core 회귀 시험의 실제 결과만 §4의 별도 기록과 CHG-003 증거를 따른다. API를 축약한 assertion은 시험 의도이며 실제 헤더에 없는 메서드를 구현돼 있다고 가정하지 않는다.
 
 ### 1.1. 테스트 레벨
 
@@ -313,7 +313,13 @@ TC-{모듈}-{번호}
 
 ## 4. 단위 테스트 — Node B (C++/Qt)
 
-> 2026-09-22 현재 제품 소스가 없으므로 아래는 P1 이후 실행할 시험 명세이며 PASS 기록이 아니다.
+> 2026-09-22 현재 P1 core 소스와 단위 시험 3개가 있다. 아래 공식 TC의 전체 합격은 아직 아니며, P1에서 실제 확인한 부분 범위만 다음 기록과 CHG-003 증거를 따른다.
+
+### P1 core 회귀 실행 기록
+
+macOS arm64에서 CMake Debug와 Release를 각각 구성해 `test_can_parser`, `test_secoc_verifier`, `test_vehicle_data_service`를 실행했고 양쪽 모두 3/3 통과했다. ECU 공개 더미 벡터, signed current, 변조 MAC, counter `+100/+101`·replay·wrap, 인증 전 미게시, 인증 실패 후 last-good 유지, BMS/Fail-safe counter 분리, BMS 갱신 후 IDS 상태 유지를 확인했다.
+
+이 결과는 TC-IVI-002의 core 범위와 TC-IVI-003의 일부 범위만 증명한다. pending timeout/stale, Linux 수신, Qt property/UI, `vcan0`, 물리 CAN은 미실행이므로 해당 TC를 PASS로 표시하지 않는다. 실제 명령과 환경은 [CHG-003 P1 증거](aidlc/changes/CHG-003/construction/build-and-test/evidence.md)에 있다.
 
 ### TC-IVI-001: SocketCAN 수신 콜백과 종료
 
@@ -331,7 +337,7 @@ TC-{모듈}-{번호}
 | **요구사항** | FR-IVI-002, FR-SEC-002, FR-SEC-003 |
 | **절차** | ICD 정상 벡터와 음수 전류·온도 경계, 변조 MAC, 같은 counter, +100/+101, uint32 wrap을 입력 |
 | **기대 결과** | 정상/허용 경계만 게시되고 실패 MAC은 counter와 last-good를 변경하지 않음 |
-| **파일** | `test_can_parser.cpp`, `test_secoc_verifier.cpp` |
+| **파일** | `ivi_platform/test/test_can_parser.cpp`, `ivi_platform/test/test_secoc_verifier.cpp` |
 
 ### TC-IVI-003: VehicleDataService snapshot/observer
 
@@ -340,7 +346,7 @@ TC-{모듈}-{번호}
 | **요구사항** | FR-IVI-003 |
 | **절차** | 최초 상태, 인증 성공, timeout, 재수신과 observer 등록/해제를 순서대로 주입 |
 | **기대 결과** | 최초 `valid=false`, 성공 시 원자적 snapshot, timeout 시 last-good+`stale=true`, 해제 observer 미호출 |
-| **파일** | `test_vehicle_data_service.cpp` |
+| **파일** | `ivi_platform/test/test_vehicle_data_service.cpp` |
 
 ### TC-IVI-004: Service에서 DashboardViewModel 전달
 
