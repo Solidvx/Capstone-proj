@@ -19,6 +19,8 @@
   - [P2 빌드·시험 증거](changes/CHG-003/construction/build-and-test/P2_빌드_시험_증거.md)
   - [P3 구현 결과](changes/CHG-003/construction/P3_구현_결과.md)
   - [P3 빌드·시험 증거](changes/CHG-003/construction/build-and-test/P3_빌드_시험_증거.md)
+  - [P4 구현 결과](changes/CHG-003/construction/P4_구현_결과.md)
+  - [P4 빌드·시험 증거](changes/CHG-003/construction/build-and-test/P4_빌드_시험_증거.md)
 
 inception/은 기존 구현 조사·요구·설계·작업 분해, construction/은 작업 단위별 설계·실제 변경 경로·build-and-test/의 검증 근거를 수용한다. 조건부 폴더는 필요할 때 생성한다. construction/.../code/에도 제품 코드를 복제하지 않고 원래 소스 경로와 변경 요약을 둔다.
 

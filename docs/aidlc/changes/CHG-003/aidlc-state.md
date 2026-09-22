@@ -1,7 +1,7 @@
 # CHG-003 — IVI Plan B P1~P6 진행 상태
 
 > 기준일: 2026-09-23
-> 작업 브랜치: P1 `feat/ivi-plan-b`, P2 `fix/ivi-secoc-state`, P3 `feat/ivi-qt-dashboard`
+> 작업 브랜치: P1 `feat/ivi-plan-b`, P2 `fix/ivi-secoc-state`, P3 `feat/ivi-qt-dashboard`, P4 `feat/ivi-vcan-integration`
 > 통합 대상: `develop`
 
 이 문서는 Plan B 실행 단계 P1~P6의 실제 상태와 결과물 위치를 갱신하는 작업 원본이다. 계획의 정의와 순서는 `plan/IVI_PLAN_B_전환계획.md`, CAN/SecOC 계약은 `docs/ICD.md`가 우선한다.
@@ -12,6 +12,8 @@ P2의 pending·CAN·SecOC 정책과 결과물은 [P2 구현 결과](construction
 
 P3의 상태·Qt UI 결과물은 [P3 구현 결과](construction/P3_구현_결과.md), 실제 Qt 빌드·시험은 [P3 빌드·시험 증거](construction/build-and-test/P3_빌드_시험_증거.md)에 정리한다.
 
+P4의 Linux vcan·T1~T4 결과물은 [P4 구현 결과](construction/P4_구현_결과.md), 실제 환경·수치·제한은 [P4 빌드·시험 증거](construction/build-and-test/P4_빌드_시험_증거.md)에 정리한다.
+
 ## 전체 상태
 
 | 단계 | 상태 | 이번 결과 | 남은 완료 조건 |
@@ -20,7 +22,7 @@ P3의 상태·Qt UI 결과물은 [P3 구현 결과](construction/P3_구현_결�
 | P1 선택 이관 | 완료 | CMake, core, SocketCAN, Qt/QML 기준 코드, 단위 시험 3개, 스크립트 추가. Debug/Release 각 3/3 통과 | Qt 앱의 실제 빌드·화면 실행은 P3, Linux SocketCAN 실행은 P4에서 검증 |
 | P2 CAN·SecOC 수정 | 완료 | pending 100ms 만료·최신 원본 교체·orphan 폐기, 두 쌍 독립 처리, CAN frame validator, 수신 재시도. Debug/Release 각 6/6 통과 | Linux 실제 SocketCAN 동작은 P4 vcan에서 검증 |
 | P3 상태·UI | 완료 | 300ms stale/last-good, IDS sequence 확인, reason 0x07, CRITICAL/SHUTDOWN overlay, Qt 6 앱·ViewModel 시험. Debug/Release 각 8/8 | sensorState wire 활성화는 ICD §8 동시 전환 과제. Linux 실제 화면·vcan은 P4~P5에서 검증 |
-| P4 vcan·계측 | 준비물 일부 추가, 단계 미착수 | 인증된 테스트 벡터 송신기와 latency 요약기 추가 | Linux `vcan0` 자동 시나리오, T1~T4 수집, 손실·표본·p95/p99 증거 |
+| P4 vcan·계측 | 완료 | Linux PF_CAN 정상/변조/replay/timeout, Qt Release 9/9, 100ms 1,000표본 T1→T4 평균 6.037ms·최대 10.827ms·누락 0 | 물리 display와 RPi4/can0는 P5에서 검증 |
 | P5 물리 통합 | 미착수 | 없음 | RPi4 배포, `can0` 500 kbps, Node A IT-001~005, 재시작·링크 복구 |
 | P6 문서·CI·데모 | 진행 기록 기반만 추가, 단계 미착수 | 본 CHG 기록과 P1 관련 문서 동기화 | Linux/Qt CI, 배포·운영 문서, 공식 TC 증거, 최종 데모·Release |
 
@@ -61,8 +63,17 @@ P3의 상태·Qt UI 결과물은 [P3 구현 결과](construction/P3_구현_결�
 | P3 구현 결과 | `construction/P3_구현_결과.md` | 상태 정책, UI, 결과물, 제한 |
 | P3 실행 증거 | `construction/build-and-test/P3_빌드_시험_증거.md` | Qt Debug/Release, sanitizer, offscreen smoke |
 
+## P4 결과물
+
+| 구분 | 위치 | 현재 역할 |
+|---|---|---|
+| Linux 통합시험 | `ivi_platform/test/test_socketcan_receiver.cpp` | 실제 PF_CAN filter·종료·SecOC 실패 시나리오 |
+| 단계 계측 | `ivi_platform/service/`, `ivi_platform/ui_qml/` | T1~T4 같은 단조 시계와 sample sequence 연결 |
+| 자동화 | `ivi_platform/scripts/run_vcan_*.sh`, `measure_latency.py` | vcan 준비, 반복 송신, 누락·통계 판정 |
+| P4 구현 결과 | `construction/P4_구현_결과.md` | 구현 경계, 결과물, 판정과 제한 |
+| P4 실행 증거 | `construction/build-and-test/P4_빌드_시험_증거.md` | Linux 환경, 9/9, 1,000표본 수치와 원시 SHA-256 |
+
 ## 다음 실행 순서
 
-1. P4는 Linux에서 `vcan0` 시나리오와 T1~T4 계측을 자동화한다.
-2. P5는 RPi4와 실제 Node A 제공물로 물리 CAN 증거를 분리 기록한다.
-3. P6에서 GitHub Actions, 배포 절차, 공식 TC 추적과 데모 자료를 마감한다.
+1. P5는 RPi4와 실제 Node A 제공물로 물리 CAN 증거를 분리 기록한다.
+2. P6에서 GitHub Actions, 배포 절차, 공식 TC 추적과 데모 자료를 마감한다.

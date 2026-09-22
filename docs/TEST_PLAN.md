@@ -24,7 +24,7 @@
 
 ## 1. 테스트 전략
 
-2026-09-23 정적 대조: 이 문서는 인수 명세이며 표에 적힌 기대 결과 자체가 실행 결과는 아니다. C++ 파일 `test/`, `data/`는 기본적으로 `adaptive_ecu/` 기준이고 IVI 시험은 명시한 `ivi_platform/test/` 기준이다. `test_can_cdd.cpp`, `test_bms_component.cpp`, 1시간 CSV, 실 CAN 공격/IDS 시험과 CI는 아직 없다. IVI P1~P3 core·Qt 회귀 시험의 실제 결과만 §4의 별도 기록과 CHG-003 증거를 따른다. API를 축약한 assertion은 시험 의도이며 실제 헤더에 없는 메서드를 구현돼 있다고 가정하지 않는다.
+2026-09-23 정적 대조: 이 문서는 인수 명세이며 표에 적힌 기대 결과 자체가 실행 결과는 아니다. C++ 파일 `test/`, `data/`는 기본적으로 `adaptive_ecu/` 기준이고 IVI 시험은 명시한 `ivi_platform/test/` 기준이다. `test_can_cdd.cpp`, `test_bms_component.cpp`, 1시간 CSV, 실 CAN 공격/IDS 시험과 CI는 아직 없다. IVI P1~P4 core·Qt·vcan 시험의 실제 결과만 §4의 별도 기록과 CHG-003 증거를 따른다. API를 축약한 assertion은 시험 의도이며 실제 헤더에 없는 메서드를 구현돼 있다고 가정하지 않는다.
 
 ### 1.1. 테스트 레벨
 
@@ -331,7 +331,11 @@ macOS arm64에서 `-Wall -Wextra -Wpedantic -Werror`를 적용한 CMake Debug와
 
 macOS arm64와 Qt 6.11.2에서 Werror를 적용한 Debug/Release 앱 빌드와 CTest가 각각 8/8 통과했다. 299/300ms stale 경계, Fail-safe가 BMS age를 갱신하지 않는 조건, last-good 보존, IDS sequence 확인 경쟁, reason `0x07`, ViewModel GUI thread 전환, SOC 색상 경계와 8개 QML demo 상태를 확인했다.
 
-Release T2→T3 ViewModel queued 갱신 100표본은 평균 0.0194079ms, p99 0.030958ms였다. 이 값은 macOS host property signal까지만 포함하며 CAN과 실제 display render는 제외한다. 상세 결과는 [P3 구현 결과](aidlc/changes/CHG-003/construction/P3_구현_결과.md)와 [P3 증거](aidlc/changes/CHG-003/construction/build-and-test/P3_빌드_시험_증거.md)에 있다. Linux vcan과 물리 CAN·화면 공식 통합 판정은 아직 미실행이다.
+Release T2→T3 ViewModel queued 갱신 100표본은 평균 0.0194079ms, p99 0.030958ms였다. 이 값은 macOS host property signal까지만 포함하며 CAN과 실제 display render는 제외한다. 상세 결과는 [P3 구현 결과](aidlc/changes/CHG-003/construction/P3_구현_결과.md)와 [P3 증거](aidlc/changes/CHG-003/construction/build-and-test/P3_빌드_시험_증거.md)에 있다. Linux vcan 통합은 아래 P4 기록에서 별도로 판정한다.
+
+### P4 Linux vcan·계측 실행 기록
+
+Lima Ubuntu 26.04 aarch64 VM에서 실제 `vcan0` PF_CAN filter·DLC/flag·wake 종료와 정상 SecOC, 변조 MAC, replay, 100ms pending timeout을 검증했다. Qt Release 전체 CTest는 9/9 통과했다. 100ms BMS 주기 T1→T4 1,000표본은 평균 6.037ms, p99 8.028ms, 최대 10.827ms, 누락 0이었다. 상세 환경과 과부하 사전 실행은 [P4 구현 결과](aidlc/changes/CHG-003/construction/P4_구현_결과.md)와 [P4 증거](aidlc/changes/CHG-003/construction/build-and-test/P4_빌드_시험_증거.md)에 있다. T4는 Qt offscreen `frameSwapped`이며 RPi4 HDMI scanout은 P5에서 검증한다.
 
 ### TC-IVI-001: SocketCAN 수신 콜백과 종료
 
@@ -340,7 +344,7 @@ Release T2→T3 ViewModel queued 갱신 100표본은 평균 0.0194079ms, p99 0.0
 | **요구사항** | FR-IVI-001 |
 | **절차** | `vcan0`에 허용 ID, 미등록 ID, 잘못된 DLC, RTR/ERR 프레임을 전송하고 콜백 수와 종료 시간을 기록 |
 | **기대 결과** | 허용된 DLC 8 데이터 프레임만 1회 전달되고 receiver가 대기 없이 종료 |
-| **파일** | 현재 정책 시험 `test_can_frame_validator.cpp`, `test_receive_retry_policy.cpp`; Linux 수신 통합 시험 `test_socketcan_receiver.cpp`는 P4 예정 |
+| **파일** | 정책 시험 `test_can_frame_validator.cpp`, `test_receive_retry_policy.cpp`; Linux 수신 통합 `test_socketcan_receiver.cpp` |
 
 ### TC-IVI-002: CAN 파싱과 SecOC 인증
 
