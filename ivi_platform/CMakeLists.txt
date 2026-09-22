@@ -13,6 +13,7 @@ find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
 
 add_library(ivi_core
+    hal/can_frame_validator.cpp
     hal/can_parser.cpp
     hal/secoc_verifier.cpp
     service/vehicle_data_service.cpp
@@ -29,7 +30,13 @@ target_link_libraries(ivi_socketcan PUBLIC ivi_core Threads::Threads)
 
 if(IVI_BUILD_TESTS)
     enable_testing()
-    foreach(test_name IN ITEMS test_can_parser test_secoc_verifier test_vehicle_data_service)
+    foreach(test_name IN ITEMS
+            test_can_frame_validator
+            test_can_parser
+            test_receive_retry_policy
+            test_secoc_verifier
+            test_vehicle_data_service
+            test_vehicle_data_service_security)
         add_executable(${test_name} test/${test_name}.cpp)
         target_include_directories(${test_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/test)
         target_link_libraries(${test_name} PRIVATE ivi_core)
