@@ -16,3 +16,10 @@
 - Android 현행 표현 검사: 공식 요구·시험과 공동 매핑의 HIDL/Binder/StateFlow 경로 제거. ADR·changelog·superseded 안내의 역사 표현은 보존
 
 제품 코드가 아직 없고 이번 변경은 P0 문서 기준 고정이므로 CMake/CTest와 장비 시험은 실행 대상이 아니다.
+
+## GitHub 결과
+
+- 기능 브랜치: `feat/ivi-plan-b`
+- P0 동기화 커밋: `5b8bcb6`
+- main 대상 PR: GitHub 저장소 전체 이력을 조회했으나 해당 head 브랜치 PR 없음
+- develop 대상 PR: [#1](https://github.com/Solidvx/Capstone-proj/pull/1), open
