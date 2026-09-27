@@ -1,4 +1,7 @@
 original_path,applied_path,action,reason
+,docs/development/playbooks/ads1115-can-smoke.md,add,CHG-008 physical input diagnostic procedure
+,docs/aidlc/changes/CHG-008/aidlc-state.md,add,CHG-008 diagnostic scope and state
+,docs/aidlc/changes/CHG-008/evidence.md,add,CHG-008 Linux build and test evidence
 ,.agents/skills/capstone-workflow/SKILL.md,add,added structure artifact; path existence is not functional completion
 ,.claude/README.md,add,added structure artifact; path existence is not functional completion
 ,.claude/settings.json,add,added structure artifact; path existence is not functional completion

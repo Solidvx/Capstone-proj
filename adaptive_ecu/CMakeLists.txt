@@ -36,6 +36,11 @@ target_link_libraries(ecu_core PUBLIC OpenSSL::Crypto Threads::Threads)
 add_executable(adaptive_ecu main.cpp)
 target_link_libraries(adaptive_ecu PRIVATE ecu_core)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_executable(ads1115_can_smoke tools/ads1115_can_smoke.cpp)
+    target_link_libraries(ads1115_can_smoke PRIVATE ecu_core)
+endif()
+
 if(ECU_BUILD_TESTS)
     enable_testing()
     find_package(GTest REQUIRED)
@@ -48,6 +53,7 @@ if(ECU_BUILD_TESTS)
         test_sensor_quality
         test_adc_acquisition_gate
         test_ads1115_registers
+        test_ads1115_sample
         test_can_publisher
         test_ekf_soc
         test_soh_estimator

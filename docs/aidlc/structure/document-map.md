@@ -91,4 +91,6 @@ playbooks/·templates/·verification/·q2_validation/는 기존 위치를 유지
 
 ## IVI Qt 현행 안내 정정 — 2026-09-23
 
+ADS1115 실측 표시 진단: [절차](../../development/playbooks/ads1115-can-smoke.md), [CHG-008](../changes/CHG-008/aidlc-state.md), [검증 증거](../changes/CHG-008/evidence.md).
+
 현재 실행 진입점과 과거 Android 절차를 분리한 범위·검증은 [CHG-004](../changes/CHG-004/aidlc-state.md)에 기록한다. CHG-003의 P1 구현 기록도 develop 병합으로 현재 브랜치에 포함됐다.

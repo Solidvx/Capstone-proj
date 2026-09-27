@@ -56,6 +56,8 @@
 
 ## 하위 자료
 
+- [ADS1115 → CAN → Qt 전압 표시 진단](playbooks/ads1115-can-smoke.md): 기존 프레임을 사용하는 독립 실측 진단과 제품 통합 경계
+
 - 플레이북: [ECU](playbooks/ecu.md), [보안](playbooks/security.md), [IVI·통합](playbooks/ivi-integration.md), [문서 검토](playbooks/docs-review.md)
 - 양식: [작은 변경](templates/change.md), [요청](templates/spec.md), [상태](templates/aidlc-state.md), [판단](templates/audit.md), [증거](templates/evidence.md)
 - [운영 검증 시나리오](verification/steering-tests.md)
