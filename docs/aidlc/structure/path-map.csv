@@ -260,3 +260,11 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,docs/aidlc/changes/CHG-006/aidlc-state.md,add,SecOC 무수신 만료와 인증 진단
 
 ,docs/aidlc/changes/CHG-006/audit.md,add,SecOC 무수신 만료와 인증 진단
+
+,docs/aidlc/changes/CHG-007/spec.md,add,Node A 스트리밍 CAN IDS
+
+,docs/aidlc/changes/CHG-007/aidlc-state.md,add,Node A 스트리밍 CAN IDS
+
+,docs/aidlc/changes/CHG-007/audit.md,add,Node A 스트리밍 CAN IDS
+
+,security/ids/README.md,add,IDS runtime usage and validation scope

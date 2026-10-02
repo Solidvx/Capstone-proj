@@ -664,3 +664,7 @@ TC-SEC-003에 ICD §2.3~2.5의 동일 counter 거부, +1/+100 허용, +101 거�
 ## CHG-006 소프트웨어 회귀 연결
 
 FR-SEC-002/003/004, TC-SEC-002/003/004 및 TC-IVI-008 관련 보조 시험으로 `test_secoc_runtime`과 `test_dashboard_security`를 추가했다. 변조 100회·재사용 100회 거부/last-good 보존, +100/+101·wrap·두 쌍 독립, 99/100ms 무수신 만료, 299/300ms stale, 10회 실패 경고와 복구를 확인한다. 테스트용 더미 키만 사용한다. [CHG-006 증거](aidlc/changes/CHG-006/audit.md)는 물리 CAN과 공식 성능 목표의 인수를 대신하지 않는다.
+
+## CHG-007 IDS 소프트웨어 보조 시험
+
+FR-SEC-006/007, TC-SEC-006/007 관련: `test_runtime_ids.py`는 정상 서명 스트림, 형식/범위/변화, 누락/만료, counter 경계·wrap, 실패 집계, 경보 바이트와 피드백 방지를 검사한다. `test_runtime_cli.py`는 실제 IF 학습/재생, 로그 보존, 잘못된 입력, SocketCAN 모의 codec/오류/종료를 검사한다. 결정적 입력과 더미 키만 사용한다. [CHG-007](aidlc/changes/CHG-007/audit.md)의 결과를 공식 물리 송신/수신 TC 전체 합격이나 탐지율 목표 달성으로 확대하지 않는다.
