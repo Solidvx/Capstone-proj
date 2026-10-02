@@ -1,7 +1,10 @@
+#include "ads1115_acquirer.h"
 #include "can_cdd.h"
 #include "can_publisher.h"
 #include "ekf_soc_estimator.h"
 #include "failsafe_sm.h"
+#include "hardware_sample_feed.h"
+#include "linux_i2c_transport.h"
 #include "secoc_module.h"
 #include "sensor_simulator.h"
 #include "soh_estimator.h"
@@ -11,6 +14,7 @@
 #include <chrono>
 #include <csignal>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <thread>
 
@@ -21,20 +25,21 @@ void handleSignal(int) {
     running = false;
 }
 
-SensorSimulator::Mode parseSensorMode(const std::string& mode) {
-    if (mode == "potentiometer") {
-        return SensorSimulator::Mode::POTENTIOMETER;
+std::uint64_t monotonicMs() {
+    return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+}
+
+const char* qualityName(SensorQuality quality) {
+    switch (quality) {
+    case SensorQuality::Preparing: return "PREPARING";
+    case SensorQuality::Valid: return "VALID";
+    case SensorQuality::ErrorWithoutValue: return "ERROR";
+    case SensorQuality::ErrorWithValue: return "ERROR_WITH_LAST_VALUE";
+    case SensorQuality::RecoveringWithoutValue: return "RECOVERING";
+    case SensorQuality::RecoveringWithValue: return "RECOVERING_WITH_LAST_VALUE";
     }
-    if (mode == "profile_csv") {
-        return SensorSimulator::Mode::PROFILE_CSV;
-    }
-    if (mode == "random_walk") {
-        return SensorSimulator::Mode::RANDOM_WALK;
-    }
-    if (mode == "ads1115") {
-        return SensorSimulator::Mode::ADS1115_HARDWARE;
-    }
-    return SensorSimulator::Mode::CONSTANT;
+    return "UNKNOWN";
 }
 }
 
@@ -43,6 +48,7 @@ int main(int argc, char** argv) {
     std::string sensor_mode = "constant";
     std::string profile_path = "adaptive_ecu/data/battery_profile.csv";
     std::string key_path = "/etc/secoc/key.bin";
+    std::string i2c_device = "/dev/i2c-1";
     bool secoc_enabled = false;
 
     for (int i = 1; i + 1 < argc; ++i) {
@@ -57,7 +63,16 @@ int main(int argc, char** argv) {
             secoc_enabled = (std::string(argv[++i]) == "on");
         } else if (arg == "--key") {
             key_path = argv[++i];
+        } else if (arg == "--i2c-device") {
+            i2c_device = argv[++i];
         }
+    }
+
+    const auto mode = SensorSimulator::parseMode(sensor_mode);
+    if (!mode) {
+        std::cerr << "Unsupported sensor mode: " << sensor_mode
+                  << " (constant|profile_csv|random_walk|ads1115)\n";
+        return 2;
     }
 
     std::signal(SIGINT, handleSignal);
@@ -69,7 +84,21 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    SensorSimulator sensor(parseSensorMode(sensor_mode), profile_path);
+    // ADS1115 mode reads the real ADC on its own worker; never fall back to
+    // a simulated mode when the device is unavailable.
+    std::unique_ptr<LinuxI2cTransport> i2c;
+    std::unique_ptr<Ads1115AcquisitionWorker> adc_worker;
+    HardwareSampleFeed adc_feed;
+    if (*mode == SensorSimulator::Mode::ADS1115_HARDWARE) {
+        i2c = std::make_unique<LinuxI2cTransport>(i2c_device);
+        if (!i2c->ready()) {
+            std::cerr << "I2C open/setup failed: " << i2c_device << " (address 0x48)\n";
+            return 2;
+        }
+        adc_worker = std::make_unique<Ads1115AcquisitionWorker>(*i2c, monotonicMs);
+    }
+
+    SensorSimulator sensor(*mode, profile_path);
     EkfSocEstimator soc_estimator;
     SohEstimator soh_estimator;
     FailSafeStateMachine failsafe;
@@ -100,10 +129,48 @@ int main(int argc, char** argv) {
     std::cout << "adaptive_ecu on " << interface_name
               << " sensor=" << sensor_mode
               << " secoc=" << (secoc_enabled ? "on" : "off") << '\n';
+    if (adc_worker) {
+        std::cout << "ADS1115: A0 real -> pack 30..42V virtual; current "
+                  << SensorSimulator::kHardwareCurrentA << "A and temperature "
+                  << static_cast<int>(SensorSimulator::kHardwareTemperatureC)
+                  << "C virtual. BMS TX paused until 3 new valid conversions.\n";
+        adc_worker->start();
+    }
 
+    auto reported_quality = adc_feed.quality();
     while (running) {
         const auto cycle_start = std::chrono::steady_clock::now();
         watchdog.kick();
+
+        if (adc_worker) {
+            const auto snapshot = adc_worker->snapshot();
+            const auto now_ms = monotonicMs();
+            const auto pack_voltage = adc_feed.cycle(snapshot, now_ms);
+            if (adc_feed.quality() != reported_quality) {
+                reported_quality = adc_feed.quality();
+                std::cout << "ADS1115 quality: " << qualityName(reported_quality)
+                          << (pack_voltage ? "" : " (BMS TX paused)");
+                if (reported_quality == SensorQuality::ErrorWithValue ||
+                    reported_quality == SensorQuality::ErrorWithoutValue) {
+                    if (adc_feed.errorCause() == HardwareSampleFeed::ErrorCause::Stale) {
+                        std::cout << " reason=stale";
+                        if (snapshot.last_valid_sequence > 0) {
+                            std::cout << " age=" << (now_ms - snapshot.last_valid_ms) << "ms";
+                        }
+                    } else {
+                        std::cout << ' ' << describeAdcError(snapshot);
+                    }
+                }
+                std::cout << '\n';
+            }
+            if (!pack_voltage) {
+                // ADS-1: no estimate, Fail-safe evaluation or frame from an invalid or
+                // stale input. ADS-3: the estimator resumes from its last state.
+                std::this_thread::sleep_until(cycle_start + std::chrono::milliseconds(100));
+                continue;
+            }
+            sensor.setHardwareVoltage(*pack_voltage);
+        }
 
         const auto sample = sensor.next();
         const float soc_percent =
@@ -127,6 +194,7 @@ int main(int argc, char** argv) {
         std::this_thread::sleep_until(cycle_start + std::chrono::milliseconds(100));
     }
 
+    if (adc_worker) adc_worker->stop();
     watchdog.stop();
     driver.close();
     std::cout << "adaptive_ecu stopped\n";

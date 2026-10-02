@@ -4,7 +4,7 @@
 
 ## 발견 근거
 
-CHG-011 증거 §3.2·§5(`docs/aidlc/changes/CHG-011/evidence.md`, 별도 PR): ECU RPi `vcan0`에서 두 `0x103`의 counter가 0x4A→0x5F로 증가했다. 그 사이 `0x102`가 송신됐기 때문이다.
+[CHG-011 증거 §3.2·§5](../CHG-011/evidence.md): ECU RPi `vcan0`에서 두 `0x103`의 counter가 0x4A→0x5F로 증가했다. 그 사이 `0x102`가 송신됐기 때문이다.
 
 ## 시험
 

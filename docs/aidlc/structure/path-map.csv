@@ -297,6 +297,16 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,ivi_platform/scripts/rpi_preflight.sh,add,RPi deployment preflight
 ,ivi_platform/scripts/run_rpi_desktop.sh,add,Wayland desktop dashboard launcher
 ,ivi_platform/scripts/setup_can0.sh,add,physical CAN setup
+,adaptive_ecu/include/linux_i2c_transport.h,add,CHG-011 shared Linux I2C transport
+,adaptive_ecu/src/bsw/linux_i2c_transport.cpp,add,CHG-011 shared Linux I2C transport
+,adaptive_ecu/include/ads1115_acquirer.h,add,CHG-011 ADS1115 acquisition worker
+,adaptive_ecu/src/bsw/ads1115_acquirer.cpp,add,CHG-011 ADS1115 acquisition worker
+,adaptive_ecu/include/hardware_sample_feed.h,add,CHG-011 per-cycle ADC quality and transmit gate
+,adaptive_ecu/test/test_ads1115_acquirer.cpp,add,CHG-011 acquisition worker test
+,adaptive_ecu/test/test_hardware_sample_feed.cpp,add,CHG-011 transmit gate test
+,docs/aidlc/changes/CHG-011/spec.md,add,ECU ADS1115 product integration record
+,docs/aidlc/changes/CHG-011/aidlc-state.md,add,ECU ADS1115 product integration record
+,docs/aidlc/changes/CHG-011/evidence.md,add,ECU ADS1115 product integration record
 ,docs/aidlc/changes/CHG-012/spec.md,add,SecOC per-ID rolling counter record
 ,docs/aidlc/changes/CHG-012/aidlc-state.md,add,SecOC per-ID rolling counter record
 ,docs/aidlc/changes/CHG-012/evidence.md,add,SecOC per-ID rolling counter record

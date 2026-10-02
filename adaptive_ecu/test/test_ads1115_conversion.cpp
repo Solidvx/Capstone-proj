@@ -14,20 +14,38 @@ TEST(Ads1115Conversion, NominalReferencePoints) {
     }
 }
 
-TEST(Ads1115Conversion, EverySignedCodeIsClassifiedWithoutClamping) {
+TEST(Ads1115Conversion, EverySignedCodeIsClassifiedWithEndpointTolerance) {
+    const int tolerance = kAds1115EndToleranceCodes;
+    const int max_code = kAds1115NominalMaxCode;
     float previous = -1.0f;
     for (int raw = -32768; raw <= 32767; ++raw) {
         float adc = -123.0f, pack = -456.0f;
         const bool valid = convertAds1115Voltage(static_cast<std::int16_t>(raw), adc, pack);
-        ASSERT_EQ(valid, raw >= 0 && raw <= 26400);
+        ASSERT_EQ(valid, raw >= -tolerance && raw <= max_code + tolerance);
         if (!valid) {
             EXPECT_FLOAT_EQ(adc, -123.0f);
             EXPECT_FLOAT_EQ(pack, -456.0f);
         } else {
-            EXPECT_GT(pack, previous);
-            EXPECT_NEAR(adc, raw / 8000.0, 1e-6);
-            EXPECT_NEAR(pack, 30.0 + raw / 2200.0, 1e-5);
+            // Endpoint noise reads as the endpoint; inside the range it is strictly linear.
+            const int nominal = raw < 0 ? 0 : (raw > max_code ? max_code : raw);
+            if (raw > 0 && raw <= max_code) {
+                EXPECT_GT(pack, previous);
+            }
+            EXPECT_NEAR(adc, nominal / 8000.0, 1e-6);
+            EXPECT_NEAR(pack, 30.0 + nominal / 2200.0, 1e-5);
             previous = pack;
         }
     }
+}
+
+TEST(Ads1115Conversion, EndpointToleranceBoundaries) {
+    float adc = 0.0f, pack = 0.0f;
+    ASSERT_TRUE(convertAds1115Voltage(-32, adc, pack));
+    EXPECT_FLOAT_EQ(pack, 30.0f);
+    ASSERT_TRUE(convertAds1115Voltage(-20, adc, pack));  // lowest measured 0 V end code
+    EXPECT_FLOAT_EQ(pack, 30.0f);
+    EXPECT_FALSE(convertAds1115Voltage(-33, adc, pack));
+    ASSERT_TRUE(convertAds1115Voltage(26432, adc, pack));
+    EXPECT_NEAR(pack, 42.0f, 1e-5f);
+    EXPECT_FALSE(convertAds1115Voltage(26433, adc, pack));
 }

@@ -1,6 +1,6 @@
 # CHG-012 — SecOC RollingCounter 인증 CAN ID별 독립
 
-요청(2026-10-03): CHG-011(브랜치 `feat/ecu-ads1115-runtime`, 별도 PR) 실장비 시험에서 발견한 counter 범위 차이를 사용자 결정 B로 해소하고 ICD 문구를 함께 명확히 한다.
+요청(2026-10-03): [CHG-011](../CHG-011/aidlc-state.md) 실장비 시험에서 발견한 counter 범위 차이를 사용자 결정 B로 해소하고 ICD 문구를 함께 명확히 한다.
 
 배경: ECU `SecOcModule`과 Python 참조 `security/secoc_module.py`는 `0x102`와 `0x103`이 counter 하나를 공유했다. IVI `VehicleDataService`와 ECU IDS `runtime_detector.py`는 원본 CAN ID별 마지막 counter로 1~100 창을 판정한다. 그래서 두 Fail-safe 이벤트 사이에 `0x102`가 100회 넘게(약 10초 이상) 나가면 수신 측이 다음 `0x103`을 창 밖으로 거부하고, IDS는 COUNTER_WINDOW를 낼 수 있었다. ICD는 "인증 메시지마다 +1"만 정하고 범위를 명시하지 않았다.
 
