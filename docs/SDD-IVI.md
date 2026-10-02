@@ -1,10 +1,10 @@
 > **문서명**: Software Design Document — Node B (IVI)
-> **버전**: v2.3 | **작성일**: 2026-03-15 | **최종 수정**: 2026-09-23 | **작성자**: 팀원B
+> **버전**: v2.4 | **작성일**: 2026-03-15 | **최종 수정**: 2026-10-03 | **작성자**: 팀원B
 > **참조**: ICD v1.5, SRS v1.6 (FR-IVI-*), ADR-010, IVI Plan B 전환 계획
 
 # 1. 목적과 현재 기준선
 
-이 문서는 Node B를 Ubuntu 22.04, C++17, SocketCAN, Qt Quick/QML로 구현하기 위한 설계 기준이다. CAN ID·DLC·바이트 순서·SecOC MAC/rolling counter 계약은 [ICD](ICD.md)를 그대로 따른다.
+이 문서는 Node B를 Debian 13 ARM64, C++17, SocketCAN, Qt 6.8 Quick/QML로 구현하기 위한 설계 기준이다. CAN ID·DLC·바이트 순서·SecOC MAC/rolling counter 계약은 [ICD](ICD.md)를 그대로 따른다.
 
 2026-09-23 현재 `ivi_platform/`에는 P1 기준선, P2 CAN·SecOC, P3 상태·Qt UI와 P4 Linux vcan·계측이 있다. Linux aarch64 VM에서 Qt Release 9/9와 실제 `vcan0` 1,000표본을 검증했다. RPi4/MCP2515 `can0`와 물리 화면은 P5에서 별도 검증한다. Android AOSP, HIDL, Binder/AIDL, Jetpack Compose 설계는 과거 결정 기록으로만 유지한다.
 
@@ -133,7 +133,7 @@ struct VehicleData {
 
 P4 계측 모드의 `--latency-csv`와 `--latency-samples`는 T1~T4 stage row를 기록한다. T1~T4는 한 프로세스의 `steady_clock`을 사용하며 CAN payload에 timestamp나 sample id를 넣지 않는다. T4는 `QQuickWindow::frameSwapped`이고 종료는 signal callback 밖의 다음 event-loop tick에서 수행한다.
 
-개발 환경은 `vcan0`, 실제 RPi4는 `can0`을 사용한다. 배포 전 Node A와 bitrate 500 kbps, CAN ID, 키, counter 초기화 정책을 함께 확인한다.
+개발 환경은 `vcan0`, 실제 RPi4는 `can0`을 사용한다. Qt 전체 빌드의 최소 버전은 6.8이며 Debian 13 배포판 패키지를 기준으로 한다. 배포 전 Node A와 bitrate 500 kbps, CAN ID, 키, counter 초기화 정책을 함께 확인한다.
 
 # 5. 검증 전략
 
@@ -154,6 +154,7 @@ P4 계측 모드의 `--latency-csv`와 `--latency-samples`는 T1~T4 stage row를
 | v2.1 | 2026-09-23 | P2 pending 100ms·교체·orphan, frame validator와 제한 수신 retry 구현 상태 반영 |
 | v2.2 | 2026-09-23 | P3 BMS 300ms stale, IDS sequence ack, Qt ViewModel·QML 경고와 실제 Qt 시험 반영 |
 | v2.3 | 2026-09-23 | P4 Linux vcan 통합시험, T1~T4 stage 계측·자동화와 1,000표본 결과 반영 |
+| v2.4 | 2026-10-03 | RPi4 Debian 13·Qt 6.8 배포 기준과 강제 SocketCAN 검증 조건 반영 |
 
 ## SecOC 런타임 보강 (CHG-006)
 

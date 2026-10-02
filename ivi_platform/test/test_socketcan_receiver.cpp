@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <chrono>
 #include <condition_variable>
+#include <cstdlib>
 #include <cstring>
 #include <mutex>
 #include <string>
@@ -24,6 +25,16 @@
 #include <unistd.h>
 
 namespace {
+
+bool socketCanRequired() {
+    const char* value = std::getenv("IVI_REQUIRE_SOCKETCAN");
+    return value != nullptr && std::strcmp(value, "1") == 0;
+}
+
+bool isUnavailableSocketCanError(int error) {
+    return error == ENODEV || error == ENXIO || error == EPERM || error == EACCES ||
+           error == EAFNOSUPPORT || error == EPROTONOSUPPORT;
+}
 
 class CanSocket {
 public:
@@ -98,10 +109,12 @@ void testSocketCanReceiver() {
 
     CanSocket sender;
     if (!sender.open("vcan0")) {
-        if (errno == ENODEV || errno == ENXIO || errno == EPERM) {
+        const int open_error = errno;
+        if (!socketCanRequired() && isUnavailableSocketCanError(open_error)) {
             throw std::runtime_error("SKIP: vcan0 is unavailable");
         }
-        throw std::runtime_error("failed to open sender on vcan0");
+        throw std::runtime_error("failed to open sender on vcan0: errno=" +
+                                 std::to_string(open_error));
     }
 
     ivi::SocketCanReceiver receiver;
