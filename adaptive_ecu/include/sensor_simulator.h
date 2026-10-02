@@ -22,7 +22,7 @@ public:
     };
 
     // Virtual values used with ADS1115_HARDWARE: the potentiometer drives
-    // only the pack voltage (D2=A, fixed so Fail-safe follows the knob alone).
+    // only the pack voltage (ADS-2=A, fixed so Fail-safe follows the knob alone).
     static constexpr float kHardwareCurrentA = -2.0f;
     static constexpr int8_t kHardwareTemperatureC = 25;
 
