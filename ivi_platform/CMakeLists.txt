@@ -37,18 +37,29 @@ if(IVI_BUILD_TESTS)
             test_secoc_verifier
             test_vehicle_data_service
             test_vehicle_data_service_security
+            test_vehicle_data_service_state
             test_secoc_runtime)
         add_executable(${test_name} test/${test_name}.cpp)
         target_include_directories(${test_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/test)
         target_link_libraries(${test_name} PRIVATE ivi_core)
         add_test(NAME ${test_name} COMMAND ${test_name})
     endforeach()
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        add_executable(test_socketcan_receiver test/test_socketcan_receiver.cpp)
+        target_include_directories(test_socketcan_receiver PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/test)
+        target_link_libraries(test_socketcan_receiver PRIVATE ivi_socketcan)
+        add_test(NAME test_socketcan_receiver COMMAND test_socketcan_receiver)
+        set_tests_properties(test_socketcan_receiver PROPERTIES SKIP_RETURN_CODE 77)
+    endif()
 endif()
 
 if(IVI_BUILD_QT_APP)
-    find_package(Qt6 6.2 QUIET COMPONENTS Core Gui Qml Quick QuickControls2)
+    find_package(Qt6 6.2 QUIET COMPONENTS Core Gui Qml Quick QuickControls2 Test)
     if(Qt6_FOUND)
         qt_standard_project_setup(REQUIRES 6.2)
+        qt_policy(SET QTP0001 NEW)
+        qt_policy(SET QTP0004 NEW)
         if(IVI_BUILD_TESTS)
             qt_add_executable(test_dashboard_security
                 test/test_dashboard_security.cpp
@@ -82,11 +93,33 @@ if(IVI_BUILD_QT_APP)
             Qt6::Quick
             Qt6::QuickControls2
         )
+        if(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+            target_compile_options(ivi_dashboard PRIVATE
+                -Wno-variadic-macro-arguments-omitted)
+        endif()
         qt_add_qml_module(ivi_dashboard
             URI IviDashboard
             VERSION 1.0
             QML_FILES ui_qml/qml/Main.qml
         )
+        if(IVI_BUILD_TESTS)
+            add_executable(test_dashboard_view_model
+                test/test_dashboard_view_model.cpp
+                ui_qml/dashboard_view_model.cpp
+                ui_qml/dashboard_view_model.h
+            )
+            target_include_directories(test_dashboard_view_model PRIVATE
+                ${CMAKE_CURRENT_SOURCE_DIR}/hal
+                ${CMAKE_CURRENT_SOURCE_DIR}/service
+                ${CMAKE_CURRENT_SOURCE_DIR}/ui_qml
+            )
+            target_link_libraries(test_dashboard_view_model PRIVATE
+                ivi_core
+                Qt6::Core
+                Qt6::Test
+            )
+            add_test(NAME test_dashboard_view_model COMMAND test_dashboard_view_model)
+        endif()
     else()
         message(STATUS "Qt 6 not found: ivi_core and tests remain available")
     endif()
