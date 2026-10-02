@@ -78,6 +78,8 @@ public:
     bool refreshTime(Clock::time_point now = Clock::now());
     bool acknowledgeSecurityAlert(std::uint64_t sequence);
     VehicleSnapshot latest() const;
+    // Expires unauthenticated pending originals on a silent bus; stale age stays in refreshTime().
+    void pollTimeouts(Clock::time_point now = Clock::now());
 
 private:
     struct ProtectedState {

@@ -154,3 +154,7 @@ P4 계측 모드의 `--latency-csv`와 `--latency-samples`는 T1~T4 stage row를
 | v2.1 | 2026-09-23 | P2 pending 100ms·교체·orphan, frame validator와 제한 수신 retry 구현 상태 반영 |
 | v2.2 | 2026-09-23 | P3 BMS 300ms stale, IDS sequence ack, Qt ViewModel·QML 경고와 실제 Qt 시험 반영 |
 | v2.3 | 2026-09-23 | P4 Linux vcan 통합시험, T1~T4 stage 계측·자동화와 1,000표본 결과 반영 |
+
+## SecOC 런타임 보강 (CHG-006)
+
+P2 위에 무수신 pending 만료, 실패 observer 진단 전달과 CRITICAL QML 경고를 구현했다. `VehicleDataService::pollTimeouts()`는 무수신 pending 100ms 만료만 담당하는 구현 내부 타이머 진입점(10ms)이며 ICD의 observer/wire 계약은 유지한다. 300ms stale은 P3의 `refreshTime()`(50ms)으로 일원화했고 stale 로그만 `reason=BMS_STALE`로 맞췄다. 실패 auth 뒤 원본 유지·새 원본 교체 정책은 유지하며, 키 재설정은 pending만 폐기하고 counter를 초기화하지 않는다. 상세 동작·재현은 [IVI README](../ivi_platform/README.md), 결과는 [CHG-006](aidlc/changes/CHG-006/audit.md)을 따른다. 물리 수신 복구·인증 세션 전환·P3 전체 UI 완료를 뜻하지 않는다.

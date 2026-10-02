@@ -121,3 +121,7 @@ IVI 작업에 필요한 ECU 제공물은 다음과 같다.
 | P4 | 완료 | [Linux vcan·T1~T4 결과](../docs/aidlc/changes/CHG-003/construction/P4_구현_결과.md): Release 9/9, 1,000표본 평균 6.037ms·최대 10.827ms·누락 0 | 물리 display/can0는 P5 |
 | P5 | 미착수 | 장비 보유 정보 | 대상 배포·물리 통합 |
 | P6 | 기록 기반 준비 | [CHG-003](../docs/aidlc/changes/CHG-003/aidlc-state.md) 상태·증거 문서 | CI·최종 증거·데모 |
+
+## SecOC 보완 브랜치 인계
+
+`feat/ivi-secoc-hardening`: P2 기반 무수신 만료·실패 진단 전달·stale와 인증 오류 표시 보완. [재현/증거](../docs/aidlc/changes/CHG-006/audit.md). P3 전체 경고 UX, 실 CAN 통합과 새 세션 인증은 별도 범위다.
