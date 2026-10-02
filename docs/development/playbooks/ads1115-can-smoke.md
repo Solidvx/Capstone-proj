@@ -121,4 +121,6 @@ sudo ./adaptive_ecu/build/ads1115_can_smoke --i2c-device /dev/i2c-does-not-exist
 
 [SDD-ECU](../../SDD-ECU.md)의 비동기 취득·감시 분리, [ICD](../../ICD.md)의 승인된 센서 상태 목표와 양측 UI 처리, SecOC 인증 후 반영을 함께 구현·검증해야 한다. 이 진단은 해당 계약 변경을 수행하지 않는다.
 
+2026-10-03 [CHG-011](../../aidlc/changes/CHG-011/aidlc-state.md)에서 비동기 취득·감시 분리와 SecOC 동반 송신을 제품 `adaptive_ecu --sensor-mode ads1115`에 연결했다. 센서 상태(byte 7) 전달은 여전히 ICD §8 동시 전환 과제다. 이 진단 도구는 독립 확인용으로 유지한다.
+
 Linux 결합 I²C 전송은 [커널 i2c-dev 문서](https://docs.kernel.org/i2c/dev-interface.html)의 `I2C_RDWR`를 사용한다.

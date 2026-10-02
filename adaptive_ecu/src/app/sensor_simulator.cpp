@@ -34,6 +34,14 @@ SensorData parseCsvLine(const std::string& line) {
 }
 }
 
+std::optional<SensorSimulator::Mode> SensorSimulator::parseMode(const std::string& name) {
+    if (name == "constant") return Mode::CONSTANT;
+    if (name == "profile_csv") return Mode::PROFILE_CSV;
+    if (name == "random_walk") return Mode::RANDOM_WALK;
+    if (name == "ads1115") return Mode::ADS1115_HARDWARE;
+    return std::nullopt;
+}
+
 SensorSimulator::SensorSimulator(Mode mode, std::string profile_path)
     : mode_(mode), profile_path_(std::move(profile_path)) {}
 
@@ -41,9 +49,11 @@ SensorData SensorSimulator::next() {
     switch (mode_) {
     case Mode::CONSTANT:
         return {42.0f, -2.0f, 25};
-    case Mode::POTENTIOMETER:
     case Mode::ADS1115_HARDWARE:
-        return adc_data_;
+        if (!hardware_voltage_v_) {
+            throw std::logic_error("ADS1115 mode has no validated ADC voltage");
+        }
+        return {*hardware_voltage_v_, kHardwareCurrentA, kHardwareTemperatureC};
     case Mode::PROFILE_CSV:
         loadProfileIfNeeded();
         if (profile_.empty()) {
@@ -59,16 +69,9 @@ SensorData SensorSimulator::next() {
     return {42.0f, -2.0f, 25};
 }
 
-void SensorSimulator::setAdcVoltage(float voltage_v) {
-    adc_data_.voltage_v = std::clamp(voltage_v, kMinVoltage, kMaxVoltage);
-}
-
-void SensorSimulator::setAdcCurrent(float current_a) {
-    adc_data_.current_a = std::clamp(current_a, kMinCurrent, kMaxCurrent);
-}
-
-void SensorSimulator::setAdcTemperature(float temperature_c) {
-    adc_data_.temperature_c = clampTemp(temperature_c);
+void SensorSimulator::setHardwareVoltage(float pack_voltage_v) {
+    // Range is validated by convertAds1115Voltage; never clamp a real reading.
+    hardware_voltage_v_ = pack_voltage_v;
 }
 
 void SensorSimulator::loadProfileIfNeeded() {

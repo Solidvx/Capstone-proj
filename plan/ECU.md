@@ -96,7 +96,7 @@ Node A를 실제 차량 ECU처럼 동작시키고, Node B IVI와 CAN 버스로 e
 |---|---|---|
 | D1 | IDS 특징 벡터의 문서·구현 불일치 해소: 7개 특징 이름·순서 일치 확인(2026-09-10) | [M6](detail/ecu/M6_문서_품질.md)에서 특징·전처리·threshold와 실행 증거를 대조한다. 정적 일치는 IDS 실행 인수 완료가 아님 |
 | D2 | SDD의 EKF가 3차 OCV·50Ah 전제, 제품은 3차 OCV·50Ah로 수정됐으나 실행 미검증 | SOC-2=A 적용 소스의 C++ 시험 실행 ([M3](detail/ecu/M3_EKF_Failsafe_SecOC.md)); 현 구현과 목표를 구분 |
-| D3 | `SensorSimulator` 모드가 문서 4개, 구현 5개(`POTENTIOMETER` 추가) | I-5=B에 따라 [M3 §3.11.1](detail/ecu/M3_EKF_Failsafe_SecOC.md)에서 사용처·필요 시험 이관 후 추가 모드를 제거하고 소스·CLI·시험을 공식 4모드에 맞춘다. [M6](detail/ecu/M6_문서_품질.md)에서 정합성과 증거 확인; SDD를 5모드로 확대하지 않음 |
+| D3 | `SensorSimulator` 모드가 문서 4개, 구현 5개(`POTENTIOMETER` 추가) | **해소(2026-10-03, [CHG-011](../docs/aidlc/changes/CHG-011/aidlc-state.md))**: POTENTIOMETER와 setter 3종을 제거하고 시험을 ADS1115 모드·모드 이름 검증으로 이관했다. 미지원 모드는 종료 코드 2. 이전 계획: I-5=B에 따라 [M3 §3.11.1](detail/ecu/M3_EKF_Failsafe_SecOC.md)에서 사용처·필요 시험 이관 후 추가 모드를 제거하고 소스·CLI·시험을 공식 4모드에 맞춘다. [M6](detail/ecu/M6_문서_품질.md)에서 정합성과 증거 확인; SDD를 5모드로 확대하지 않음 |
 | D4 | TC-BSW-007(Watchdog 재시작 3회 연속 실패 → WARNING) 로직 없음 | 재시작·실패 집계·reason 0x07 구현 과제 ([M3](detail/ecu/M3_EKF_Failsafe_SecOC.md) 3.6) |
 | D5 | Fail-safe에 CRITICAL → NORMAL 복귀 경로 없음 | SRS와 대조 후 결론 기록 ([M3](detail/ecu/M3_EKF_Failsafe_SecOC.md) 3.5) |
 | D6 | TC-SEC-005-d의 과거 fps 기준은 버스 점유율 ≥50%로 정정 완료. 약 3,700fps는 특정 프레임 길이 가정의 계산값이며 보편적 물리 상한이 아님 | [M4](detail/ecu/M4_IDS_공격_물리통합.md) §3.4와 TEST_PLAN에 따라 실제 물리 CAN 캡처·계측으로 점유율을 인수한다. 합성/vcan은 사전 검증이며 실측 인수는 별도 |
