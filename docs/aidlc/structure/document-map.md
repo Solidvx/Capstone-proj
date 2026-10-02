@@ -106,3 +106,7 @@ ADS1115 실측 표시 진단: [절차](../../development/playbooks/ads1115-can-s
 [HTML 연결 가이드](../../development/environment/ECU_IVI_하드웨어_연결가이드.html)는 기존 배선 HTML(2026-10-03 사용자 요청으로 삭제, 이전 내용은 커밋 `70acbd3`)을 바탕으로 실물 J1 정정 및 ECU ADC 3.3V 분배를 추가한다. 제품 코드·계약 변경 없이 작성했다. 실장비 검증은 후속 과제다.
 
 작업 요청·진행·검증 기록: [CHG-005](../changes/CHG-005/aidlc-state.md).
+
+## 기준선 통합 — 2026-10-03
+
+통합·실험 단계 전에 ECU·IVI 작업을 `develop` 기준으로 모으고 빌드·시험 결과와 미검증 범위를 [CHG-009](../changes/CHG-009/aidlc-state.md)에 기록한다.

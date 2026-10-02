@@ -275,3 +275,6 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,docs/aidlc/changes/CHG-005/spec.md,add,hardware guide work record
 ,docs/aidlc/changes/CHG-005/aidlc-state.md,add,hardware guide work record
 ,docs/aidlc/changes/CHG-005/audit.md,add,hardware guide work record
+,docs/aidlc/changes/CHG-009/spec.md,add,stage 0 baseline integration record
+,docs/aidlc/changes/CHG-009/aidlc-state.md,add,stage 0 baseline integration record
+,docs/aidlc/changes/CHG-009/evidence.md,add,stage 0 baseline integration record
