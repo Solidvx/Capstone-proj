@@ -1,7 +1,7 @@
 # Test Plan — 소프트웨어 검증 계획
 
-> **문서 버전**: v1.5 | **작성일**: 2026-03-15 | **최종 수정**: 2026-09-22
-> **참조**: SRS v1.6 (요구사항 추적), ICD v1.5, SDD-ECU v1.6, SDD-IVI v2.0, TARA v1.2 (위협 시나리오 → Ablation Study)
+> **문서 버전**: v1.6 | **작성일**: 2026-03-15 | **최종 수정**: 2026-09-23
+> **참조**: SRS v1.6 (요구사항 추적), ICD v1.5, SDD-ECU v1.6, SDD-IVI v2.2, TARA v1.2 (위협 시나리오 → Ablation Study)
 > **테스트 프레임워크**: GoogleTest (C++), pytest (Python), Qt Test (C++), Qt Quick Test (QML)
 > **커버리지 도구**: gcov / lcov (C++), pytest-cov (Python)  
 > **품질 게이트** (프로젝트 승인 기준, S-8=B): C++ Line ≥80%, Fail-safe Branch 100%, cppcheck 0건
@@ -24,7 +24,7 @@
 
 ## 1. 테스트 전략
 
-2026-09-23 정적 대조: 이 문서는 인수 명세이며 표에 적힌 기대 결과 자체가 실행 결과는 아니다. C++ 파일 `test/`, `data/`는 기본적으로 `adaptive_ecu/` 기준이고 IVI 시험은 명시한 `ivi_platform/test/` 기준이다. `test_can_cdd.cpp`, `test_bms_component.cpp`, 1시간 CSV, 실 CAN 공격/IDS 시험과 CI는 아직 없다. IVI P1~P2 core 회귀 시험의 실제 결과만 §4의 별도 기록과 CHG-003 증거를 따른다. API를 축약한 assertion은 시험 의도이며 실제 헤더에 없는 메서드를 구현돼 있다고 가정하지 않는다.
+2026-09-23 정적 대조: 이 문서는 인수 명세이며 표에 적힌 기대 결과 자체가 실행 결과는 아니다. C++ 파일 `test/`, `data/`는 기본적으로 `adaptive_ecu/` 기준이고 IVI 시험은 명시한 `ivi_platform/test/` 기준이다. `test_can_cdd.cpp`, `test_bms_component.cpp`, 1시간 CSV, 실 CAN 공격/IDS 시험과 CI는 아직 없다. IVI P1~P4 core·Qt·vcan 시험의 실제 결과만 §4의 별도 기록과 CHG-003 증거를 따른다. API를 축약한 assertion은 시험 의도이며 실제 헤더에 없는 메서드를 구현돼 있다고 가정하지 않는다.
 
 ### 1.1. 테스트 레벨
 
@@ -313,7 +313,7 @@ TC-{모듈}-{번호}
 
 ## 4. 단위 테스트 — Node B (C++/Qt)
 
-> 2026-09-23 현재 P2 core 소스와 단위 시험 6개가 있다. 아래 공식 TC의 전체 합격은 아직 아니며, 실제 확인한 부분 범위만 다음 기록과 CHG-003 증거를 따른다.
+> 2026-09-23 현재 P3 core·Qt 소스와 시험 8개가 있다. 아래 공식 TC의 전체 합격은 아직 아니며, 실제 확인한 부분 범위만 다음 기록과 CHG-003 증거를 따른다.
 
 ### P1 core 회귀 실행 기록
 
@@ -327,6 +327,16 @@ macOS arm64에서 `-Wall -Wextra -Wpedantic -Werror`를 적용한 CMake Debug와
 
 이 결과는 TC-IVI-001의 플랫폼 독립 frame/retry 정책, TC-IVI-002 core 범위와 TC-IVI-003의 pending/observer 범위를 증명한다. Linux kernel filter·실제 poll/read, 300ms stale, Qt와 vcan은 미실행이다. 상세 결과는 [P2 구현 결과](aidlc/changes/CHG-003/construction/P2_구현_결과.md)와 [P2 증거](aidlc/changes/CHG-003/construction/build-and-test/P2_빌드_시험_증거.md)에 있다.
 
+### P3 상태·Qt 실행 기록
+
+macOS arm64와 Qt 6.11.2에서 Werror를 적용한 Debug/Release 앱 빌드와 CTest가 각각 8/8 통과했다. 299/300ms stale 경계, Fail-safe가 BMS age를 갱신하지 않는 조건, last-good 보존, IDS sequence 확인 경쟁, reason `0x07`, ViewModel GUI thread 전환, SOC 색상 경계와 8개 QML demo 상태를 확인했다.
+
+Release T2→T3 ViewModel queued 갱신 100표본은 평균 0.0194079ms, p99 0.030958ms였다. 이 값은 macOS host property signal까지만 포함하며 CAN과 실제 display render는 제외한다. 상세 결과는 [P3 구현 결과](aidlc/changes/CHG-003/construction/P3_구현_결과.md)와 [P3 증거](aidlc/changes/CHG-003/construction/build-and-test/P3_빌드_시험_증거.md)에 있다. Linux vcan 통합은 아래 P4 기록에서 별도로 판정한다.
+
+### P4 Linux vcan·계측 실행 기록
+
+Lima Ubuntu 26.04 aarch64 VM에서 실제 `vcan0` PF_CAN filter·DLC/flag·wake 종료와 정상 SecOC, 변조 MAC, replay, 100ms pending timeout을 검증했다. Qt Release 전체 CTest는 9/9 통과했다. 100ms BMS 주기 T1→T4 1,000표본은 평균 6.037ms, p99 8.028ms, 최대 10.827ms, 누락 0이었다. 상세 환경과 과부하 사전 실행은 [P4 구현 결과](aidlc/changes/CHG-003/construction/P4_구현_결과.md)와 [P4 증거](aidlc/changes/CHG-003/construction/build-and-test/P4_빌드_시험_증거.md)에 있다. T4는 Qt offscreen `frameSwapped`이며 RPi4 HDMI scanout은 P5에서 검증한다.
+
 ### TC-IVI-001: SocketCAN 수신 콜백과 종료
 
 | 항목 | 내용 |
@@ -334,7 +344,7 @@ macOS arm64에서 `-Wall -Wextra -Wpedantic -Werror`를 적용한 CMake Debug와
 | **요구사항** | FR-IVI-001 |
 | **절차** | `vcan0`에 허용 ID, 미등록 ID, 잘못된 DLC, RTR/ERR 프레임을 전송하고 콜백 수와 종료 시간을 기록 |
 | **기대 결과** | 허용된 DLC 8 데이터 프레임만 1회 전달되고 receiver가 대기 없이 종료 |
-| **파일** | 현재 정책 시험 `test_can_frame_validator.cpp`, `test_receive_retry_policy.cpp`; Linux 수신 통합 시험 `test_socketcan_receiver.cpp`는 P4 예정 |
+| **파일** | 정책 시험 `test_can_frame_validator.cpp`, `test_receive_retry_policy.cpp`; Linux 수신 통합 `test_socketcan_receiver.cpp` |
 
 ### TC-IVI-002: CAN 파싱과 SecOC 인증
 
@@ -352,7 +362,7 @@ macOS arm64에서 `-Wall -Wextra -Wpedantic -Werror`를 적용한 CMake Debug와
 | **요구사항** | FR-IVI-003 |
 | **절차** | 최초 상태, 인증 성공, timeout, 재수신과 observer 등록/해제를 순서대로 주입 |
 | **기대 결과** | 최초 `valid=false`, 성공 시 원자적 snapshot, timeout 시 last-good+`stale=true`, 해제 observer 미호출 |
-| **파일** | `ivi_platform/test/test_vehicle_data_service.cpp`, `ivi_platform/test/test_vehicle_data_service_security.cpp` |
+| **파일** | `ivi_platform/test/test_vehicle_data_service.cpp`, `test_vehicle_data_service_security.cpp`, `test_vehicle_data_service_state.cpp` |
 
 ### TC-IVI-004: Service에서 DashboardViewModel 전달
 
@@ -371,7 +381,7 @@ macOS arm64에서 `-Wall -Wextra -Wpedantic -Werror`를 적용한 CMake Debug와
 | 20.0, 49.5 | 주황 |
 | 0.0, 19.5 | 빨강 |
 
-initial/invalid/stale에는 정상 SOC 색상만 표시하지 않고 상태 표식도 함께 확인한다. 파일은 `ivi_platform/test/tst_dashboard.qml`이다.
+initial/invalid/stale에는 정상 SOC 색상만 표시하지 않고 상태 표식도 함께 확인한다. 색상 경계는 `test_dashboard_view_model.cpp`, QML 로드·표시는 `Main.qml`의 demo/offscreen smoke로 확인한다.
 
 ### TC-IVI-006: IDS 경보 표시와 확인
 
@@ -576,6 +586,7 @@ Service snapshot 발행(T2)부터 DashboardViewModel property 변경(T3)까지 1
 | v1.2 | 2026-05-09 | TC-BSW-006~008 추가 (WatchdogManager, SensorSimulator), TC-BSW-008-d (ADS1115_HARDWARE) + CI 제외 사유 명시. 참조 문서 SRS v1.3, SDD-ECU v1.4, SDD-IVI v1.3 반영 | 팀원A |
 | v1.3 | 2026-05-09 | TC-IVI-008 레이턴시 목표 수정 (≤20ms/≤50ms), TC-EXP-002·004 실험 테이블 보완, 참조 SRS v1.4·SDD-ECU v1.5 반영 | 팀원A |
 | v1.5 | 2026-09-22 | Node B 시험을 C++/Qt Test/Qt Quick Test 기준으로 전환 | 팀원B |
+| v1.6 | 2026-09-23 | P3 stale·IDS ack·ViewModel·QML demo 실행 기록과 실제 Qt 시험 경로 반영 | 팀원B |
 | v1.4 | 2026-09-06 | TC-PERF-001 측정 구간을 상위 요구(SRS NFR-PERF-001)에 맞춰 T1(CAN 수신)→T4(UI 반영)로 통일하고 ECU→HAL 구간은 진단값으로 분리, TC-BMS-001 입력 100→1,000 타임스텝 정정, TC-SEC-005-d 기준을 프레임 수→버스 점유율 ≥50%로 변경, TC-PERF-003과 TC-INT-004의 측정 범위 구분 명시, TC-BSW-007 사유 코드 `0x07` 반영 | 팀원A, 팀원B |
 
 

@@ -33,13 +33,13 @@ void run() {
     EXPECT_FALSE(s.latest().vehicle.valid);
     s.processFrame(0x100, bms, t + 200ms);
     EXPECT_EQ(s.processFrame(0x102, auth(10), t+201ms), ivi::ProcessResult::kPublished);
-    s.pollTimeouts(t+500ms);
+    s.refreshTime(t+500ms);
     EXPECT_FALSE(s.latest().vehicle.stale);
     // Fail-safe authentication must not refresh the BMS freshness deadline.
     const ivi::CanPayload fs{0,1,1,30,65,0,0,0};
     s.processFrame(0x101, fs, t+500ms);
     s.processFrame(0x103, auth(9,fs,0x101), t+500ms);
-    s.pollTimeouts(t+501ms);
+    s.refreshTime(t+501ms);
     EXPECT_TRUE(s.latest().vehicle.stale);
     EXPECT_NEAR(s.latest().vehicle.soc_percent, 75, 0.001);
     for (unsigned counter : {10U, 9U, 111U}) {

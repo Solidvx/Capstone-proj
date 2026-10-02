@@ -2,13 +2,13 @@
 #include "test_support.h"
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <QQmlContext>
+#include <QVariant>
 #include <QUrl>
 
 void run() {
     DashboardViewModel model;
     QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("vehicleModel", &model);
+    engine.setInitialProperties({{"vehicleModel", QVariant::fromValue(&model)}});
     engine.load(QUrl::fromLocalFile(QStringLiteral(IVI_QML_FILE)));
     EXPECT_FALSE(engine.rootObjects().isEmpty());
     auto* indicator=engine.rootObjects().front()->findChild<QObject*>("authenticationErrorIndicator");
@@ -32,7 +32,7 @@ void run() {
     EXPECT_FALSE(model.authenticationError());
     EXPECT_FALSE(indicator->property("visible").toBool());
     EXPECT_TRUE(model.valid());
-    service.pollTimeouts(now+std::chrono::milliseconds{300});
+    service.refreshTime(now+std::chrono::milliseconds{300});
     QGuiApplication::processEvents();
     EXPECT_TRUE(model.stale());
 }

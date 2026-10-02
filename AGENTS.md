@@ -34,12 +34,12 @@
 |---|---|---|
 | Node A ECU | `adaptive_ecu/` | C++17, CMake, GoogleTest/CTest. 소스 존재와 시험 통과를 구분한다. |
 | Security/IDS | `security/` | Python SecOC, 공격·IDS·실험. 의존성은 `security/requirements.txt`. |
-| Node B IVI | `ivi_platform/` | Ubuntu/C++17/SocketCAN/Qt Quick Plan B. P2 CAN·SecOC core와 기준 UI가 있으며 후속 단계 완료 여부는 시험 증거로 판단한다. |
+| Node B IVI | `ivi_platform/` | Ubuntu/C++17/SocketCAN/Qt Quick Plan B. P4 Linux vcan·Qt 계측까지 있으며 후속 단계 완료 여부는 시험 증거로 판단한다. |
 | 공식 문서 | `docs/` | 계약·요구사항·설계·시험의 source of truth. |
 | 실행 계획 | `plan/ECU.md`, `plan/IVI.md`, `plan/detail/common/00_협업_규약.md` | 상위 2개 계획과 `plan/detail/ecu/`, `ivi/`, `common/`의 상세 절차를 사용한다. 원문 보관 위치는 `plan/_archive/`다. 과거 별도 `Plan/` 원문은 통합·보관했으며 현재 실행 디렉토리는 소문자 `plan/`이다. 현재 구현의 증거가 아니다. |
 | 임시 산출물 | `tmp/` | `.gitignore` 대상. 보존이 필요한 최종 문서는 두지 않는다. |
 
-**스냅샷 갱신일 2026-09-23.** 현재 저장소는 Git 원격과 `main`·`develop` 브랜치가 있으며 실제 작업 시작 때 branch와 dirty 상태를 다시 확인한다. ECU와 Python 보안·IDS 소스는 존재하지만 문서 정리가 동작 검증을 의미하지 않는다. ADR-010의 Ubuntu/C++17/SocketCAN/Qt Quick Plan B를 현 제출 기준으로 유지한다. IVI는 P1 선택 이관과 P2 CAN·SecOC core를 완료했으며 CHG-003에 기록된 Debug/Release 시험이 각 6/6 통과했다. CHG-004는 Qt 현행 안내와 Android 역사 자료의 읽기 경계를 정리한다. Qt·vcan·물리 통합·CI는 후속 증거가 필요하며, 단계 완료는 실제 빌드·시험 증거로만 판정한다.
+**스냅샷 갱신일 2026-09-23.** 현재 저장소는 Git 원격과 `main`·`develop` 브랜치가 있으며 실제 작업 시작 때 branch와 dirty 상태를 다시 확인한다. ECU와 Python 보안·IDS 소스는 존재하지만 문서 정리가 동작 검증을 의미하지 않는다. ADR-010의 Ubuntu/C++17/SocketCAN/Qt Quick Plan B를 현 제출 기준으로 유지한다. IVI는 P1~P4를 완료했으며 CHG-003에 macOS Qt 시험과 Linux vcan·T1~T4 증거를 기록했다. CHG-004는 Qt 현행 안내와 Android 역사 자료의 읽기 경계를 정리한다. RPi4 물리 통합·CI는 후속 증거가 필요하며, 단계 완료는 실제 빌드·시험 증거로만 판정한다.
 
 현재 폴더에 없는 `CAR-ECU/`, `.github/` CI, `Dockerfile.arm64`, ARM64 toolchain, `.clang-format`, AOSP 소스는 존재한다고 가정하지 않는다. 초기 제안서는 `docs/archive/project-overview.md`에서 배경 자료로 보존한다.
 
