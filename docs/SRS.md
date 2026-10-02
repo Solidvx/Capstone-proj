@@ -150,7 +150,7 @@
 | FR-IVI-002 | SDD-IVI 3.2~3.3 인증·파싱 | 예정: `ivi_platform/hal/can_parser.cpp`, `secoc_verifier.cpp` | TC-IVI-002 |
 | FR-IVI-003 | SDD-IVI 3.4 Service | 예정: `ivi_platform/service/vehicle_data_service.cpp` | TC-IVI-003 |
 | FR-IVI-004 | SDD-IVI 3.5 ViewModel | 예정: `ivi_platform/ui_qml/dashboard_view_model.cpp` | TC-IVI-004 |
-| FR-IVI-005 | SDD-IVI 3.6 QML | 예정: `ivi_platform/ui_qml/qml/SocGauge.qml` | TC-IVI-005 |
+| FR-IVI-005 | SDD-IVI 3.6 QML | 존재: `ivi_platform/ui_qml/qml/SocGauge.qml`, `ivi_platform/test/test_dashboard_security.cpp` | TC-IVI-005 |
 | FR-IVI-006 | SDD-IVI 3.6 QML | 예정: `ivi_platform/ui_qml/qml/AlertBanner.qml` | TC-IVI-006 |
 | FR-IVI-007 | SDD-IVI 3.6 QML | 예정: `ivi_platform/ui_qml/qml/FailSafeOverlay.qml` | TC-IVI-007 |
 | FR-IVI-008 | SDD-IVI 3.4~3.6 | 예정: `ivi_platform/ui_qml/dashboard_view_model.cpp`, `qml/Main.qml` | TC-IVI-008 |

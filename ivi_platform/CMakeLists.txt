@@ -100,7 +100,9 @@ if(IVI_BUILD_QT_APP)
         qt_add_qml_module(ivi_dashboard
             URI IviDashboard
             VERSION 1.0
-            QML_FILES ui_qml/qml/Main.qml
+            QML_FILES
+                ui_qml/qml/Main.qml
+                ui_qml/qml/SocGauge.qml
         )
         install(TARGETS ivi_dashboard
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
