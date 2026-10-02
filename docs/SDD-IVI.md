@@ -1,12 +1,12 @@
 > **문서명**: Software Design Document — Node B (IVI)
-> **버전**: v2.0 | **작성일**: 2026-03-15 | **최종 수정**: 2026-09-22 | **작성자**: 팀원B
+> **버전**: v2.3 | **작성일**: 2026-03-15 | **최종 수정**: 2026-09-23 | **작성자**: 팀원B
 > **참조**: ICD v1.5, SRS v1.6 (FR-IVI-*), ADR-010, IVI Plan B 전환 계획
 
 # 1. 목적과 현재 기준선
 
 이 문서는 Node B를 Ubuntu 22.04, C++17, SocketCAN, Qt Quick/QML로 구현하기 위한 설계 기준이다. CAN ID·DLC·바이트 순서·SecOC MAC/rolling counter 계약은 [ICD](ICD.md)를 그대로 따른다.
 
-2026-09-22 현재 `ivi_platform/`에는 P1 parser·SecOC·service·SocketCAN과 Qt/QML 기준 코드가 있다. Qt와 Linux SocketCAN을 제외한 core는 macOS arm64의 CMake Debug/Release에서 각 3개 시험을 통과했다. 아래 설계 중 pending timeout, stale, IDS 확인, 전체 화면 경고와 실 CAN 복구는 P2~P4 목표이며 아직 완료를 뜻하지 않는다. Android AOSP, HIDL, Binder/AIDL, Jetpack Compose 설계는 과거 결정 기록으로만 유지한다.
+2026-09-23 현재 `ivi_platform/`에는 P1 기준선, P2 CAN·SecOC, P3 상태·Qt UI와 P4 Linux vcan·계측이 있다. Linux aarch64 VM에서 Qt Release 9/9와 실제 `vcan0` 1,000표본을 검증했다. RPi4/MCP2515 `can0`와 물리 화면은 P5에서 별도 검증한다. Android AOSP, HIDL, Binder/AIDL, Jetpack Compose 설계는 과거 결정 기록으로만 유지한다.
 
 # 2. 구조와 책임
 
@@ -31,6 +31,8 @@ ivi_platform/
 ├── README.md
 ├── hal/
 │   ├── socketcan_receiver.{h,cpp}
+│   ├── can_frame_validator.{h,cpp}
+│   ├── receive_retry_policy.h
 │   ├── can_parser.{h,cpp}
 │   └── secoc_verifier.{h,cpp}
 ├── service/vehicle_data_service.{h,cpp}
@@ -42,14 +44,22 @@ ivi_platform/
 ├── scripts/
 │   ├── check_qt_ivi_env.sh
 │   ├── send_ivi_test_vectors.py
-│   └── measure_latency.py
+│   ├── measure_latency.py
+│   ├── run_vcan_integration.sh
+│   └── run_vcan_latency.sh
 └── test/
     ├── test_can_parser.cpp
+    ├── test_can_frame_validator.cpp
+    ├── test_receive_retry_policy.cpp
     ├── test_secoc_verifier.cpp
-    └── test_vehicle_data_service.cpp
+    ├── test_vehicle_data_service.cpp
+    ├── test_vehicle_data_service_security.cpp
+    ├── test_vehicle_data_service_state.cpp
+    ├── test_dashboard_view_model.cpp
+    └── test_socketcan_receiver.cpp
 ```
 
-이 트리의 파일은 현재 존재한다. QML 컴포넌트 분리와 Qt Quick Test는 P3에서 필요에 따라 추가한다.
+이 트리의 파일은 현재 존재한다. ViewModel은 Qt Test로 검증하고 QML 화면 상태는 deterministic demo/offscreen render로 확인한다.
 
 # 3. 모듈 설계
 
@@ -59,7 +69,7 @@ ivi_platform/
 - CAN 필터는 `0x100`, `0x101`, `0x102`, `0x103`, `0x200`만 허용한다.
 - Classic CAN DLC 8만 상위로 전달하고 RTR·ERR·확장 ID 및 잘못된 길이는 거부한다.
 - 수신 대기는 `poll()`과 종료용 `eventfd` 또는 유한 timeout으로 깨울 수 있게 한다. 다른 스레드의 `close()`만으로 blocking read 종료를 가정하지 않는다.
-- 일시 오류는 제한된 backoff로 재시도하고 초기화 실패와 지속 오류를 호출자에게 전달한다.
+- 소켓은 non-blocking으로 열며 poll/read의 일시 오류는 10/20/30ms backoff로 최대 3회 재시도한다. 정상 read에서 retry 예산을 초기화하고 지속 오류는 오류 문자열을 남긴 뒤 loop를 종료한다.
 
 ## 3.2. SecOcVerifier와 프레임 결합
 
@@ -72,6 +82,8 @@ ivi_platform/
 5. 성공한 경우에만 counter를 갱신하고 원본을 파싱·게시한다.
 
 MAC 실패, counter 거부, 쌍 timeout은 데이터를 게시하지 않으며 마지막 정상 snapshot을 덮어쓰지 않는다. 실패한 MAC은 수신 counter를 소비하지 않는다. `0x200` IDS 경보는 현 계약상 SecOC 비대상이다.
+
+pending은 BMS와 Fail-safe에 각각 한 슬롯만 둔다. 보관시간은 100ms이며 같은 ID의 새 원본은 기존 원본을 폐기·교체한다. 인증이 먼저 오면 다음 원본에 연결하지 않고 orphan으로 폐기한다. 100ms는 raw/auth pair의 내부 자원 정책이며 ICD §2.5의 300ms stale 판정을 바꾸지 않는다.
 
 ## 3.3. CanParser
 
@@ -98,9 +110,9 @@ struct VehicleData {
 
 - 인증 성공 데이터만 snapshot에 반영한다.
 - 최초 정상 수신 전에는 `valid=false`로 두어 0%를 실제 SOC처럼 표시하지 않는다.
-- timeout 시 마지막 정상 수치를 보존하면서 `stale=true`로 전환한다.
+- 마지막 인증 성공 BMS 시각을 별도로 보관하고 300ms부터 마지막 정상 수치를 보존하면서 `stale=true`로 전환한다. Fail-safe와 IDS 이벤트는 이 시각을 갱신하지 않는다.
 - Fail-safe CRITICAL/SHUTDOWN과 IDS 경보는 별도 이벤트로 전달한다.
-- IDS 경보 확인(ack)은 표시 상태만 닫으며 stale·센서 오류·Fail-safe를 해제하지 않는다.
+- IDS 경보 확인(ack)은 관찰한 event sequence가 현재 sequence와 같을 때만 표시 상태를 닫으며 stale·센서 오류·Fail-safe를 해제하지 않는다.
 - `sensorState`의 실제 wire 반영은 ICD §8의 양 노드 동시 전환 이후에만 유효하다. 전환 전에는 미지원으로 표시한다.
 
 ## 3.5. DashboardViewModel
@@ -117,7 +129,9 @@ struct VehicleData {
 
 # 4. 실행·스레드·배포
 
-프로세스는 수신 worker 한 개와 Qt GUI thread로 시작한다. 종료 순서는 신규 이벤트 차단, 수신 대기 해제, worker join, SocketCAN 자원 해제, UI 종료다. 구성값은 CAN 인터페이스, 키 파일 경로, timeout이며 비밀키는 저장소에 넣지 않는다.
+프로세스는 수신 worker 한 개와 Qt GUI thread로 시작한다. 50ms Qt timer가 service의 monotonic stale 판정을 갱신한다. 종료 순서는 신규 이벤트 차단, 수신 대기 해제, worker join, SocketCAN 자원 해제, UI 종료다. 구성값은 CAN 인터페이스, 키 파일 경로, timeout이며 비밀키는 저장소에 넣지 않는다. `--demo`는 CAN·키 없이 P3 화면을 재현하는 개발·시험 진입점이다.
+
+P4 계측 모드의 `--latency-csv`와 `--latency-samples`는 T1~T4 stage row를 기록한다. T1~T4는 한 프로세스의 `steady_clock`을 사용하며 CAN payload에 timestamp나 sample id를 넣지 않는다. T4는 `QQuickWindow::frameSwapped`이고 종료는 signal callback 밖의 다음 event-loop tick에서 수행한다.
 
 개발 환경은 `vcan0`, 실제 RPi4는 `can0`을 사용한다. 배포 전 Node A와 bitrate 500 kbps, CAN ID, 키, counter 초기화 정책을 함께 확인한다.
 
@@ -126,10 +140,10 @@ struct VehicleData {
 - 순수 단위 시험: parser 경계값, signed 변환, HMAC 정상/변조, counter replay/wrap.
 - 서비스 시험: 인증 전 미게시, last-good/stale, Fail-safe·IDS 이벤트, ack 경쟁.
 - Qt 시험: Q_PROPERTY 갱신, SOC 색상, 전체 화면 경고, IDS 유지/재표시.
-- vcan 통합: `0x100→0x102`, `0x101→0x103`, `0x200` 순서와 변조·replay·timeout.
-- 물리 통합: RPi4 `can0`, Node A 송신, T1 수신부터 T4 QML 렌더까지 1,000회 계측.
+- vcan 통합: 실제 PF_CAN에서 filter·종료, `0x100→0x102`와 변조·replay·timeout, Qt offscreen T1→T4 1,000회 계측.
+- 물리 통합: RPi4 `can0`, Node A 송신과 실제 display·복구를 vcan 결과와 분리 검증.
 
-세부 합격 기준은 [TEST_PLAN](TEST_PLAN.md)을 따른다. 소스가 생기기 전까지 모든 시험 항목은 계획 상태다.
+세부 합격 기준은 [TEST_PLAN](TEST_PLAN.md)을 따른다. P1~P3의 macOS core/Qt 결과, P4 Linux vcan 결과, P5 물리 CAN 미실행 범위를 구분한다.
 
 # 6. 변경 이력
 
@@ -137,3 +151,10 @@ struct VehicleData {
 | --- | --- | --- |
 | v1.3 | 2026-09-09 | Android/HIDL 기반 설계 보완 |
 | v2.0 | 2026-09-22 | ADR-010 활성화에 따라 Ubuntu/C++17/SocketCAN/Qt Quick 구조로 전환 |
+| v2.1 | 2026-09-23 | P2 pending 100ms·교체·orphan, frame validator와 제한 수신 retry 구현 상태 반영 |
+| v2.2 | 2026-09-23 | P3 BMS 300ms stale, IDS sequence ack, Qt ViewModel·QML 경고와 실제 Qt 시험 반영 |
+| v2.3 | 2026-09-23 | P4 Linux vcan 통합시험, T1~T4 stage 계측·자동화와 1,000표본 결과 반영 |
+
+## SecOC 런타임 보강 (CHG-006)
+
+P2 위에 무수신 pending 만료, 실패 observer 진단 전달과 CRITICAL QML 경고를 구현했다. `VehicleDataService::pollTimeouts()`는 무수신 pending 100ms 만료만 담당하는 구현 내부 타이머 진입점(10ms)이며 ICD의 observer/wire 계약은 유지한다. 300ms stale은 P3의 `refreshTime()`(50ms)으로 일원화했고 stale 로그만 `reason=BMS_STALE`로 맞췄다. 실패 auth 뒤 원본 유지·새 원본 교체 정책은 유지하며, 키 재설정은 pending만 폐기하고 counter를 초기화하지 않는다. 상세 동작·재현은 [IVI README](../ivi_platform/README.md), 결과는 [CHG-006](aidlc/changes/CHG-006/audit.md)을 따른다. 물리 수신 복구·인증 세션 전환·P3 전체 UI 완료를 뜻하지 않는다.
