@@ -114,3 +114,7 @@ ADS1115 실측 표시 진단: [절차](../../development/playbooks/ads1115-can-s
 ## IVI Debian 13·Qt 6.8 기준 통일 — 2026-10-03
 
 실제 Node B RPi4 환경과 Qt CMake 최소 버전을 맞추고 강제 SocketCAN 시험·배포 파일을 [CHG-010](../changes/CHG-010/aidlc-state.md)에 기록한다. 실제 `vcan0`·Qt 전체 시험은 [증거](../changes/CHG-010/evidence.md)에서 커밋과 함께 관리한다.
+
+## ECU ADS1115 제품 연결 — 2026-10-03
+
+가변저항 실측값을 별도 취득 worker로 읽어 SecOC와 함께 송신하는 제품 경로와 사용자 결정 D1~D4를 [CHG-011](../changes/CHG-011/aidlc-state.md)에 기록한다. 설계는 [SDD-ECU §3.7.3](../../SDD-ECU.md), 단위·실장비 결과는 [증거](../changes/CHG-011/evidence.md)에 있다.

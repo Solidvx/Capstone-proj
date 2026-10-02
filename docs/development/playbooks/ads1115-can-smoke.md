@@ -8,7 +8,7 @@
 ## 범위와 표시값
 
 - AIN0, I²C `/dev/i2c-1`, 주소 `0x48`, 단발 128 SPS, PGA ±4.096 V.
-- 원시값 0~26400만 인수. 0~3.3 V를 가상 팩 전압 30~42 V로 변환한다.
+- 원시값 0~26400을 인수하고, 그 바깥 ±32코드(약 4mV)는 끝점 잡음으로 보고 끝값으로 읽는다(B안, 2026-10-03, 실측 기반 설계값·추가 측정 후 재검토, [CHG-011](../../aidlc/changes/CHG-011/aidlc-state.md)). 0~3.3 V를 가상 팩 전압 30~42 V로 변환한다.
 - 100ms 이상 간격으로 요청하며 20ms 이상 걸린 결과를 폐기한다. 실제 I/O 호출을 20ms 안에 취소한다는 뜻은 아니다.
 - 최초 및 오류 후 새로운 유효 변환 3회 연속 성공부터 `0x100`을 송신한다.
 - 기존 인코더 사용, byte 7은 0 유지. 전류 -2A, 온도 25°C, SOH 100%는 모의값이다.
@@ -120,5 +120,7 @@ sudo ./adaptive_ecu/build/ads1115_can_smoke --i2c-device /dev/i2c-does-not-exist
 ## 후속 제품 통합
 
 [SDD-ECU](../../SDD-ECU.md)의 비동기 취득·감시 분리, [ICD](../../ICD.md)의 승인된 센서 상태 목표와 양측 UI 처리, SecOC 인증 후 반영을 함께 구현·검증해야 한다. 이 진단은 해당 계약 변경을 수행하지 않는다.
+
+2026-10-03 [CHG-011](../../aidlc/changes/CHG-011/aidlc-state.md)에서 비동기 취득·감시 분리와 SecOC 동반 송신을 제품 `adaptive_ecu --sensor-mode ads1115`에 연결했다. 센서 상태(byte 7) 전달은 여전히 ICD §8 동시 전환 과제다. 이 진단 도구는 독립 확인용으로 유지한다.
 
 Linux 결합 I²C 전송은 [커널 i2c-dev 문서](https://docs.kernel.org/i2c/dev-interface.html)의 `I2C_RDWR`를 사용한다.

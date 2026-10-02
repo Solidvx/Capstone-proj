@@ -54,7 +54,8 @@ TEST(Ads1115Sample, IoAndRangeErrorsPreserveOutput) {
     bus.fail = true;
     EXPECT_FALSE(bus.sample(adc, output));
     bus.fail = false;
-    for (const auto raw : {26401, 65535}) {
+    // First codes beyond the endpoint tolerance: 26400 + 33 and -33 (0xFFDF).
+    for (const auto raw : {26433, 65503}) {
         bus.raw = raw;
         EXPECT_FALSE(bus.sample(adc, output));
         EXPECT_EQ(output.raw, 123);
