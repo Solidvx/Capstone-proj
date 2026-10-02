@@ -11,7 +11,16 @@ void run() {
     engine.setInitialProperties({{"vehicleModel", QVariant::fromValue(&model)}});
     engine.load(QUrl::fromLocalFile(QStringLiteral(IVI_QML_FILE)));
     EXPECT_FALSE(engine.rootObjects().isEmpty());
-    auto* indicator=engine.rootObjects().front()->findChild<QObject*>("authenticationErrorIndicator");
+    auto* root=engine.rootObjects().front();
+    auto* landscapeScene=root->findChild<QObject*>("landscapeScene");
+    EXPECT_TRUE(landscapeScene != nullptr);
+    root->setProperty("width",720);
+    root->setProperty("height",1280);
+    QGuiApplication::processEvents();
+    EXPECT_EQ(landscapeScene->property("width").toInt(),1280);
+    EXPECT_EQ(landscapeScene->property("height").toInt(),720);
+    EXPECT_EQ(landscapeScene->property("rotation").toInt(),90);
+    auto* indicator=root->findChild<QObject*>("authenticationErrorIndicator");
     EXPECT_TRUE(indicator != nullptr);
     const ivi::SecOcKey dummy{};
     ivi::VehicleDataService service(dummy);
