@@ -1,8 +1,10 @@
 #include "socketcan_receiver.h"
 
-#include "can_parser.h"
+#include "can_frame_validator.h"
+#include "receive_retry_policy.h"
 
 #include <algorithm>
+#include <chrono>
 #include <utility>
 
 #if defined(__linux__)
@@ -19,6 +21,14 @@
 #endif
 
 namespace ivi {
+namespace {
+
+#if defined(__linux__)
+constexpr int kMaxReceiveRetries = 3;
+constexpr auto kReceiveRetryDelay = std::chrono::milliseconds{10};
+#endif
+
+}  // namespace
 
 SocketCanReceiver::~SocketCanReceiver() {
     stop();
@@ -32,7 +42,7 @@ bool SocketCanReceiver::open(const std::string& interface_name) {
         return false;
     }
 
-    socket_fd_ = ::socket(PF_CAN, SOCK_RAW | SOCK_CLOEXEC, CAN_RAW);
+    socket_fd_ = ::socket(PF_CAN, SOCK_RAW | SOCK_CLOEXEC | SOCK_NONBLOCK, CAN_RAW);
     if (socket_fd_ < 0) {
         setError("socket(PF_CAN) failed");
         closeDescriptors();
@@ -100,7 +110,10 @@ void SocketCanReceiver::stop() {
 #if defined(__linux__)
     if (was_running && wake_fds_[1] >= 0) {
         const std::uint8_t signal = 1;
-        (void)::write(wake_fds_[1], &signal, sizeof(signal));
+        const auto written = ::write(wake_fds_[1], &signal, sizeof(signal));
+        if (written < 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
+            setError("wake pipe write failed");
+        }
     }
 #else
     (void)was_running;
@@ -123,14 +136,31 @@ std::string SocketCanReceiver::lastError() const {
 void SocketCanReceiver::receiveLoop() {
 #if defined(__linux__)
     pollfd descriptors[2] = {{socket_fd_, POLLIN, 0}, {wake_fds_[0], POLLIN, 0}};
+    ReceiveRetryBudget retry_budget(kMaxReceiveRetries);
+    const auto retry = [this, &retry_budget](const char* operation) {
+        if (!running_.load() || !retry_budget.consumeRetry()) {
+            setError(std::string(operation) + " failed after receive retries");
+            return false;
+        }
+        setError(std::string(operation) + " failed; retrying (" +
+                 std::to_string(retry_budget.retriesUsed()) + "/" +
+                 std::to_string(kMaxReceiveRetries) + ")");
+        std::this_thread::sleep_for(kReceiveRetryDelay * retry_budget.retriesUsed());
+        return running_.load();
+    };
+
     while (running_.load()) {
+        descriptors[0].revents = 0;
+        descriptors[1].revents = 0;
         const int result = ::poll(descriptors, 2, 1000);
         if (result < 0) {
             if (errno == EINTR) {
                 continue;
             }
-            setError("poll() failed");
-            break;
+            if (!retry("poll()")) {
+                break;
+            }
+            continue;
         }
         if (result == 0) {
             continue;
@@ -138,27 +168,37 @@ void SocketCanReceiver::receiveLoop() {
         if ((descriptors[1].revents & POLLIN) != 0) {
             break;
         }
+        if ((descriptors[0].revents & (POLLERR | POLLHUP | POLLNVAL)) != 0) {
+            if (!retry("SocketCAN poll event")) {
+                break;
+            }
+            continue;
+        }
         if ((descriptors[0].revents & POLLIN) == 0) {
             continue;
         }
 
         can_frame frame{};
         const auto received = ::read(socket_fd_, &frame, sizeof(frame));
+        const auto received_at = Clock::now();
         if (received != static_cast<ssize_t>(sizeof(frame))) {
-            if (received < 0 && (errno == EINTR || errno == EAGAIN)) {
+            if (received < 0 && errno == EINTR) {
                 continue;
             }
-            setError("invalid SocketCAN read length");
+            if (!retry(received < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)
+                           ? "SocketCAN read would block"
+                           : "SocketCAN read")) {
+                break;
+            }
             continue;
         }
-        if ((frame.can_id & (CAN_EFF_FLAG | CAN_RTR_FLAG | CAN_ERR_FLAG)) != 0U ||
-            frame.can_dlc != kClassicCanPayloadSize) {
+        retry_budget.reset();
+        setError("");
+        if (validateClassicCanFrame(frame.can_id, frame.can_dlc) !=
+            CanFrameValidation::kAccepted) {
             continue;
         }
-        const auto can_id = frame.can_id & CAN_SFF_MASK;
-        if (!isSupportedCanId(can_id)) {
-            continue;
-        }
+        const auto can_id = frame.can_id & kCanSffMask;
         CanPayload payload{};
         std::copy_n(frame.data, payload.size(), payload.begin());
         FrameCallback callback;
@@ -167,7 +207,7 @@ void SocketCanReceiver::receiveLoop() {
             callback = callback_;
         }
         if (callback) {
-            callback(can_id, payload);
+            callback(can_id, payload, received_at);
         }
     }
 #endif

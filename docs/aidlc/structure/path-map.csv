@@ -236,9 +236,41 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,ivi_platform/test/test_secoc_verifier.cpp,add,CHG-003 IVI Qt Plan B P1 implementation
 ,ivi_platform/test/test_vehicle_data_service.cpp,add,CHG-003 IVI Qt Plan B P1 implementation
 ,docs/aidlc/changes/CHG-003/construction/P1_구현_결과.md,add,CHG-003 IVI Plan B P1 implementation summary
+,docs/aidlc/changes/CHG-003/construction/P2_구현_결과.md,add,CHG-003 IVI Plan B P2 implementation summary
+,docs/aidlc/changes/CHG-003/construction/build-and-test/P2_빌드_시험_증거.md,add,CHG-003 IVI Plan B P2 build and test evidence
+,ivi_platform/hal/can_frame_validator.h,add,CHG-003 IVI Plan B P2 implementation
+,ivi_platform/hal/can_frame_validator.cpp,add,CHG-003 IVI Plan B P2 implementation
+,ivi_platform/hal/receive_retry_policy.h,add,CHG-003 IVI Plan B P2 implementation
+,ivi_platform/test/test_can_frame_validator.cpp,add,CHG-003 IVI Plan B P2 implementation
+,ivi_platform/test/test_receive_retry_policy.cpp,add,CHG-003 IVI Plan B P2 implementation
+,ivi_platform/test/test_vehicle_data_service_security.cpp,add,CHG-003 IVI Plan B P2 implementation
 ,docs/aidlc/changes/CHG-004/spec.md,add,Qt current guidance consistency record
 ,docs/aidlc/changes/CHG-004/aidlc-state.md,add,Qt current guidance consistency record
 ,docs/aidlc/changes/CHG-004/audit.md,add,Qt current guidance consistency record
+,docs/aidlc/changes/CHG-003/construction/P3_구현_결과.md,add,CHG-003 IVI Plan B P3 implementation summary
+,docs/aidlc/changes/CHG-003/construction/build-and-test/P3_빌드_시험_증거.md,add,CHG-003 IVI Plan B P3 build and test evidence
+,ivi_platform/test/test_vehicle_data_service_state.cpp,add,CHG-003 IVI Plan B P3 state policy test
+,ivi_platform/test/test_dashboard_view_model.cpp,add,CHG-003 IVI Plan B P3 Qt ViewModel test
+,docs/aidlc/changes/CHG-003/construction/P4_구현_결과.md,add,CHG-003 IVI Plan B P4 implementation summary
+,docs/aidlc/changes/CHG-003/construction/build-and-test/P4_빌드_시험_증거.md,add,CHG-003 IVI Plan B P4 build and test evidence
+,docs/aidlc/changes/CHG-003/construction/build-and-test/P4_latency_summary.csv,add,CHG-003 IVI Plan B P4 latency summary
+,ivi_platform/test/test_socketcan_receiver.cpp,add,CHG-003 IVI Plan B P4 Linux SocketCAN integration test
+,ivi_platform/scripts/run_vcan_integration.sh,add,CHG-003 IVI Plan B P4 vcan build and test automation
+,ivi_platform/scripts/run_vcan_latency.sh,add,CHG-003 IVI Plan B P4 T1-T4 measurement automation
+
+,docs/aidlc/changes/CHG-006/spec.md,add,SecOC 무수신 만료와 인증 진단
+
+,docs/aidlc/changes/CHG-006/aidlc-state.md,add,SecOC 무수신 만료와 인증 진단
+
+,docs/aidlc/changes/CHG-006/audit.md,add,SecOC 무수신 만료와 인증 진단
+
+,docs/aidlc/changes/CHG-007/spec.md,add,Node A 스트리밍 CAN IDS
+
+,docs/aidlc/changes/CHG-007/aidlc-state.md,add,Node A 스트리밍 CAN IDS
+
+,docs/aidlc/changes/CHG-007/audit.md,add,Node A 스트리밍 CAN IDS
+
+,security/ids/README.md,add,IDS runtime usage and validation scope
 ,docs/development/environment/ECU_IVI_하드웨어_연결가이드.html,add,hardware wiring guide based on existing layout and shared photos
 ,docs/aidlc/changes/CHG-005/spec.md,add,hardware guide work record
 ,docs/aidlc/changes/CHG-005/aidlc-state.md,add,hardware guide work record

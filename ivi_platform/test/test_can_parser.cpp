@@ -13,6 +13,13 @@ void run() {
     EXPECT_NEAR(status->current_a, -2.0, 0.001);
     EXPECT_NEAR(status->temperature_c, 25.0, 0.001);
 
+    const ivi::CanPayload signed_boundary{0x00, 0x00, 0x00, 0x00,
+                                          0x80, 0x00, 0x00, 0x00};
+    const auto boundary = ivi::parseBmsStatus(signed_boundary);
+    EXPECT_TRUE(boundary.has_value());
+    EXPECT_NEAR(boundary->current_a, -3276.8, 0.001);
+    EXPECT_NEAR(boundary->temperature_c, -40.0, 0.001);
+
     auto invalid_bms = bms;
     invalid_bms[7] = 2;
     EXPECT_FALSE(ivi::parseBmsStatus(invalid_bms).has_value());

@@ -95,6 +95,19 @@ const char* failSafeReasonName(std::uint8_t reason) {
     }
 }
 
+const char* sensorStateName(std::uint8_t state) {
+    switch (state) {
+        case 0: return "UNSUPPORTED_LEGACY_WIRE";
+        case 1: return "INITIALIZING";
+        case 2: return "NORMAL";
+        case 3: return "ERROR_NO_LAST_GOOD";
+        case 4: return "ERROR_USING_LAST_GOOD";
+        case 5: return "RECOVERING_NO_LAST_GOOD";
+        case 6: return "RECOVERING_USING_LAST_GOOD";
+        default: return "UNSUPPORTED_CODE";
+    }
+}
+
 const char* attackTypeName(std::uint8_t attack_type) {
     switch (attack_type) {
         case 0: return "None";

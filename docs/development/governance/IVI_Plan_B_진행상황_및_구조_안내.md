@@ -24,13 +24,16 @@ Node A가 배터리 상태와 Fail-safe 이벤트를 계산해 CAN으로 보내�
 | --- | --- | --- |
 | ECU C++ | 소스 존재 | IVI가 연동할 송신측 기반이 있으나 현재 문서 작업이 동작 검증을 뜻하지 않음 |
 | 보안·IDS Python | 소스 존재 | 공격/IDS 기반이 있으나 통합 결과는 별도 검증 필요 |
-| IVI 제품 코드 | P1 구현 존재 | parser·SecOC·service·SocketCAN·Qt/QML 기준 코드와 core 시험 존재 |
+| IVI 제품 코드 | P4 vcan·계측 구현 존재 | parser·SecOC·상태·SocketCAN·Qt/QML, Linux 통합시험과 T1~T4 자동 계측 존재 |
 | IVI P0 | 문서 기준 고정 완료 | ADR·SRS·ICD·SDD·TEST_PLAN을 Qt Plan B에 맞춤 |
 | IVI P1 | 완료 | core Debug/Release 시험 각 3/3 통과; Qt와 Linux SocketCAN 실동작은 후속 검증 |
-| IVI P2~P6 | 진행 예정 | P2 기반 일부 반영 후 수신 보강·UI·통합·배포·마감 순서로 진행 |
+| IVI P2 | 완료 | pending·SecOC·frame·retry 정책 구현, Debug/Release 각 6/6 통과 |
+| IVI P3 | 완료 | stale·IDS ack·전체 화면 경고, Qt Debug/Release 각 8/8 통과 |
+| IVI P4 | 완료 | Linux Qt Release 9/9, vcan 1,000표본 T1→T4 평균 6.037ms·최대 10.827ms·누락 0 |
+| IVI P5~P6 | 진행 예정 | RPi4 물리 배포 후 CI·마감 순서로 진행 |
 | Git | 원격 연결됨 | `develop`을 통합 기준으로 하고 기능 브랜치에서 PR을 올림 |
 
-P0은 구현 전에 문서 기준을 고정한 단계이고, P1은 선택 이관과 core 재현 빌드를 완료한 단계다. Qt 화면, `vcan0`, RPi4 물리 CAN은 아직 통과로 판정하지 않는다.
+P0은 구현 전에 문서 기준을 고정한 단계이고, P1은 선택 이관과 core 재현 빌드를 완료한 단계다. Qt와 Linux `vcan0`는 P3~P4에서 검증했으며 RPi4 물리 CAN은 아직 통과로 판정하지 않는다.
 
 ## 3. M1~M8은 무엇인가
 
@@ -103,10 +106,10 @@ IVI 담당자가 자주 보는 문서는 다음 순서가 효율적이다.
 
 ## 6. 지금부터 해야 할 일
 
-P1에서 이전 소스 inventory, 선택 이관, CMake core Debug/Release 검증을 완료했다. 인증 후 게시, counter wrap 처리와 IDS 상태 유지 기반도 안전한 이관을 위해 먼저 반영했다. 실제 Qt 6 앱 빌드는 Qt 도구가 있는 Linux 환경에서 P3 증거로 남긴다.
+P1에서 이전 소스 inventory, 선택 이관, CMake core Debug/Release 검증을 완료했다. P2에서는 인증 후 게시, counter wrap, pending 만료·교체·orphan, CAN frame 검사와 제한 수신 재시도를 구현했다. P3에서는 300ms stale, last-good, IDS sequence 확인, Fail-safe 전체 화면 경고를 완성하고 macOS Qt 6.11.2 Debug/Release 각 8개 시험과 offscreen 화면을 검증했다.
 
-이제 P2에서 pending timeout과 새 원본 덮어쓰기 정책, SocketCAN 오류 복구, 교차 순서·DLC 경계 시험을 완성한다. P3에서는 `VehicleDataService`와 `DashboardViewModel`의 초기 미수신·stale·센서 오류·확인형 경고를 완성한다. P4에서 vcan 통합과 T1~T4 지연 계측을 끝낸 후 P5의 실제 RPi4/can0로 넘어간다. 마지막 P6에서 CI와 실행 문서, 시험 원본을 정리한다.
+P4에서 Linux vcan 수신 경계와 T1~T4 지연 계측을 완료했다. 이제 P5의 실제 RPi4/can0로 넘어가며 마지막 P6에서 CI와 실행 문서, 시험 원본을 정리한다. sensorState wire 활성화는 ICD §8에 따라 ECU와 동시 전환할 때만 수행한다.
 
 각 단계는 코드 존재만으로 완료하지 않는다. 빌드 명령, 시험 결과, 장비/인터페이스, 원시 로그를 남겨 다른 팀원이 같은 조건에서 재현할 수 있어야 한다.
 
-P1부터의 상세 상태와 결과물 목록은 [CHG-003](../../aidlc/changes/CHG-003/aidlc-state.md), 실제 빌드 명령과 미실행 범위는 [P1 증거](../../aidlc/changes/CHG-003/construction/build-and-test/evidence.md)에서 확인한다.
+P1부터의 상세 상태와 결과물 목록은 [CHG-003](../../aidlc/changes/CHG-003/aidlc-state.md), 최신 상세는 [P4 구현 결과](../../aidlc/changes/CHG-003/construction/P4_구현_결과.md)와 [P4 증거](../../aidlc/changes/CHG-003/construction/build-and-test/P4_빌드_시험_증거.md)에서 확인한다.
