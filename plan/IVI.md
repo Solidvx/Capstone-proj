@@ -119,7 +119,7 @@ IVI 작업에 필요한 ECU 제공물은 다음과 같다.
 | P2 | 완료 | pending·SecOC·frame·retry 정책, Debug/Release 각 6/6. [결과](../docs/aidlc/changes/CHG-003/construction/P2_구현_결과.md) | Linux 실제 SocketCAN은 P4에서 검증 |
 | P3 | 완료 | stale·last-good·IDS ack·전체 화면 경고, Qt Debug/Release 각 8/8. [결과](../docs/aidlc/changes/CHG-003/construction/P3_구현_결과.md) | sensorState wire 전환은 별도 계약 변경, Linux 화면은 P4~P5 |
 | P4 | 완료 | [Linux vcan·T1~T4 결과](../docs/aidlc/changes/CHG-003/construction/P4_구현_결과.md): Release 9/9, 1,000표본 평균 6.037ms·최대 10.827ms·누락 0 | 물리 display/can0는 P5 |
-| P5 | 미착수 | 장비 보유 정보 | 대상 배포·물리 통합 |
+| P5 | 진행 중 | RPi4 Debian 13 빌드, `can0` preflight, SecOC 키, DSI·터치·Wayland 창 실행. [결과](../docs/aidlc/changes/CHG-003/construction/P5_구현_결과.md) | 재부팅 자동 시작, Node A 실제 프레임·SecOC·복구·지연 검증 |
 | P6 | 기록 기반 준비 | [CHG-003](../docs/aidlc/changes/CHG-003/aidlc-state.md) 상태·증거 문서 | CI·최종 증거·데모 |
 
 ## SecOC 보완 브랜치 인계

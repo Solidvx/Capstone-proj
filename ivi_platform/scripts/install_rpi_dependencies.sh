@@ -23,8 +23,9 @@ fi
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get install -y \
-  build-essential cmake libssl-dev can-utils iproute2 kmod \
+  build-essential cmake libssl-dev can-utils iproute2 kmod libcap2-bin \
   qt6-base-dev qt6-declarative-dev qt6-shadertools-dev \
+  qt6-wayland \
   qml6-module-qtqml-workerscript qml6-module-qtquick \
   qml6-module-qtquick-controls qml6-module-qtquick-layouts
 
