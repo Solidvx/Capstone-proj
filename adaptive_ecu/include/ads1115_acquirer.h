@@ -7,7 +7,19 @@
 #include <cstdint>
 #include <functional>
 #include <mutex>
+#include <string>
 #include <thread>
+
+// Why the most recent request was rejected. Diagnostic only; every cause is
+// handled the same way (no new valid result).
+enum class AdcError : std::uint8_t {
+    None,
+    StartFailed,  // I2C failure or device still busy when starting a request
+    Timeout,      // conversion not complete within the acceptance window
+    ReadFailed,   // I2C failure or unexpected config while polling
+    OutOfRange,   // completed, but raw is outside the endpoint tolerance
+    Late,         // valid result returned after the acceptance window
+};
 
 // State published after every finished conversion request, valid or rejected.
 // Sequence numbers identify new results; equal voltages are never compared.
@@ -19,7 +31,13 @@ struct AdcSnapshot {
     std::int16_t raw = 0;                   // fields below hold the latest valid result
     float adc_v = 0.0f;
     float pack_v = 0.0f;
+    AdcError last_error = AdcError::None;   // cause of last_error_sequence
+    std::int16_t last_error_raw = 0;        // OutOfRange only
+    std::uint64_t last_error_elapsed_ms = 0;  // Late only: request start to return
 };
+
+// One-line cause for logs, e.g. "reason=range raw=-35".
+std::string describeAdcError(const AdcSnapshot& snapshot);
 
 // ADC-1/2=A single-shot acquisition driven by a monotonic millisecond clock.
 // Exactly one worker calls tick(); I2C calls complete inside tick().
@@ -35,12 +53,13 @@ public:
 
 private:
     void recordValid(std::uint64_t done_ms, std::int16_t raw, float adc_v, float pack_v);
-    void recordError();
+    void recordError(AdcError cause, std::int16_t raw = 0, std::uint64_t elapsed_ms = 0);
 
     Ads1115Registers adc_;
     AdcAcquisitionGate gate_;
     Clock now_;
     AdcSnapshot snapshot_;
+    std::uint64_t request_start_ms_ = 0;
 };
 
 // Runs Ads1115Acquirer on its own thread so conversion waits never block the

@@ -18,8 +18,14 @@ public:
     // the CAN loop. Design value to revisit with measurements.
     static constexpr std::uint64_t kFreshnessMs = 2 * AdcAcquisitionGate::kRequestIntervalMs;
 
+    // What last moved the quality into an error state. Diagnostic only.
+    enum class ErrorCause { None, Acquisition, Stale };
+
     std::optional<float> cycle(const AdcSnapshot& adc, std::uint64_t now_ms) {
-        if (adc.last_error_sequence > seen_sequence_) quality_.error();
+        if (adc.last_error_sequence > seen_sequence_) {
+            quality_.error();
+            error_cause_ = ErrorCause::Acquisition;
+        }
         if (adc.last_valid_sequence > seen_sequence_ &&
             adc.last_valid_sequence > adc.last_error_sequence) {
             quality_.accept(true);
@@ -29,15 +35,20 @@ public:
         const bool fresh = adc.last_valid_sequence > 0 && now_ms >= adc.last_valid_ms &&
                            now_ms - adc.last_valid_ms <= kFreshnessMs;
         // A silent or stalled worker is an acquisition error once requests have run.
-        if (!fresh && adc.sequence > 0) quality_.error();
+        if (!fresh && adc.sequence > 0) {
+            quality_.error();
+            error_cause_ = ErrorCause::Stale;
+        }
 
         if (!fresh || quality_.state() != SensorQuality::Valid) return std::nullopt;
         return adc.pack_v;
     }
 
     SensorQuality quality() const { return quality_.state(); }
+    ErrorCause errorCause() const { return error_cause_; }
 
 private:
     SensorQualityTracker quality_;
     std::uint64_t seen_sequence_ = 0;
+    ErrorCause error_cause_ = ErrorCause::None;
 };
