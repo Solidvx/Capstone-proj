@@ -1,6 +1,6 @@
 > **문서명**: Software Design Document — Node B (IVI)
 > **버전**: v2.4 | **작성일**: 2026-03-15 | **최종 수정**: 2026-10-03 | **작성자**: 팀원B
-> **참조**: ICD v1.5, SRS v1.6 (FR-IVI-*), ADR-010, IVI Plan B 전환 계획
+> **참조**: ICD v1.6, SRS v1.6 (FR-IVI-*), ADR-010, IVI Plan B 전환 계획
 
 # 1. 목적과 현재 기준선
 

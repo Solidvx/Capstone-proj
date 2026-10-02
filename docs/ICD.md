@@ -1,7 +1,7 @@
 > **개발 재개 시 읽기 경계(2026-09-22)**: §1~2는 현행 CAN/SecOC wire 계약, §3은 ADR-010에 따른 Node B C++ Service API다. §8 sensorState byte 7은 승인된 다음 전환 목표이며 아직 활성 wire 계약이 아니다. 인증 세션 상세 전환도 별도 승인·양 노드 동시 반영 전까지 현행 고정키 규칙을 대체하지 않는다. 계약 변경은 AGENTS의 Default Workflow에 따라 ICD·양 노드 구현·시험을 같은 변경 단위로 동기화한다.
 
 > **문서명**: Interface Control Document (ICD)  
-> **버전**: v1.5 | **작성일**: 2026-03-01 | **최종 수정**: 2026-09-22
+> **버전**: v1.6 | **작성일**: 2026-03-01 | **최종 수정**: 2026-10-03
 > **작성자**: 팀원A + 팀원B (공동 — 인터페이스 확정 후 각자 독립 개발 시작)  
 > **참조**: SRS v1.6, ADR-002 (SecOC 설계), ADR-009 (IDS 위치), ADR-010 (IVI Plan B), ADR-012 (분리 프레임)
 > **변경 관리**: 수정 시 GitHub Issue (`interface-change` 라벨) + 양측 합의 후 PR 머지
@@ -61,7 +61,7 @@
 | Byte | Bit Range | 필드명 | 타입 | 설명 |
 | --- | --- | --- | --- | --- |
 | 0-3 | [31:0] | TruncatedMAC | uint32 (BE) | HMAC-SHA256 출력의 앞 4바이트 |
-| 4-7 | [31:0] | RollingCounter | uint32 (BE) | 메시지 순번. 매 전송 시 +1 증가, 0xFFFFFFFF 도달 시 0으로 래핑 |
+| 4-7 | [31:0] | RollingCounter | uint32 (BE) | 인증 CAN ID별 메시지 순번(§2.4). 해당 인증 메시지 전송 시 +1 증가, 0xFFFFFFFF 도달 시 0으로 래핑 |
 
 **HMAC 계산 입력 구성:**
 
@@ -101,7 +101,7 @@ TruncatedMAC = MAC[0:4]  (앞 4바이트)
 ## 2.2. 송신 절차 (Node A)
 
 1. BMS 컴포넌트가 Payload 8바이트 생성
-2. RollingCounter를 현재값으로 읽고 +1 증가
+2. 해당 인증 CAN ID(0x102)의 RollingCounter를 현재값으로 읽고 +1 증가
 3. `HMAC_Input = CAN_ID || RollingCounter || Payload` 구성
 4. `HMAC-SHA256(SharedKey, HMAC_Input)` 계산, 앞 4바이트 추출
 5. 원본 메시지(0x100) CAN 전송
@@ -110,16 +110,17 @@ TruncatedMAC = MAC[0:4]  (앞 4바이트)
 ## 2.3. 수신 검증 절차 (Node B)
 
 1. 원본 메시지(0x100)와 인증 메시지(0x102) 수신
-2. 마지막 인증 성공 counter가 있으면 `delta = (received - last) mod 2^32`를 계산한다. `1 <= delta <= 100`이 아니면 **폐기**한다. 이력이 없는 첫 수신은 아래 MAC 검증을 수행한다(재부팅 한계는 §2.5.3).
+2. 같은 원본 CAN ID의 마지막 인증 성공 counter가 있으면 `delta = (received - last) mod 2^32`를 계산한다. `1 <= delta <= 100`이 아니면 **폐기**한다. 이력이 없는 첫 수신은 아래 MAC 검증을 수행한다(재부팅 한계는 §2.5.3).
 3. `HMAC_Input = CAN_ID || RollingCounter || Payload` 재구성
 4. `HMAC-SHA256(SharedKey, HMAC_Input)` 재계산, 앞 4바이트 추출
 5. `hmac.compare_digest(수신MAC, 재계산MAC)` 비교 → 불일치 시 **폐기** (타이밍 공격 방지)
-6. 모든 검증 성공 시에만 마지막 인증 성공 counter를 갱신하고 Node B Service로 데이터를 전달한다. 실패하면 counter와 기존 전달 데이터를 유지한다.
+6. 모든 검증 성공 시에만 해당 원본 CAN ID의 마지막 인증 성공 counter를 갱신하고 Node B Service로 데이터를 전달한다. 실패하면 counter와 기존 전달 데이터를 유지한다.
 
 ## 2.4. 롤링 카운터 규칙
 
 - 초기값: 0
-- 증가: 매 인증 메시지 전송 시 +1
+- 범위: 인증 CAN ID별로 독립이다. `0x102`(원본 `0x100`)와 `0x103`(원본 `0x101`)은 counter를 공유하지 않으며, 수신 측의 허용 윈도우와 마지막 인증 성공 이력도 원본 CAN ID별로 관리한다. 드문 이벤트 메시지(`0x101`)의 counter가 주기 메시지(`0x100`) 송신 수만큼 건너뛰어 윈도우를 벗어나지 않게 하기 위함이다.
+- 증가: 해당 인증 CAN ID의 인증 메시지 전송 시 +1
 - 오버플로우: 0xFFFFFFFF → 0x00000000 (래핑)
 - 수신 허용 윈도우: §2.3의 uint32 차이 규칙을 적용한다. +100은 허용하며 +101은 거부한다. MAC 검증 실패 시 counter를 소비하지 않는다.
 - 첫 수신: 마지막 인증 성공 이력이 없을 때 MAC 성공 후 기준값을 설정한다. 첫 MAC 성공은 새 부팅·새 세션의 증거가 아니다.
@@ -364,6 +365,7 @@ Node A (ECU)                    CAN 버스                Node B (IVI Service)
 | v1.3 | 2026-05-09 | §1.4 키 파일 퍼미션 600→400 수정 (TARA TS-007 보안 권고 반영, 읽기 전용) | 팀원A |
 | v1.5 | 2026-09-22 | §3 Node B API를 HIDL에서 C++ Service/Qt 전달 계약으로 전환; §1~2 wire 계약 유지 | 팀원B |
 | v1.4 | 2026-09-06 | §1.3 Fail-safe 전이 사유 코드 `0x07`(Watchdog 재시작 3회 실패) 신설. SRS FR-BSW-006이 필수로 요구하는 전이를 표현할 코드가 없어 추가 | 팀원A, 팀원B |
+| v1.6 | 2026-10-03 | §1.4·§2.2~2.4 RollingCounter 범위를 인증 CAN ID별 독립으로 명시(0x102·0x103 비공유, 수신 윈도우·이력은 원본 CAN ID별). ECU·Python 참조는 단일 counter, IVI·IDS는 ID별 판정이던 차이를 해소. CAN ID·DLC·바이트 배치·HMAC 입력 변경 없음 | 팀원A |
 
 # 8. 승인된 다음 전환 목표 — S-3=A (제품 반영 전)
 

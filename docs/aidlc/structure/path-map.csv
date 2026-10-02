@@ -307,3 +307,6 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,docs/aidlc/changes/CHG-011/spec.md,add,ECU ADS1115 product integration record
 ,docs/aidlc/changes/CHG-011/aidlc-state.md,add,ECU ADS1115 product integration record
 ,docs/aidlc/changes/CHG-011/evidence.md,add,ECU ADS1115 product integration record
+,docs/aidlc/changes/CHG-012/spec.md,add,SecOC per-ID rolling counter record
+,docs/aidlc/changes/CHG-012/aidlc-state.md,add,SecOC per-ID rolling counter record
+,docs/aidlc/changes/CHG-012/evidence.md,add,SecOC per-ID rolling counter record

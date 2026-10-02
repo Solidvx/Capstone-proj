@@ -117,4 +117,8 @@ ADS1115 실측 표시 진단: [절차](../../development/playbooks/ads1115-can-s
 
 ## ECU ADS1115 제품 연결 — 2026-10-03
 
-가변저항 실측값을 별도 취득 worker로 읽어 SecOC와 함께 송신하는 제품 경로와 사용자 결정 D1~D4를 [CHG-011](../changes/CHG-011/aidlc-state.md)에 기록한다. 설계는 [SDD-ECU §3.7.3](../../SDD-ECU.md), 단위·실장비 결과는 [증거](../changes/CHG-011/evidence.md)에 있다.
+가변저항 실측값을 별도 취득 worker로 읽어 SecOC와 함께 송신하는 제품 경로와 사용자 결정 ADS-1~ADS-6을 [CHG-011](../changes/CHG-011/aidlc-state.md)에 기록한다. 설계는 [SDD-ECU §3.7.3](../../SDD-ECU.md), 단위·실장비 결과는 [증거](../changes/CHG-011/evidence.md)에 있다.
+
+## SecOC counter 범위 명시 — 2026-10-03
+
+ICD v1.6에서 RollingCounter를 인증 CAN ID별 독립으로 명시하고 ECU·Python 송신 측을 맞춘 근거와 시험을 [CHG-012](../changes/CHG-012/aidlc-state.md)에 기록한다.

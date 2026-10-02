@@ -66,7 +66,7 @@ CLI: `--sensor-mode potentiometer`와 `--sensor-mode ADS1115`가 다른 모드�
 - ECU `SecOcModule::sign()`은 `0x102`와 `0x103`이 counter 하나(`counter_`)를 함께 쓴다. 위 캡처에서 두 Fail-safe 인증 사이 counter가 0x4A→0x5F(21)로 증가한 것은 그 사이 `0x102`가 송신됐기 때문이다. Python `security/secoc_module.py`도 단일 counter다.
 - IVI `VehicleDataService`는 BMS와 Fail-safe의 `last_accepted_counter`를 따로 두고 각각 1~100 증가 창으로 판정한다.
 - 따라서 Fail-safe 이벤트 사이에 `0x102`가 100회 넘게(약 10초 이상) 송신되면 IVI가 다음 `0x103`을 counter 창 밖으로 거부할 수 있다. 이번 시험은 두 전이가 가까워(차이 21) 드러나지 않았다.
-- ICD §1.4·§2.4는 "인증 메시지마다 +1"만 정하고 counter가 인증 ID별인지 공용인지 명시하지 않는다. 계약 변경 사안이라 이 CHG에서 고치지 않았다. IVI 담당과 합의 후 ICD 명시와 양측 구현·시험을 함께 맞춘다. IT-002(Fail-safe → IVI 경고) 전에 해결해야 한다.
+- ICD §1.4·§2.4는 "인증 메시지마다 +1"만 정하고 counter가 인증 ID별인지 공용인지 명시하지 않는다. 계약 변경 사안이라 이 CHG에서 고치지 않았다. IVI 담당과 합의 후 ICD 명시와 양측 구현·시험을 함께 맞춘다. IT-002(Fail-safe → IVI 경고) 전에 해결해야 한다. → [CHG-012](../CHG-012/aidlc-state.md)에서 인증 CAN ID별 독립 counter로 해소(ICD v1.6).
 
 ## 6. 미실행
 

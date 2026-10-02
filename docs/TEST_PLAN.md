@@ -1,7 +1,7 @@
 # Test Plan — 소프트웨어 검증 계획
 
 > **문서 버전**: v1.6 | **작성일**: 2026-03-15 | **최종 수정**: 2026-09-23
-> **참조**: SRS v1.6 (요구사항 추적), ICD v1.5, SDD-ECU v1.6, SDD-IVI v2.2, TARA v1.2 (위협 시나리오 → Ablation Study)
+> **참조**: SRS v1.6 (요구사항 추적), ICD v1.6, SDD-ECU v1.6, SDD-IVI v2.2, TARA v1.2 (위협 시나리오 → Ablation Study)
 > **테스트 프레임워크**: GoogleTest (C++), pytest (Python), Qt Test (C++), Qt Quick Test (QML)
 > **커버리지 도구**: gcov / lcov (C++), pytest-cov (Python)  
 > **품질 게이트** (프로젝트 승인 기준, S-8=B): C++ Line ≥80%, Fail-safe Branch 100%, cppcheck 0건
@@ -258,7 +258,8 @@ TC-{모듈}-{번호}
 | **목적** | 동일 카운터 메시지 재전송 시 폐기 확인 |
 | **절차** | Counter=5 메시지 정상 수신 → Counter=5 동일 메시지 재전송 → 폐기 확인 |
 | **기대 결과** | 두 번째 수신 시 ERR_COUNTER_MISMATCH, 콜백 호출 없음 |
-| **파일** | `test/test_secoc.cpp` |
+| **추가 확인** | ICD v1.6 §2.4 인증 CAN ID별 독립 counter: 두 `0x103` 인증 사이에 `0x102`가 150회 있어도 두 번째 `0x103`의 counter는 1이며 수락된다 |
+| **파일** | `test/test_secoc.cpp`, `security/tests/test_secoc.py` |
 
 ### TC-SEC-004: Constant-time MAC 비교 코드 검토
 
