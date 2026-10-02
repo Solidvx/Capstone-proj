@@ -29,8 +29,23 @@ ctest --test-dir tmp/stage1-ecu-build -R "acquirer|sample_feed|sensor_simulator"
 
 CLI: `--sensor-mode potentiometer`와 `--sensor-mode ADS1115`가 다른 모드로 대체되지 않고 `Unsupported sensor mode`, 종료 코드 2.
 
-## 3. 미실행
+## 3. ECU RPi 실장비 (커밋 `ccad48b`, 끝점 허용 적용 전)
 
-- ECU RPi 실장비: 노브 변화의 `0x100` 반영, 100ms 주기, `0x102` MAC 교차 검증, SOC 저하에 따른 `0x101`/`0x103` 발생. 사용자 실행 대기.
+2026-10-03 사용자 실행. `vcan0`, `--sensor-mode ads1115 --secoc on --key /etc/secoc/key.bin`.
+
+- 시작 출력: `ADS1115 quality: VALID`까지 확인. 처음에는 이전 바이너리가 실행돼 두 번째 줄이 없었고, 브랜치·재빌드 확인 후 정상 출력됐다.
+- `candump -L -n 202` 약 10초, 노브를 양 끝까지 회전하며 캡처 후 Python 분석: `0x100` 101개, 간격 최소 100.0 / 평균 103.1 / 최대 400.3ms, 전압 30.00~41.99V, `0x102` MAC 검증 101/101 성공.
+- 최대 400.3ms는 오류 1회와 복구 3회 동안의 송신 보류(D1)다. 노브를 0V 쪽 끝에 두면 `ERROR_WITH_LAST_VALUE → RECOVERING_WITH_LAST_VALUE → VALID`가 반복됐고 가운데에서는 재현되지 않았다.
+- 원인 측정(ECU 정지 후 `i2ctransfer`로 단발 변환 100회): 0V 쪽 끝 최소 -4 / 최대 6, 분포 (-4:1, -1:1, 2:70, 3:27, 6:1). 3.3V 쪽 끝 최소 26342 / 최대 26364. 음수 2%가 기존 범위(0~26400) 밖 오류의 원인이다.
+- 사용자 결정 D5=B로 ±16코드 끝점 허용을 추가했다(§4). 측정은 장비 1대·각 끝 100회이며 추가 측정 후 재검토한다.
+
+## 4. 끝점 허용 추가 후 단위 시험 (WSL2)
+
+같은 `-Werror` 빌드에서 CTest 16/16 통과. `test_ads1115_conversion` 3건(전체 65,536 코드의 허용·거부와 끝값 매핑, 경계 -16·-17·26416·26417, 실측 -4), `test_ads1115_sample` 5건과 `test_ads1115_acquirer` 6건의 범위 밖 입력을 -17(0xFFEF)·26417로 갱신. 관련 시험 30회 반복 실패 0건. 첫 빌드는 `-Werror=dangling-else`로 실패해 시험 코드에 중괄호를 넣었으며, 그 사이 출력된 CTest 결과는 갱신 전 바이너리라 증거로 쓰지 않았다.
+
+## 5. 미실행
+
+- 끝점 허용 적용 후 ECU RPi 재시험: 0V 쪽 끝 정지 시 오류 미발생, 주기·MAC 재확인.
+- Fail-safe 전이(`0x101`/`0x103`)의 실장비 확인.
 - 전원이 켜진 상태의 배선 분리 시험은 하지 않는다([진단 절차](../../../development/playbooks/ads1115-can-smoke.md)). 오류·복구는 단위 시험으로 확인했다.
-- IVI 화면 반영(IT-001·IT-003)은 키 전달 후 공동 시험.
+- IVI 화면 반영(IT-001·IT-003)은 공동 시험. SecOC 키는 2026-10-03 IVI에 전달해 양측 SHA-256 일치를 확인했다(값은 기록하지 않음).

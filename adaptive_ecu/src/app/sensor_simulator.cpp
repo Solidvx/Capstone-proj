@@ -70,7 +70,7 @@ SensorData SensorSimulator::next() {
 }
 
 void SensorSimulator::setHardwareVoltage(float pack_voltage_v) {
-    // Range is validated by convertAds1115Voltage; never clamp a real reading.
+    // Range and endpoint tolerance belong to convertAds1115Voltage; no clamp here.
     hardware_voltage_v_ = pack_voltage_v;
 }
 

@@ -98,7 +98,7 @@ TEST(Ads1115Acquirer, UnfinishedConversionExpiresAt20msAndRecovers) {
 TEST(Ads1115Acquirer, OutOfRangeRawIsRejectedAndKeepsLastValidValue) {
     Fixture f;
     ASSERT_EQ(f.run(0, 1), 1U);
-    f.bus.raw = 26401;
+    f.bus.raw = 26417;  // beyond the endpoint tolerance
     EXPECT_EQ(f.run(100, 101), 1U);
     const auto s = f.acquirer.snapshot();
     EXPECT_EQ(s.last_error_sequence, 2U);
