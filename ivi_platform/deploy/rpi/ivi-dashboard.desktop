@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=IVI Dashboard
+Comment=Node B Qt Quick IVI dashboard
+Exec=/opt/ivi/libexec/run_rpi_desktop.sh
+TryExec=/opt/ivi/bin/ivi_dashboard
+Terminal=false
+X-GNOME-Autostart-enabled=true
