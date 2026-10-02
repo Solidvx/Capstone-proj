@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include <stdexcept>
 #include <string>
 
 TEST(SensorSimulator, ConstantModeReturnsNominalData) {
@@ -13,17 +14,28 @@ TEST(SensorSimulator, ConstantModeReturnsNominalData) {
     EXPECT_EQ(data.temperature_c, 25);
 }
 
-TEST(SensorSimulator, PotentiometerModeReturnsClampedAdcData) {
-    SensorSimulator simulator(SensorSimulator::Mode::POTENTIOMETER);
-    simulator.setAdcVoltage(45.0f);
-    simulator.setAdcCurrent(-20.0f);
-    simulator.setAdcTemperature(80.0f);
+// Replaces the removed POTENTIOMETER clamp test (I-5=B). Real ADC readings are
+// range-checked and rejected by convertAds1115Voltage, never clamped here.
+TEST(SensorSimulator, Ads1115ModeUsesValidatedVoltageWithVirtualCurrentAndTemperature) {
+    SensorSimulator simulator(SensorSimulator::Mode::ADS1115_HARDWARE);
+    EXPECT_THROW(simulator.next(), std::logic_error);
 
+    simulator.setHardwareVoltage(36.0f);
     const auto data = simulator.next();
 
-    EXPECT_FLOAT_EQ(data.voltage_v, 42.0f);
-    EXPECT_FLOAT_EQ(data.current_a, -10.0f);
-    EXPECT_EQ(data.temperature_c, 70);
+    EXPECT_FLOAT_EQ(data.voltage_v, 36.0f);
+    EXPECT_FLOAT_EQ(data.current_a, SensorSimulator::kHardwareCurrentA);
+    EXPECT_EQ(data.temperature_c, SensorSimulator::kHardwareTemperatureC);
+}
+
+TEST(SensorSimulator, ParseModeAcceptsOnlyOfficialNames) {
+    EXPECT_EQ(SensorSimulator::parseMode("constant"), SensorSimulator::Mode::CONSTANT);
+    EXPECT_EQ(SensorSimulator::parseMode("profile_csv"), SensorSimulator::Mode::PROFILE_CSV);
+    EXPECT_EQ(SensorSimulator::parseMode("random_walk"), SensorSimulator::Mode::RANDOM_WALK);
+    EXPECT_EQ(SensorSimulator::parseMode("ads1115"), SensorSimulator::Mode::ADS1115_HARDWARE);
+    EXPECT_FALSE(SensorSimulator::parseMode("potentiometer").has_value());
+    EXPECT_FALSE(SensorSimulator::parseMode("").has_value());
+    EXPECT_FALSE(SensorSimulator::parseMode("ADS1115").has_value());
 }
 
 TEST(SensorSimulator, ProfileCsvReturnsRowsThenHoldsLast) {

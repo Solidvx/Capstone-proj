@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <random>
 #include <string>
 #include <vector>
@@ -15,18 +16,25 @@ class SensorSimulator {
 public:
     enum class Mode {
         CONSTANT,
-        POTENTIOMETER,
         PROFILE_CSV,
         RANDOM_WALK,
         ADS1115_HARDWARE
     };
 
+    // Virtual values used with ADS1115_HARDWARE: the potentiometer drives
+    // only the pack voltage (ADS-2=A, fixed so Fail-safe follows the knob alone).
+    static constexpr float kHardwareCurrentA = -2.0f;
+    static constexpr int8_t kHardwareTemperatureC = 25;
+
+    // CLI names: constant, profile_csv, random_walk, ads1115. Unknown names
+    // are rejected; callers must not substitute another mode.
+    static std::optional<Mode> parseMode(const std::string& name);
+
     explicit SensorSimulator(Mode mode, std::string profile_path = {});
 
     SensorData next();
-    void setAdcVoltage(float voltage_v);
-    void setAdcCurrent(float current_a);
-    void setAdcTemperature(float temperature_c);
+    // ADS1115_HARDWARE only: pack voltage from a validated, fresh conversion.
+    void setHardwareVoltage(float pack_voltage_v);
 
 private:
     void loadProfileIfNeeded();
@@ -37,7 +45,7 @@ private:
     std::vector<SensorData> profile_;
     std::size_t profile_index_ = 0;
 
-    SensorData adc_data_{42.0f, -2.0f, 25};
+    std::optional<float> hardware_voltage_v_;
     SensorData random_walk_state_{42.0f, -2.0f, 25};
     std::mt19937 rng_{12345};
 };

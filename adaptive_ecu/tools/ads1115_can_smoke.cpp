@@ -4,12 +4,8 @@
 #include "can_publisher.h"
 #include "can_cdd.h"
 #include "ekf_soc_estimator.h"
+#include "linux_i2c_transport.h"
 
-#include <linux/i2c.h>
-#include <linux/i2c-dev.h>
-#include <sys/ioctl.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <chrono>
 #include <csignal>
 #include <iostream>
@@ -24,39 +20,6 @@ std::uint64_t nowMs() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(
         Clock::now().time_since_epoch()).count();
 }
-
-class LinuxBus final : public Ads1115Transport {
-public:
-    explicit LinuxBus(const std::string& device) {
-        fd_ = ::open(device.c_str(), O_RDWR | O_CLOEXEC);
-        unsigned long functions = 0;
-        if (fd_ >= 0 && (ioctl(fd_, I2C_FUNCS, &functions) < 0 ||
-            !(functions & I2C_FUNC_I2C) || ioctl(fd_, I2C_SLAVE, 0x48) < 0)) {
-            ::close(fd_);
-            fd_ = -1;
-        }
-    }
-    ~LinuxBus() override { if (fd_ >= 0) ::close(fd_); }
-    bool ready() const { return fd_ >= 0; }
-    bool write(const std::uint8_t* data, std::size_t count) override {
-        return fd_ >= 0 && ::write(fd_, data, count) == static_cast<ssize_t>(count);
-    }
-    bool readRegister(std::uint8_t pointer, std::uint8_t* data, std::size_t count) override {
-        if (fd_ < 0 || count != 2) return false;
-        i2c_msg messages[2]{};
-        messages[0].addr = 0x48;
-        messages[0].len = 1;
-        messages[0].buf = &pointer;
-        messages[1].addr = 0x48;
-        messages[1].flags = I2C_M_RD;
-        messages[1].len = 2;
-        messages[1].buf = data;
-        i2c_rdwr_ioctl_data request{messages, 2};
-        return ioctl(fd_, I2C_RDWR, &request) == 2;
-    }
-private:
-    int fd_ = -1;
-};
 }
 
 int main(int argc, char** argv) {
@@ -75,7 +38,7 @@ int main(int argc, char** argv) {
         }
         (arg == "--i2c-device" ? device : interface) = argv[++i];
     }
-    LinuxBus bus(device);
+    LinuxI2cTransport bus(device);
     if (!bus.ready()) {
         std::cerr << "I2C open/setup failed: " << device << " (address 0x48)\n";
         return 2;

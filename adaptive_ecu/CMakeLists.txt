@@ -20,6 +20,8 @@ find_package(Threads REQUIRED)
 add_library(ecu_core
     src/bsw/can_cdd.cpp
     src/bsw/ads1115_registers.cpp
+    src/bsw/ads1115_acquirer.cpp
+    src/bsw/linux_i2c_transport.cpp
     src/bsw/can_publisher.cpp
     src/bsw/mock_can_driver.cpp
     src/bsw/secoc_module.cpp
@@ -54,6 +56,8 @@ if(ECU_BUILD_TESTS)
         test_adc_acquisition_gate
         test_ads1115_registers
         test_ads1115_sample
+        test_ads1115_acquirer
+        test_hardware_sample_feed
         test_can_publisher
         test_ekf_soc
         test_soh_estimator
