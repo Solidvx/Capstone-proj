@@ -204,3 +204,7 @@ ECU 담당은 계약·더미 벡터·송신/공격 도구·검증된 빌드와 �
 
 
 Plan 승계 과제 색인: [공동 병합 기록](detail/common/00_협업_규약.md#plan-merge-20260908). 기존 Plan 링크는 새 주관 위치로 연결되며 구현·시험 완료 상태를 별도로 부여하지 않는다.
+
+## IDS 독립 브랜치 인계 (CHG-007)
+
+`feat/ecu-can-ids`에 스트리밍 규칙·IF·독립 SecOC 관찰·replay/SocketCAN 경로를 추가했다. 위 기존 현황의 “실시간 경로 미구현”은 이 브랜치에서 소스 구현/소프트웨어 시험으로 갱신하며 장비 인수는 미완료다. [실행 방법](../security/ids/README.md), [증거](../docs/aidlc/changes/CHG-007/audit.md). 물리 통합·인증 이벤트 채널·세션·M5 실험은 별도 과제다.

@@ -6,3 +6,8 @@ CHG-template은 CHG-<번호>의 구조 템플릿이다. 실제 작업 번호나 
 현재는 목적 안내만 작성했다. 실제 작업을 시작할 때 관련 계획 과제·공식 원본 경로·담당·입력·결과·증거를 기입한다. 비밀이나 실제 자격 증명은 넣지 않는다.
 
 - [CHG-004: IVI Qt 현행 안내 정합성](CHG-004/aidlc-state.md)
+- [CHG-005: 하드웨어 연결 HTML](CHG-005/aidlc-state.md)
+- [CHG-006: SecOC 무수신 만료와 인증 진단](CHG-006/aidlc-state.md)
+- [CHG-007: Node A 스트리밍 CAN IDS](CHG-007/aidlc-state.md)
+- [CHG-008: ADS1115 실측 CAN 표시 진단](CHG-008/aidlc-state.md)
+- [CHG-009: 0단계 기준선 통합](CHG-009/aidlc-state.md)

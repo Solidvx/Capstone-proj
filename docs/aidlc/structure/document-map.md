@@ -85,10 +85,28 @@ playbooks/·templates/·verification/·q2_validation/는 기존 위치를 유지
 
 [IVI Plan B 진행·구조 안내](../../development/governance/IVI_Plan_B_진행상황_및_구조_안내.md)를 governance에 추가했다. 이 문서는 IVI 담당자의 탐색·인계용이며 공식 계약은 ICD/SRS/SDD-IVI/TEST_PLAN, 실행 순서는 plan/IVI와 Plan B 전환 계획이 원본이다. 변경 범위와 검증은 [CHG-002](../changes/CHG-002/aidlc-state.md)에 기록한다.
 
-## IVI Qt Plan B P1 구현 — 2026-09-22
+## IVI Qt Plan B P1~P4 구현 — 2026-09-22~23
 
-[CHG-003](../changes/CHG-003/aidlc-state.md)은 로컬 보관본과 ECU 제공물을 기준으로 선택 이관한 IVI P1 구현, 실제 core 빌드·시험, P2~P6 상태를 연결한다. 제품 코드는 `ivi_platform/`, 변경 설명은 [P1 구현 결과](../changes/CHG-003/construction/P1_구현_결과.md), 실제 명령과 제한은 [P1 증거](../changes/CHG-003/construction/build-and-test/evidence.md)에 있다. Qt 화면·Linux vcan·물리 CAN은 이 기록에서 통과로 판정하지 않는다.
+[CHG-003](../changes/CHG-003/aidlc-state.md)은 로컬 보관본과 ECU 제공물을 기준으로 선택 이관한 P1, CAN·SecOC 정책을 완성한 P2, 상태·Qt UI를 완성한 P3, Linux vcan·T1~T4를 완료한 P4와 P5~P6 상태를 연결한다. 제품 코드는 `ivi_platform/`, 단계별 설명은 [P1 결과](../changes/CHG-003/construction/P1_구현_결과.md), [P2 결과](../changes/CHG-003/construction/P2_구현_결과.md), [P3 결과](../changes/CHG-003/construction/P3_구현_결과.md), [P4 결과](../changes/CHG-003/construction/P4_구현_결과.md)에 있다. Linux vcan·Qt offscreen 렌더는 검증했으며 RPi4 물리 CAN·display는 통과로 판정하지 않는다.
 
 ## IVI Qt 현행 안내 정정 — 2026-09-23
 
+ADS1115 실측 표시 진단: [절차](../../development/playbooks/ads1115-can-smoke.md), [CHG-008](../changes/CHG-008/aidlc-state.md), [검증 증거](../changes/CHG-008/evidence.md).
+
 현재 실행 진입점과 과거 Android 절차를 분리한 범위·검증은 [CHG-004](../changes/CHG-004/aidlc-state.md)에 기록한다. CHG-003의 P1 구현 기록도 develop 병합으로 현재 브랜치에 포함됐다.
+
+- [CHG-006: SecOC 무수신 만료와 인증 진단](../changes/CHG-006/aidlc-state.md) — 구현·시험 근거와 하드웨어 미검증 범위.
+
+- [CHG-007: Node A 스트리밍 CAN IDS](../changes/CHG-007/aidlc-state.md) — 구현·시험 근거와 하드웨어 미검증 범위.
+
+- [IDS 실행 안내](../../../security/ids/README.md) — 모드·로그·임계·기능 범위.
+
+## 하드웨어 조립 안내 — 2026-09-23
+
+[HTML 연결 가이드](../../development/environment/ECU_IVI_하드웨어_연결가이드.html)는 기존 배선 HTML(2026-10-03 사용자 요청으로 삭제, 이전 내용은 커밋 `70acbd3`)을 바탕으로 실물 J1 정정 및 ECU ADC 3.3V 분배를 추가한다. 제품 코드·계약 변경 없이 작성했다. 실장비 검증은 후속 과제다.
+
+작업 요청·진행·검증 기록: [CHG-005](../changes/CHG-005/aidlc-state.md).
+
+## 기준선 통합 — 2026-10-03
+
+통합·실험 단계 전에 ECU·IVI 작업을 `develop` 기준으로 모으고 빌드·시험 결과와 미검증 범위를 [CHG-009](../changes/CHG-009/aidlc-state.md)에 기록한다.
