@@ -50,7 +50,7 @@ def test_verify_rejects_replay_counter():
 def test_verify_accepts_counter_wrap():
     signer = SecOcModule(KEY)
     verifier = SecOcModule(KEY)
-    signer.counter = 0xFFFFFFFF
+    signer.counters[0x102] = 0xFFFFFFFF
 
     last_before_wrap = signer.sign(0x102, 0x100, PAYLOAD)
     wrapped = signer.sign(0x102, 0x100, PAYLOAD)
@@ -58,6 +58,26 @@ def test_verify_accepts_counter_wrap():
     assert verifier.verify(0x100, PAYLOAD, last_before_wrap.data)
     assert verifier.verify(0x100, PAYLOAD, wrapped.data)
     assert wrapped.data[4:] == b"\x00\x00\x00\x00"
+
+
+FAILSAFE_WARNING = bytes.fromhex("0001012741000000")
+
+
+def test_counters_are_independent_per_authenticated_stream():
+    # ICD 1.4/2.4: a rare Fail-safe event must stay inside the receiver window
+    # however many BMS frames were authenticated in between.
+    signer = SecOcModule(KEY)
+    verifier = SecOcModule(KEY)
+    first_event = signer.sign(0x103, 0x101, FAILSAFE_WARNING)
+    assert verifier.verify(0x101, FAILSAFE_WARNING, first_event.data)
+    for _ in range(150):
+        assert verifier.verify(0x100, PAYLOAD, signer.sign(0x102, 0x100, PAYLOAD).data)
+    second_event = signer.sign(0x103, 0x101, FAILSAFE_WARNING)
+
+    assert first_event.data[4:] == b"\x00\x00\x00\x00"
+    assert second_event.data[4:] == b"\x00\x00\x00\x01"
+    assert signer.counters == {0x102: 150, 0x103: 2}
+    assert verifier.verify(0x101, FAILSAFE_WARNING, second_event.data)
 
 
 # Public dummy-key vectors independently generated with HMAC-SHA256.

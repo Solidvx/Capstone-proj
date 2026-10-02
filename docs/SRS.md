@@ -1,7 +1,7 @@
 > **문서명**: Software Requirements Specification (SRS)  
 > **버전**: v1.6 | **작성일**: 2026-03-01 | **최종 수정**: 2026-09-22
 > **작성자**: 팀원A + 팀원B (공동)  
-> **참조**: ICD v1.5, ADR-003 (IDS 알고리즘), ADR-005 (EKF), ADR-008 (Ablation Study), ADR-010 (IVI Plan B)
+> **참조**: ICD v1.6, ADR-003 (IDS 알고리즘), ADR-005 (EKF), ADR-008 (Ablation Study), ADR-010 (IVI Plan B)
 > **표기**: 필수=Must Have / 권장=Should Have / 선택=Nice to Have
 
 ---

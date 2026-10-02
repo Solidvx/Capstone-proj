@@ -1,6 +1,6 @@
 > **문서명**: Software Design Document — Node A (ECU) (SDD-ECU)  
 > **버전**: v1.7 | **작성일**: 2026-03-15 | **최종 수정**: 2026-10-03 | **작성자**: 팀원A  
-> **참조**: ICD v1.5, SRS v1.6 (FR-BSW-*, FR-BMS-*, FR-SEC-*), ADR-001/002/003/005/008/009/011/012
+> **참조**: ICD v1.6, SRS v1.6 (FR-BSW-*, FR-BMS-*, FR-SEC-*), ADR-001/002/003/005/008/009/011/012
 
 ---
 
@@ -14,7 +14,7 @@ Node A(ECU) 소프트웨어의 모듈 구조, 클래스 설계, 알고리즘, �
 
 ## 1.2. 참조 문서
 
-- ICD v1.5 (CAN 메시지 규격, Node B C++ Service API, SecOC 시퀀스 다이어그램)
+- ICD v1.6 (CAN 메시지 규격, Node B C++ Service API, SecOC 시퀀스 다이어그램)
 - SRS v1.5 (FR-BSW-*, FR-BMS-*, FR-SEC-*)
 - ADR.md (주요 기술 선택 근거)
 - AUTOSAR Adaptive Platform Specification R22-11
@@ -341,7 +341,7 @@ private:
 CanFrame 원본 생성
     │
     ▼
-rolling_counter++ (atomic)
+rolling_counter++ (인증 CAN ID별 독립: 0x102·0x103, ICD §2.4)
     │
     ▼
 HMAC_Input 구성: CAN_ID(2B) || Counter(4B) || Payload(8B)
@@ -680,7 +680,7 @@ C++ `test/`는 `adaptive_ecu/` 기준이다. 파일 존재와 공식 TC 전체 �
 | v1.3 | 2026-04-15 | 테스트 케이스 매핑 §5 추가 | 팀원A |
 | v1.4 | 2026-05-09 | §3.1 디렉토리 구조에 `data/` 디렉토리 추가, §5 테스트 매핑에 WatchdogManager·SensorSimulator 추가, 참조 문서 버전 ICD/SRS v1.3 반영 | 팀원A |
 | v1.5 | 2026-05-09 | §4 데이터 흐름도에 CanPublisher 모듈 명시, 참조 문서 SRS v1.3→v1.4 반영 | 팀원A |
-| v1.7 | 2026-10-03 | §3.7.3 ADS1115 제품 연결: 별도 취득 worker, 순번 기반 새 측정, 3회 확인·200ms 신선도, 오류·준비 중 송신 보류(ADS-1), 가상 고정 전류·온도(ADS-2), EKF 재개(ADS-3), 끝점 ±32코드 허용(B안, ±16에서 1000회 재측정 후 확대, 실측 기반 설계값·추가 측정 후 재검토), 오류 원인 로그. §3.7.1 모드 이름 검증·`setHardwareVoltage` 추가, POTENTIOMETER 제거(I-5=B) | 팀원A |
+| v1.7 | 2026-10-03 | §3.7.3 ADS1115 제품 연결: 별도 취득 worker, 순번 기반 새 측정, 3회 확인·200ms 신선도, 오류·준비 중 송신 보류(ADS-1), 가상 고정 전류·온도(ADS-2), EKF 재개(ADS-3), 끝점 ±32코드 허용(B안, ±16에서 1000회 재측정 후 확대, 실측 기반 설계값·추가 측정 후 재검토), 오류 원인 로그. §3.7.1 모드 이름 검증·`setHardwareVoltage` 추가, POTENTIOMETER 제거(I-5=B). §3.5.1 송신 counter를 인증 CAN ID별 독립으로 갱신(ICD v1.6, CHG-012) | 팀원A |
 | v1.6 | 2026-09-06 | §3.7.2 OCV-SOC 3차 계수 교체 — 기존 계수는 SOC 12.3% 아래에서 단조성이 깨져 EKF 보정 방향이 반전되고 §3.7.3 ADS1115 범위(팩 30~42V)와도 불일치했다. 단조 증가·끝점 정합 제약의 가상 계수로 교체하고 검증표를 추가(실측 피팅 근거 없음). §3.4.1에 팩→단셀 변환 명시. §3.4.3에 Watchdog 실패 전이(ICD 사유 코드 `0x07`)와 CRITICAL 복귀 경로 부재 근거 추가 | 팀원A |
 
 ## 승인된 센서·상태 통보 설계 보완
