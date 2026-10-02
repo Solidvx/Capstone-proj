@@ -86,7 +86,11 @@ ProcessResult VehicleDataService::processFrame(std::uint32_t can_id,
             case kCanIdBmsSecOc: {
                 const auto auth = parseSecOcAuth(payload);
                 result = processAuth(kCanIdBmsStatus, *auth, bms_state_, received_at, notification);
-                should_notify = result == ProcessResult::kPublished;
+                should_notify = result == ProcessResult::kPublished ||
+                                result == ProcessResult::kRejected;
+                if (result == ProcessResult::kRejected) {
+                    notification = snapshot_;
+                }
                 break;
             }
 
@@ -94,7 +98,11 @@ ProcessResult VehicleDataService::processFrame(std::uint32_t can_id,
                 const auto auth = parseSecOcAuth(payload);
                 result = processAuth(
                     kCanIdBmsFailSafe, *auth, fail_safe_state_, received_at, notification);
-                should_notify = result == ProcessResult::kPublished;
+                should_notify = result == ProcessResult::kPublished ||
+                                result == ProcessResult::kRejected;
+                if (result == ProcessResult::kRejected) {
+                    notification = snapshot_;
+                }
                 break;
             }
 
@@ -105,9 +113,15 @@ ProcessResult VehicleDataService::processFrame(std::uint32_t can_id,
                     result = ProcessResult::kRejected;
                     break;
                 }
-                snapshot_.security_alert = alert->attack_type == 0U
-                                               ? std::optional<SecurityAlert>{}
-                                               : std::optional<SecurityAlert>{*alert};
+                if (alert->attack_type == 0U) {
+                    snapshot_.last_message =
+                        "Ignored IDS clear frame; user acknowledgement is required";
+                    appendLogLocked(snapshot_.last_message);
+                    result = ProcessResult::kIgnored;
+                    break;
+                }
+                snapshot_.security_alert = *alert;
+                ++snapshot_.security_alert_sequence;
                 snapshot_.last_message = "IDS event published";
                 appendLogLocked(snapshot_.last_message);
                 notification = snapshot_;
@@ -134,6 +148,64 @@ ProcessResult VehicleDataService::processFrame(std::uint32_t can_id,
         notify(notification, observers);
     }
     return result;
+}
+
+bool VehicleDataService::refreshTime(Clock::time_point now) {
+    VehicleSnapshot notification;
+    std::vector<Observer> observers;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (!snapshot_.vehicle.valid || !last_good_bms_at_.has_value()) {
+            return false;
+        }
+
+        const auto age = now <= *last_good_bms_at_
+                             ? std::chrono::milliseconds{0}
+                             : std::chrono::duration_cast<std::chrono::milliseconds>(
+                                   now - *last_good_bms_at_);
+        const auto age_ms = static_cast<std::uint64_t>(age.count());
+        const bool stale = age >= kStaleTimeout;
+        if (snapshot_.last_good_age_ms == age_ms && snapshot_.vehicle.stale == stale) {
+            return false;
+        }
+
+        const bool became_stale = !snapshot_.vehicle.stale && stale;
+        snapshot_.last_good_age_ms = age_ms;
+        snapshot_.vehicle.stale = stale;
+        if (became_stale) {
+            snapshot_.last_message = "BMS data became stale; preserving last good values";
+            appendLogLocked(snapshot_.last_message);
+        }
+        notification = snapshot_;
+        observers.reserve(observers_.size());
+        for (const auto& entry : observers_) {
+            observers.push_back(entry.second);
+        }
+    }
+    notify(notification, observers);
+    return true;
+}
+
+bool VehicleDataService::acknowledgeSecurityAlert(std::uint64_t sequence) {
+    VehicleSnapshot notification;
+    std::vector<Observer> observers;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (!snapshot_.security_alert.has_value() ||
+            snapshot_.security_alert_sequence != sequence) {
+            return false;
+        }
+        snapshot_.security_alert.reset();
+        snapshot_.last_message = "IDS event acknowledged by user";
+        appendLogLocked(snapshot_.last_message);
+        notification = snapshot_;
+        observers.reserve(observers_.size());
+        for (const auto& entry : observers_) {
+            observers.push_back(entry.second);
+        }
+    }
+    notify(notification, observers);
+    return true;
 }
 
 VehicleSnapshot VehicleDataService::latest() const {
@@ -187,6 +259,13 @@ ProcessResult VehicleDataService::processAuth(std::uint32_t original_id,
         snapshot_.vehicle.temperature_c = parsed->temperature_c;
         snapshot_.vehicle.valid = true;
         snapshot_.vehicle.stale = false;
+        snapshot_.last_good_age_ms = 0;
+        const auto original_received_at = *state.pending_received_at;
+        last_good_bms_at_ = received_at;
+        snapshot_.vehicle.received_monotonic_ns = monotonicNanoseconds(original_received_at);
+        ++snapshot_.measurement_sequence;
+        snapshot_.t1_received_ns = monotonicNanoseconds(original_received_at);
+        snapshot_.t2_published_ns = monotonicNanoseconds(Clock::now());
     } else {
         const auto parsed = parseFailSafeEvent(*state.pending_payload);
         if (!parsed.has_value()) {
@@ -196,7 +275,6 @@ ProcessResult VehicleDataService::processAuth(std::uint32_t original_id,
         snapshot_.vehicle.fail_safe_reason = parsed->reason;
     }
 
-    snapshot_.vehicle.received_monotonic_ns = monotonicNanoseconds(received_at);
     snapshot_.last_secoc_verified = true;
     snapshot_.consecutive_secoc_failure_count = 0;
     snapshot_.last_message = original_id == kCanIdBmsStatus

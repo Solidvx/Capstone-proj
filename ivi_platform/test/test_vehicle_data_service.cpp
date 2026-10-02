@@ -56,7 +56,7 @@ void run() {
     EXPECT_EQ(service.processFrame(ivi::kCanIdBmsSecOc, bad_auth),
               ivi::ProcessResult::kRejected);
     EXPECT_NEAR(service.latest().vehicle.soc_percent, 75.0, 0.001);
-    EXPECT_EQ(notifications, 1);
+    EXPECT_EQ(notifications, 2);
 
     const auto good_auth = authPayload(signer, 0x100, 1, changed_bms);
     EXPECT_EQ(service.processFrame(ivi::kCanIdBmsSecOc, good_auth),

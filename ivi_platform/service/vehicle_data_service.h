@@ -31,6 +31,11 @@ struct VehicleData {
 struct VehicleSnapshot {
     VehicleData vehicle{};
     std::optional<SecurityAlert> security_alert;
+    std::uint64_t security_alert_sequence = 0;
+    std::uint64_t last_good_age_ms = 0;
+    std::uint64_t measurement_sequence = 0;
+    std::uint64_t t1_received_ns = 0;
+    std::uint64_t t2_published_ns = 0;
     bool last_secoc_verified = false;
     std::uint32_t secoc_failure_count = 0;
     std::uint32_t consecutive_secoc_failure_count = 0;
@@ -55,6 +60,7 @@ public:
     using Observer = std::function<void(const VehicleSnapshot&)>;
     using Clock = std::chrono::steady_clock;
     static constexpr auto kPendingTimeout = std::chrono::milliseconds{100};
+    static constexpr auto kStaleTimeout = std::chrono::milliseconds{300};
 
     VehicleDataService() = default;
     explicit VehicleDataService(SecOcKey key);
@@ -69,6 +75,8 @@ public:
     ProcessResult processFrame(std::uint32_t can_id,
                                const CanPayload& payload,
                                Clock::time_point received_at = Clock::now());
+    bool refreshTime(Clock::time_point now = Clock::now());
+    bool acknowledgeSecurityAlert(std::uint64_t sequence);
     VehicleSnapshot latest() const;
 
 private:
@@ -100,6 +108,7 @@ private:
     std::optional<SecOcVerifier> verifier_;
     ProtectedState bms_state_;
     ProtectedState fail_safe_state_;
+    std::optional<Clock::time_point> last_good_bms_at_;
     std::map<ObserverId, Observer> observers_;
     ObserverId next_observer_id_ = 1;
 };
