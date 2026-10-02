@@ -23,7 +23,7 @@ VM 결과는 Debian 13 RPi4 시험을 대체하지 않는다.
 
 실제 RPi4 결과는 아직 기록하지 않았다. 다음 값을 장비 실행 후 원문 그대로 추가한다.
 
-- `git rev-parse HEAD`
+- `deploy_rpi.sh`가 출력한 배포 커밋 ID와 배포 디렉터리의 커밋 ID
 - `cat /etc/os-release`의 OS 식별값
 - `qmake6 -query QT_VERSION`
 - `ip -details link show vcan0`
