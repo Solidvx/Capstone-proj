@@ -1,0 +1,26 @@
+[Unit]
+Description=Node B Qt Quick IVI dashboard
+Requires=ivi-can0.service
+After=ivi-can0.service systemd-user-sessions.service
+
+[Service]
+Type=simple
+User=ivi
+Group=ivi
+SupplementaryGroups=video render input
+EnvironmentFile=/etc/ivi/ivi-dashboard.env
+ExecStartPre=/opt/ivi/libexec/rpi_preflight.sh --service
+ExecStart=/opt/ivi/bin/ivi_dashboard --interface ${IVI_CAN_INTERFACE} --secoc-key ${IVI_SECOC_KEY}
+Restart=on-failure
+RestartSec=2
+TimeoutStopSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadOnlyPaths=/etc/ivi
+CapabilityBoundingSet=CAP_NET_RAW
+AmbientCapabilities=CAP_NET_RAW
+
+[Install]
+WantedBy=multi-user.target

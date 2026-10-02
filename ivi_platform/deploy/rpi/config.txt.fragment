@@ -1,0 +1,4 @@
+# Node B RPi4 + MCP2515-I/SO/TJA1050 8 MHz module
+# Append to /boot/firmware/config.txt only after checking the module crystal and INT pin.
+dtparam=spi=on
+dtoverlay=mcp2515-can0,oscillator=8000000,interrupt=25

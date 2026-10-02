@@ -16,7 +16,7 @@ Node A가 배터리 상태와 Fail-safe 이벤트를 계산해 CAN으로 보내�
   → Qt Quick/QML 대시보드
 ```
 
-현재 제출 경로는 Android 포팅이 아니라 **Ubuntu 22.04 + C++17 + SocketCAN + Qt Quick/QML**이다. CAN wire 계약은 바꾸지 않는다.
+현재 제출 경로는 Android 포팅이 아니라 **Debian 13 ARM64 + C++17 + SocketCAN + Qt 6.8 Quick/QML**이다. CAN wire 계약은 바꾸지 않는다.
 
 ## 2. 현재 진행 상황
 

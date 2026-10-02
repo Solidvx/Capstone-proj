@@ -11,3 +11,4 @@ CHG-template은 CHG-<번호>의 구조 템플릿이다. 실제 작업 번호나 
 - [CHG-007: Node A 스트리밍 CAN IDS](CHG-007/aidlc-state.md)
 - [CHG-008: ADS1115 실측 CAN 표시 진단](CHG-008/aidlc-state.md)
 - [CHG-009: 0단계 기준선 통합](CHG-009/aidlc-state.md)
+- [CHG-010: IVI Debian 13·Qt 6.8 기준 통일](CHG-010/aidlc-state.md)

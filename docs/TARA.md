@@ -33,7 +33,7 @@
 |------|------|
 | 시스템명 | AUTOSAR 계층 기반 IVI-ECU 통합 플랫폼 |
 | Node A | ECU 역할 — C++17 (BSW/BMS/SecOC). Ubuntu 버전·보드 정보는 확인사항 §1 입력 후 확정 |
-| Node B | IVI 역할 — Ubuntu 22.04 + C++17 + SocketCAN + Qt Quick/QML Plan B. Service/Dashboard는 계획이며 현재 저장소에 IVI 제품 구현 없음 |
+| Node B | IVI 역할 — Debian 13 ARM64 + C++17 + SocketCAN + Qt 6.8 Quick/QML Plan B. Service/Dashboard 구현은 존재하며 물리 통합 증거는 별도 관리 |
 | 통신 채널 | CAN 버스 (MCP2515 SPI-CAN, 500 kbps, 2노드) |
 | 분석 경계 | CAN 버스 물리 접근 지점 ~ Qt 대시보드 UI 표시까지 전 계층 |
 | 분석 외 범위 | OBD-II 원격 접근, 차량 외부 네트워크(V2X), 클라우드 연동 |
