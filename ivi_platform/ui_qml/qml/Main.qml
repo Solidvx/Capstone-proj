@@ -38,7 +38,7 @@ ApplicationWindow {
         anchors.centerIn: parent
         width: root.portraitPanel ? root.height : root.width
         height: root.portraitPanel ? root.width : root.height
-        rotation: root.portraitPanel ? 90 : 0
+        rotation: root.portraitPanel ? -90 : 0
 
         ColumnLayout {
             anchors.fill: parent
