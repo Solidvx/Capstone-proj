@@ -94,3 +94,9 @@ playbooks/·templates/·verification/·q2_validation/는 기존 위치를 유지
 ADS1115 실측 표시 진단: [절차](../../development/playbooks/ads1115-can-smoke.md), [CHG-008](../changes/CHG-008/aidlc-state.md), [검증 증거](../changes/CHG-008/evidence.md).
 
 현재 실행 진입점과 과거 Android 절차를 분리한 범위·검증은 [CHG-004](../changes/CHG-004/aidlc-state.md)에 기록한다. CHG-003의 P1 구현 기록도 develop 병합으로 현재 브랜치에 포함됐다.
+
+## 하드웨어 조립 안내 — 2026-09-23
+
+[HTML 연결 가이드](../../development/environment/ECU_IVI_하드웨어_연결가이드.html)는 기존 배선 HTML(2026-10-03 사용자 요청으로 삭제, 이전 내용은 커밋 `70acbd3`)을 바탕으로 실물 J1 정정 및 ECU ADC 3.3V 분배를 추가한다. 제품 코드·계약 변경 없이 작성했다. 실장비 검증은 후속 과제다.
+
+작업 요청·진행·검증 기록: [CHG-005](../changes/CHG-005/aidlc-state.md).

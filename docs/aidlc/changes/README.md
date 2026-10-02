@@ -7,3 +7,5 @@ CHG-template은 CHG-<번호>의 구조 템플릿이다. 실제 작업 번호나 
 
 - [CHG-004: IVI Qt 현행 안내 정합성](CHG-004/aidlc-state.md)
 - [CHG-008: ADS1115 실측 CAN 표시 진단](CHG-008/aidlc-state.md)
+
+- [CHG-005: 하드웨어 연결 HTML](CHG-005/aidlc-state.md)

@@ -70,3 +70,5 @@
 커밋 규칙·AI 절차의 공통 원본은 [commit skill](../../.agents/skills/commit/SKILL.md), Claude 연결·배치 상태는 [tooling](tooling.md#commit-skill)을 따른다. 사람용 매뉴얼과 AI 지침을 중복 원본으로 관리하지 않는다.
 
 - [IVI Qt 현행 안내 정정 기록](../aidlc/changes/CHG-004/aidlc-state.md)
+
+- [ECU–IVI 하드웨어 연결 가이드](environment/ECU_IVI_하드웨어_연결가이드.html): 기존 배치·사진 기반 전원/ADC/CAN 조립과 점검

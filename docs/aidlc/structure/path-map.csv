@@ -192,7 +192,7 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 하드웨어 정보/스크린샷 2026-09-07 130959.png,하드웨어 정보/스크린샷 2026-09-07 130959.png,preserve,original bytes retained
 하드웨어 정보/촬영_사진1.png,하드웨어 정보/촬영_사진1.png,preserve,original bytes retained
 하드웨어 정보/촬영_사진2.png,하드웨어 정보/촬영_사진2.png,preserve,original bytes retained
-하드웨어 정보/컨버터O_배선완결판.html,하드웨어 정보/컨버터O_배선완결판.html,preserve,original bytes retained
+하드웨어 정보/컨버터O_배선완결판.html,,removed,deleted by user request 2026-10-03; earlier content in commit 70acbd3; superseded by docs/development/environment/ECU_IVI_하드웨어_연결가이드.html
 
 ,docs/development/governance/프로젝트구조_사용안내.md,add,new member structure and file purpose guide
 ,docs/development/governance/IVI_Plan_B_진행상황_및_구조_안내.md,add,IVI Plan B onboarding and current progress guide
@@ -239,3 +239,7 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,docs/aidlc/changes/CHG-004/spec.md,add,Qt current guidance consistency record
 ,docs/aidlc/changes/CHG-004/aidlc-state.md,add,Qt current guidance consistency record
 ,docs/aidlc/changes/CHG-004/audit.md,add,Qt current guidance consistency record
+,docs/development/environment/ECU_IVI_하드웨어_연결가이드.html,add,hardware wiring guide based on existing layout and shared photos
+,docs/aidlc/changes/CHG-005/spec.md,add,hardware guide work record
+,docs/aidlc/changes/CHG-005/aidlc-state.md,add,hardware guide work record
+,docs/aidlc/changes/CHG-005/audit.md,add,hardware guide work record
