@@ -140,16 +140,25 @@ ApplicationWindow {
         }
 
         GridLayout {
+            id: metricGrid
             Layout.fillWidth: true
             columns: 3
+            uniformCellWidths: true
             columnSpacing: 14
             rowSpacing: 14
 
-            MetricCard {
-                title: "SOC"
-                value: root.vehicleModel.measurementsAvailable ? root.vehicleModel.soc.toFixed(1) : "--"
-                unit: "%"
-                valueColor: root.socColor(root.vehicleModel.socBand)
+            SocGauge {
+                objectName: "socGauge"
+                Layout.fillWidth: true
+                Layout.preferredHeight: 140
+                value: root.vehicleModel.soc
+                available: root.vehicleModel.measurementsAvailable
+                stale: root.vehicleModel.stale || root.vehicleModel.sensorUsesLastGood
+                highColor: root.green
+                mediumColor: root.orange
+                lowColor: root.red
+                mutedColor: root.muted
+                panelColor: root.panel
             }
             MetricCard {
                 title: "SOH"
@@ -275,6 +284,7 @@ ApplicationWindow {
         property string value
         property string unit
         property color valueColor: "white"
+        implicitWidth: 220
         Layout.fillWidth: true
         Layout.preferredHeight: 120
         color: root.panel

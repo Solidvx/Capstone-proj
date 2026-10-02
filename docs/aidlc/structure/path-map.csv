@@ -228,6 +228,7 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,ivi_platform/ui_qml/dashboard_view_model.h,add,CHG-003 IVI Qt Plan B P1 implementation
 ,ivi_platform/ui_qml/dashboard_view_model.cpp,add,CHG-003 IVI Qt Plan B P1 implementation
 ,ivi_platform/ui_qml/qml/Main.qml,add,CHG-003 IVI Qt Plan B P1 implementation
+,ivi_platform/ui_qml/qml/SocGauge.qml,add,CHG-003 IVI circular SOC gauge implementation
 ,ivi_platform/scripts/check_qt_ivi_env.sh,add,CHG-003 IVI Qt Plan B P1 implementation
 ,ivi_platform/scripts/send_ivi_test_vectors.py,add,CHG-003 IVI Qt Plan B P1 implementation
 ,ivi_platform/scripts/measure_latency.py,add,CHG-003 IVI Qt Plan B P1 implementation
