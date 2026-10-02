@@ -114,3 +114,7 @@ ADS1115 실측 표시 진단: [절차](../../development/playbooks/ads1115-can-s
 ## IVI Debian 13·Qt 6.8 기준 통일 — 2026-10-03
 
 실제 Node B RPi4 환경과 Qt CMake 최소 버전을 맞추고 강제 SocketCAN 시험·배포 파일을 [CHG-010](../changes/CHG-010/aidlc-state.md)에 기록한다. 실제 `vcan0`·Qt 전체 시험은 [증거](../changes/CHG-010/evidence.md)에서 커밋과 함께 관리한다.
+
+## SecOC counter 범위 명시 — 2026-10-03
+
+ICD v1.6에서 RollingCounter를 인증 CAN ID별 독립으로 명시하고 ECU·Python 송신 측을 맞춘 근거와 시험을 [CHG-012](../changes/CHG-012/aidlc-state.md)에 기록한다.

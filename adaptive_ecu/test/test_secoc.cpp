@@ -70,7 +70,32 @@ TEST(SecOcModule, CounterIncrementsAcrossMessages) {
 
     EXPECT_EQ(first.data[7], 0x00);
     EXPECT_EQ(second.data[7], 0x01);
-    EXPECT_EQ(signer.nextCounter(), 2U);
+    EXPECT_EQ(signer.nextCounter(0x102), 2U);
+}
+
+// ICD 1.4/2.4: 0x102 and 0x103 keep independent counters, so a rare Fail-safe
+// event stays inside the receiver window however many BMS frames came before.
+TEST(SecOcModule, CountersAreIndependentPerAuthenticatedStream) {
+    SecOcModule signer;
+    SecOcModule verifier;
+    signer.setKey(testKey());
+    verifier.setKey(testKey());
+    const auto status = encodeBmsStatusFrame({75.0f, 95.0f, 42.0f, -2.0f, 25});
+    const auto warning = encodeFailSafeFrame({0, 1, 0x01, 19.5f, 25});
+
+    const auto first_event = signer.sign(0x103, 0x101, warning.data);
+    EXPECT_TRUE(verifier.verify(0x101, warning.data, first_event));
+    for (int i = 0; i < 150; ++i) {
+        const auto bms = signer.sign(0x102, 0x100, status.data);
+        EXPECT_TRUE(verifier.verify(0x100, status.data, bms));
+    }
+    const auto second_event = signer.sign(0x103, 0x101, warning.data);
+
+    EXPECT_EQ(first_event.data[7], 0x00);
+    EXPECT_EQ(second_event.data[7], 0x01);
+    EXPECT_EQ(signer.nextCounter(0x102), 150U);
+    EXPECT_EQ(signer.nextCounter(0x103), 2U);
+    EXPECT_TRUE(verifier.verify(0x101, warning.data, second_event));
 }
 
 TEST(SecOcModule, AcceptsCounterWrap) {
@@ -78,7 +103,7 @@ TEST(SecOcModule, AcceptsCounterWrap) {
     SecOcModule verifier;
     signer.setKey(testKey());
     verifier.setKey(testKey());
-    signer.resetCounter(0xFFFFFFFFU);
+    signer.resetCounter(0x102, 0xFFFFFFFFU);
     const auto status = encodeBmsStatusFrame({75.0f, 95.0f, 42.0f, -2.0f, 25});
 
     const auto last_before_wrap = signer.sign(0x102, 0x100, status.data);

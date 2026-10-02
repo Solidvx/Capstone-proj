@@ -14,7 +14,7 @@ Node A(ECU) 소프트웨어의 모듈 구조, 클래스 설계, 알고리즘, �
 
 ## 1.2. 참조 문서
 
-- ICD v1.5 (CAN 메시지 규격, Node B C++ Service API, SecOC 시퀀스 다이어그램)
+- ICD v1.6 (CAN 메시지 규격, Node B C++ Service API, SecOC 시퀀스 다이어그램)
 - SRS v1.5 (FR-BSW-*, FR-BMS-*, FR-SEC-*)
 - ADR.md (주요 기술 선택 근거)
 - AUTOSAR Adaptive Platform Specification R22-11
@@ -341,7 +341,7 @@ private:
 CanFrame 원본 생성
     │
     ▼
-rolling_counter++ (atomic)
+rolling_counter++ (인증 CAN ID별 독립: 0x102·0x103, ICD §2.4)
     │
     ▼
 HMAC_Input 구성: CAN_ID(2B) || Counter(4B) || Payload(8B)

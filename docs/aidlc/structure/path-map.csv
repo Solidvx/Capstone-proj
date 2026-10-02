@@ -297,3 +297,6 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,ivi_platform/scripts/rpi_preflight.sh,add,RPi deployment preflight
 ,ivi_platform/scripts/run_rpi_desktop.sh,add,Wayland desktop dashboard launcher
 ,ivi_platform/scripts/setup_can0.sh,add,physical CAN setup
+,docs/aidlc/changes/CHG-012/spec.md,add,SecOC per-ID rolling counter record
+,docs/aidlc/changes/CHG-012/aidlc-state.md,add,SecOC per-ID rolling counter record
+,docs/aidlc/changes/CHG-012/evidence.md,add,SecOC per-ID rolling counter record

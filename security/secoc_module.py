@@ -16,10 +16,13 @@ class AuthFrame:
 
 
 class SecOcModule:
+    """RollingCounter is independent per authenticated stream (ICD 1.4/2.4):
+    0x102 (for 0x100) and 0x103 (for 0x101) never share a counter."""
+
     def __init__(self, key: bytes | None = None) -> None:
         self.key = key or b""
-        self.counter = 0
-        self.last_verified_counter: int | None = None
+        self.counters: dict[int, int] = {}       # auth CAN ID -> next counter
+        self.last_verified: dict[int, int] = {}  # original CAN ID -> last accepted
 
     @classmethod
     def from_key_file(cls, path: str | Path) -> "SecOcModule":
@@ -33,8 +36,8 @@ class SecOcModule:
         if len(payload) != 8:
             raise ValueError("SecOC payload must be 8 bytes")
 
-        rolling_counter = self.counter
-        self.counter = (self.counter + 1) & 0xFFFFFFFF
+        rolling_counter = self.counters.get(auth_can_id, 0)
+        self.counters[auth_can_id] = (rolling_counter + 1) & 0xFFFFFFFF
         mac = self._mac(original_can_id, rolling_counter, payload)
         return AuthFrame(auth_can_id, mac + rolling_counter.to_bytes(4, "big"))
 
@@ -44,8 +47,8 @@ class SecOcModule:
             return False
 
         rolling_counter = int.from_bytes(auth_data[4:8], "big")
-        if self.last_verified_counter is not None:
-            last = self.last_verified_counter
+        last = self.last_verified.get(original_can_id)
+        if last is not None:
             delta = (rolling_counter - last) & 0xFFFFFFFF
             if delta == 0 or delta > 100:
                 return False
@@ -54,7 +57,7 @@ class SecOcModule:
         if not hmac.compare_digest(expected, auth_data[:4]):
             return False
 
-        self.last_verified_counter = rolling_counter
+        self.last_verified[original_can_id] = rolling_counter
         return True
 
     def _mac(self, original_can_id: int, rolling_counter: int, payload: bytes) -> bytes:

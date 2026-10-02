@@ -60,7 +60,8 @@ CanFrame SecOcModule::sign(
         return frame;
     }
 
-    const uint32_t rolling_counter = counter_++;
+    uint32_t& next = tx_counters_[auth_can_id];
+    const uint32_t rolling_counter = next++;
     const auto mac = computeMac(original_can_id, rolling_counter, payload);
 
     frame.dlc = 8;
@@ -78,9 +79,9 @@ bool SecOcModule::verify(
     }
 
     const uint32_t rolling_counter = readUint32Be(&auth_frame.data[4]);
-    if (last_verified_counter_.has_value()) {
-        const uint32_t last = last_verified_counter_.value();
-        const uint32_t delta = rolling_counter - last;
+    const auto last = last_verified_counters_.find(original_can_id);
+    if (last != last_verified_counters_.end()) {
+        const uint32_t delta = rolling_counter - last->second;
         if (delta == 0U || delta > 100U) {
             return false;
         }
@@ -91,17 +92,17 @@ bool SecOcModule::verify(
         return false;
     }
 
-    last_verified_counter_ = rolling_counter;
+    last_verified_counters_[original_can_id] = rolling_counter;
     return true;
 }
 
-uint32_t SecOcModule::nextCounter() const {
-    return counter_;
+uint32_t SecOcModule::nextCounter(uint32_t auth_can_id) const {
+    const auto it = tx_counters_.find(auth_can_id);
+    return it == tx_counters_.end() ? 0U : it->second;
 }
 
-void SecOcModule::resetCounter(uint32_t counter) {
-    counter_ = counter;
-    last_verified_counter_.reset();
+void SecOcModule::resetCounter(uint32_t auth_can_id, uint32_t counter) {
+    tx_counters_[auth_can_id] = counter;
 }
 
 std::array<uint8_t, 4> SecOcModule::computeMac(
