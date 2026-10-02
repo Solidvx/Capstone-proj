@@ -255,6 +255,12 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,ivi_platform/scripts/run_vcan_integration.sh,add,CHG-003 IVI Plan B P4 vcan build and test automation
 ,ivi_platform/scripts/run_vcan_latency.sh,add,CHG-003 IVI Plan B P4 T1-T4 measurement automation
 
+,docs/aidlc/changes/CHG-006/spec.md,add,SecOC 무수신 만료와 인증 진단
+
+,docs/aidlc/changes/CHG-006/aidlc-state.md,add,SecOC 무수신 만료와 인증 진단
+
+,docs/aidlc/changes/CHG-006/audit.md,add,SecOC 무수신 만료와 인증 진단
+
 ,docs/aidlc/changes/CHG-007/spec.md,add,Node A 스트리밍 CAN IDS
 
 ,docs/aidlc/changes/CHG-007/aidlc-state.md,add,Node A 스트리밍 CAN IDS

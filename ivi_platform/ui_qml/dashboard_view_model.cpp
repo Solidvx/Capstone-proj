@@ -55,6 +55,9 @@ bool DashboardViewModel::failSafeOverlayActive() const {
     return snapshot_.vehicle.fail_safe_state >= 2U;
 }
 
+bool DashboardViewModel::authenticationError() const {
+    return snapshot_.consecutive_secoc_failure_count >= 10U;
+}
 bool DashboardViewModel::secocVerified() const { return snapshot_.last_secoc_verified; }
 unsigned int DashboardViewModel::secocFailureCount() const {
     return snapshot_.secoc_failure_count;

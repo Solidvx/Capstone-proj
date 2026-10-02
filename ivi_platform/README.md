@@ -57,3 +57,25 @@ CAN 장치 없이 P3 화면을 확인하려면 demo 상태를 사용한다.
 ## 다음 단계
 
 P5에서 RPi4/MCP2515 `can0` 물리 통합을 수행한다. 단계별 결과는 [P1](../docs/aidlc/changes/CHG-003/construction/P1_구현_결과.md), [P2](../docs/aidlc/changes/CHG-003/construction/P2_구현_결과.md), [P3](../docs/aidlc/changes/CHG-003/construction/P3_구현_결과.md), [P4](../docs/aidlc/changes/CHG-003/construction/P4_구현_결과.md), 전체 상태는 [CHG-003](../docs/aidlc/changes/CHG-003/aidlc-state.md)에 기록한다.
+
+## SecOC 보완 브랜치의 소프트웨어 구현
+
+`feat/ivi-secoc-hardening`은 P2를 이어서 다음 동작을 구현했고, develop의 P3·P4와 병합하면서 stale 판정은 P3 `refreshTime()`으로 일원화했다.
+
+- 원본/인증 쌍은 ID별 슬롯, 100ms 만료, 새 원본 우선 정책을 유지한다. 실패 auth는 게시/카운터 갱신 없이 버리고 원본은 만료 전 정상 auth 재시도를 허용한다.
+- `pollTimeouts(now)`는 입력이 없어도 pending을 한 번 만료시킨다. Qt main의 10ms 타이머가 호출하며 stale은 다루지 않는다. 100ms는 논리 기한이며 실제 이벤트 루프 지연은 별도 실측 대상이다.
+- 300ms stale은 P3 `refreshTime()`(50ms 타이머)이 last-good를 보존한 채 전환하며 로그 reason은 `BMS_STALE`이다. Fail-safe 인증은 BMS 기한을 연장하지 않는다.
+- 로컬 로그 reason: MAC_FAIL, COUNTER_REUSE, COUNTER_BACKWARD, COUNTER_WINDOW, AUTH_TIMEOUT, AUTH_ORPHAN, KEY_UNAVAILABLE, TIME_REGRESSION, PENDING_REPLACED, BMS_STALE. uint32 차이의 절반 구분은 로그용이며 전송 주체/공격 의도를 입증하지 않는다.
+- 실패 snapshot도 observer로 전달한다. 이는 인증되지 않은 차량 데이터 게시가 아니라 진단 통지다. 연속 실패 4회 WARNING, 10회 CRITICAL과 Qt 인증 오류 경고, 정상 인증 후 연속 실패 해제를 구현한다.
+- 키를 다시 설정하면 pending은 지우고 기존 counter 이력은 보존한다. 새 세션 인증·부팅 replay 방어 완성을 의미하지 않는다.
+
+하드웨어 없는 재현 (저장소 루트, CMake/OpenSSL 및 Qt6 개발·QML 런타임 설치):
+
+```sh
+cmake -S ivi_platform -B ivi_platform/build -DCMAKE_BUILD_TYPE=Debug -DIVI_BUILD_QT_APP=ON
+cmake --build ivi_platform/build -j4
+ctest --test-dir ivi_platform/build --output-on-failure
+```
+
+Qt 화면 시험을 완료로 보고하려면 offscreen QML 경고·복구 시험 `test_dashboard_security`가 실제 실행되어야 한다.
+실행 증거와 한계: [CHG-006](../docs/aidlc/changes/CHG-006/audit.md).

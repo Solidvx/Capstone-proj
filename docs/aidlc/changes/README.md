@@ -7,4 +7,6 @@ CHG-template은 CHG-<번호>의 구조 템플릿이다. 실제 작업 번호나 
 
 - [CHG-004: IVI Qt 현행 안내 정합성](CHG-004/aidlc-state.md)
 
+- [CHG-006: SecOC 무수신 만료와 인증 진단](CHG-006/aidlc-state.md)
+
 - [CHG-007: Node A 스트리밍 CAN IDS](CHG-007/aidlc-state.md)
