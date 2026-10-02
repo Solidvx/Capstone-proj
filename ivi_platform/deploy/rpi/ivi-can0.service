@@ -1,0 +1,13 @@
+[Unit]
+Description=Node B physical CAN interface
+After=systemd-modules-load.service
+Before=ivi-dashboard.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/ivi/libexec/setup_can0.sh up
+ExecStop=/opt/ivi/libexec/setup_can0.sh down
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.22)
 
 project(ivi_platform LANGUAGES CXX)
 
+include(GNUInstallDirs)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -55,11 +57,9 @@ if(IVI_BUILD_TESTS)
 endif()
 
 if(IVI_BUILD_QT_APP)
-    find_package(Qt6 6.2 QUIET COMPONENTS Core Gui Qml Quick QuickControls2 Test)
+    find_package(Qt6 6.8 QUIET COMPONENTS Core Gui Qml Quick QuickControls2 Test)
     if(Qt6_FOUND)
-        qt_standard_project_setup(REQUIRES 6.2)
-        qt_policy(SET QTP0001 NEW)
-        qt_policy(SET QTP0004 NEW)
+        qt_standard_project_setup(REQUIRES 6.8)
         if(IVI_BUILD_TESTS)
             qt_add_executable(test_dashboard_security
                 test/test_dashboard_security.cpp
@@ -102,6 +102,8 @@ if(IVI_BUILD_QT_APP)
             VERSION 1.0
             QML_FILES ui_qml/qml/Main.qml
         )
+        install(TARGETS ivi_dashboard
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
         if(IVI_BUILD_TESTS)
             add_executable(test_dashboard_view_model
                 test/test_dashboard_view_model.cpp

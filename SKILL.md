@@ -46,7 +46,7 @@ description: Develop, review, test, and document the ECU/IVI capstone while pres
 
 ## IVI / 통합
 
-1. ADR-010의 Ubuntu/C++17/SocketCAN/Qt 6 Quick/QML을 현행 IVI 계획으로 적용하고 Android AOSP 자료는 역사·후속 과제로 구분한다. 없는 HAL·Service·UI·측정 파일을 존재한다고 설명하지 않는다.
+1. ADR-010의 Debian 13/C++17/SocketCAN/Qt 6.8 Quick/QML을 현행 IVI 계획으로 적용하고 Android AOSP 자료는 역사·후속 과제로 구분한다. 없는 HAL·Service·UI·측정 파일을 존재한다고 설명하지 않는다.
 2. 수신·인증·파싱·상태 반영에서 ICD 계약을 확인하고 ECU 송신과 SecOC 시험 영향을 함께 검토한다.
 3. 공식 TC-IVI 및 TC-INT ID로 연결한다. 실제 빌드 환경·장비가 없는 경우 미검증 범위를 기록한다.
 4. 다른 브랜치의 구현을 자동 도입하지 않는다. 플랫폼 전환으로 HAL API가 바뀌면 AGENTS의 인터페이스 변경 게이트를 따른다.

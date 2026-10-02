@@ -110,3 +110,7 @@ ADS1115 실측 표시 진단: [절차](../../development/playbooks/ads1115-can-s
 ## 기준선 통합 — 2026-10-03
 
 통합·실험 단계 전에 ECU·IVI 작업을 `develop` 기준으로 모으고 빌드·시험 결과와 미검증 범위를 [CHG-009](../changes/CHG-009/aidlc-state.md)에 기록한다.
+
+## IVI Debian 13·Qt 6.8 기준 통일 — 2026-10-03
+
+실제 Node B RPi4 환경과 Qt CMake 최소 버전을 맞추고 강제 SocketCAN 시험·배포 파일을 [CHG-010](../changes/CHG-010/aidlc-state.md)에 기록한다. 실제 `vcan0`·Qt 전체 시험은 [증거](../changes/CHG-010/evidence.md)에서 커밋과 함께 관리한다.

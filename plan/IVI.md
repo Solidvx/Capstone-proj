@@ -1,7 +1,7 @@
 # IVI 실행 계획 — Node B Plan B
 
 > **담당**: IVI / SocketCAN / Service / Qt Dashboard / CI·CD
-> **플랫폼 결정**: Ubuntu 22.04 + C++17 + SocketCAN + Qt Quick/QML
+> **플랫폼 결정**: Debian 13 ARM64 + C++17 + SocketCAN + Qt 6.8 Quick/QML
 > **결정일**: 2026-09-22
 > **상세 실행 순서**: [IVI Plan B 전환 및 구현 계획](IVI_PLAN_B_전환계획.md)
 > **온보딩 안내**: [IVI Plan B 진행 상황과 프로젝트 구조](../docs/development/governance/IVI_Plan_B_진행상황_및_구조_안내.md)
@@ -70,7 +70,7 @@ SocketCAN(can0/vcan0)
 
 | 단계 | Plan B 의미 | 핵심 산출물 | 연결 시험 |
 |---|---|---|---|
-| M1 | Linux/Qt 환경과 계약 기준 | Ubuntu, CMake, Qt, OpenSSL, ICD/ADR 정합 | 환경 sanity, TC-CI-001~002 |
+| M1 | Linux/Qt 환경과 계약 기준 | Debian 13, CMake, Qt 6.8, OpenSSL, ICD/ADR 정합 | 환경 sanity, TC-CI-001~002 |
 | M2 | 기존 코드 이관과 Mock 기반 빌드 | parser/verifier/service/Qt 기준 코드, clean build | TC-IVI-001~002, TC-CI-003 |
 | M3 | 인증 수신 체인과 서비스 | pending pair, SecOC, snapshot, stale | TC-IVI-001~004·008, TC-INT-002 |
 | M4 | Qt UI·배포·통합 | 대시보드, 경고, systemd/실행 스크립트, 물리 CAN | TC-IVI-005~007, TC-INT-001~004 |
@@ -95,7 +95,7 @@ SocketCAN(can0/vcan0)
 
 ## 6. 다음 실행 순서
 
-1. P5에서 RPi4 Ubuntu와 물리 `can0`을 검증한다.
+1. P5에서 RPi4 Debian 13과 물리 `can0`을 검증한다.
 2. P6에서 CI, 성능 결과, 최종 문서와 데모를 마감한다.
 
 ## 7. ECU 인계물

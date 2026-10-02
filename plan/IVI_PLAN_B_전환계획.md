@@ -1,7 +1,7 @@
 # IVI Plan B 전환 및 구현 계획
 
 > **결정일**: 2026-09-22
-> **결정**: Android AOSP 포팅을 현 제출 범위에서 제외하고, Ubuntu + C++17 + SocketCAN + Qt Quick/QML로 Node B를 구현한다.
+> **결정**: Android AOSP 포팅을 현 제출 범위에서 제외하고, Debian 13 ARM64 + C++17 + SocketCAN + Qt 6.8 Quick/QML로 Node B를 구현한다.
 > **통합 기준 브랜치**: 원격 `develop` (초기 생성 기준 `main`의 `70acbd34fcea`)
 > **기존 구현 출처**: 팀 보관본 `도토리팀_소스코드/Cap-proj`, Qt 기준 커밋 `c6d632c`
 > **계약 정본**: `docs/ICD.md`. CAN ID, payload, SecOC 규칙은 플랫폼 전환으로 바꾸지 않는다.
