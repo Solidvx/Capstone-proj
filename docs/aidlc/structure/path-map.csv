@@ -281,15 +281,19 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,docs/aidlc/changes/CHG-010/spec.md,add,IVI Debian 13 and Qt 6.8 baseline
 ,docs/aidlc/changes/CHG-010/aidlc-state.md,add,IVI Debian 13 and Qt 6.8 baseline
 ,docs/aidlc/changes/CHG-010/evidence.md,add,IVI Debian 13 and Qt 6.8 validation evidence
+,docs/aidlc/changes/CHG-003/construction/P5_구현_결과.md,add,IVI P5 Raspberry Pi integration result
 ,ivi_platform/deploy/rpi/README.md,add,Debian 13 RPi deployment assets
 ,ivi_platform/deploy/rpi/config.txt.fragment,add,MCP2515 overlay reference
 ,ivi_platform/deploy/rpi/ivi-can0.service,add,RPi can0 systemd unit
+,ivi_platform/deploy/rpi/ivi-dashboard.desktop,add,Wayland desktop autostart entry
 ,ivi_platform/deploy/rpi/ivi-dashboard.env,add,IVI dashboard runtime environment
 ,ivi_platform/deploy/rpi/ivi-dashboard.service,add,IVI dashboard systemd unit
 ,ivi_platform/scripts/build_rpi.sh,add,Debian 13 RPi Qt build and CTest
 ,ivi_platform/scripts/deploy_rpi.sh,add,commit archive RPi upload
 ,ivi_platform/scripts/install_rpi.sh,add,RPi IVI installation
+,ivi_platform/scripts/install_rpi_desktop.sh,add,Wayland desktop installation
 ,ivi_platform/scripts/install_rpi_dependencies.sh,add,Debian 13 build and runtime dependencies
 ,ivi_platform/scripts/provision_secoc_key.sh,add,IVI SecOC key provisioning
 ,ivi_platform/scripts/rpi_preflight.sh,add,RPi deployment preflight
+,ivi_platform/scripts/run_rpi_desktop.sh,add,Wayland desktop dashboard launcher
 ,ivi_platform/scripts/setup_can0.sh,add,physical CAN setup

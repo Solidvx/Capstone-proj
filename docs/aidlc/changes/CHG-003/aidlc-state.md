@@ -23,7 +23,7 @@ P4의 Linux vcan·T1~T4 결과물은 [P4 구현 결과](construction/P4_구현_�
 | P2 CAN·SecOC 수정 | 완료 | pending 100ms 만료·최신 원본 교체·orphan 폐기, 두 쌍 독립 처리, CAN frame validator, 수신 재시도. Debug/Release 각 6/6 통과 | Linux 실제 SocketCAN 동작은 P4 vcan에서 검증 |
 | P3 상태·UI | 완료 | 300ms stale/last-good, IDS sequence 확인, reason 0x07, CRITICAL/SHUTDOWN overlay, Qt 6 앱·ViewModel 시험. Debug/Release 각 8/8 | sensorState wire 활성화는 ICD §8 동시 전환 과제. Linux 실제 화면·vcan은 P4~P5에서 검증 |
 | P4 vcan·계측 | 완료 | Linux PF_CAN 정상/변조/replay/timeout, Qt Release 9/9, 100ms 1,000표본 T1→T4 평균 6.037ms·최대 10.827ms·누락 0 | 물리 display와 RPi4/can0는 P5에서 검증 |
-| P5 물리 통합 | 미착수 | 없음 | RPi4 배포, `can0` 500 kbps, Node A IT-001~005, 재시작·링크 복구 |
+| P5 물리 통합 | 진행 중 | RPi4 Debian 13 빌드, `can0` 500 kbps preflight, SecOC 키, DSI·터치·Wayland 창 실행 확인. [결과](construction/P5_구현_결과.md) | 재부팅 자동 시작, Node A 실제 프레임·SecOC·링크 복구·실장비 지연 |
 | P6 문서·CI·데모 | 진행 기록 기반만 추가, 단계 미착수 | 본 CHG 기록과 P1 관련 문서 동기화 | Linux/Qt CI, 배포·운영 문서, 공식 TC 증거, 최종 데모·Release |
 
 ## P1 결과물
