@@ -23,6 +23,7 @@ class DashboardViewModel : public QObject {
     Q_PROPERTY(qulonglong lastGoodAgeMs READ lastGoodAgeMs NOTIFY dataChanged)
     Q_PROPERTY(QString failSafeState READ failSafeState NOTIFY dataChanged)
     Q_PROPERTY(QString failSafeReason READ failSafeReason NOTIFY dataChanged)
+    Q_PROPERTY(bool authenticationError READ authenticationError NOTIFY dataChanged)
     Q_PROPERTY(bool failSafeOverlayActive READ failSafeOverlayActive NOTIFY dataChanged)
     Q_PROPERTY(bool secocVerified READ secocVerified NOTIFY dataChanged)
     Q_PROPERTY(unsigned int secocFailureCount READ secocFailureCount NOTIFY dataChanged)
@@ -50,6 +51,7 @@ public:
     qulonglong lastGoodAgeMs() const;
     QString failSafeState() const;
     QString failSafeReason() const;
+    bool authenticationError() const;
     bool failSafeOverlayActive() const;
     bool secocVerified() const;
     unsigned int secocFailureCount() const;

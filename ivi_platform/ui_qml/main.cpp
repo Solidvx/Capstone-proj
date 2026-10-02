@@ -182,6 +182,7 @@ int main(int argc, char* argv[]) {
     }
 
     QTimer stale_timer;
+    QTimer pending_timer;
     if (demo_mode) {
         if (arguments.demo_scenario == "ids") {
             const ivi::CanPayload ids{0x04, 0x96, 0x01, 0x00, 0, 0, 0, 1};
@@ -194,6 +195,11 @@ int main(int argc, char* argv[]) {
             service.refreshTime();
         });
         stale_timer.start(50);
+        // The 100ms pending deadline needs a finer tick than the 50ms stale refresh.
+        QObject::connect(&pending_timer, &QTimer::timeout, [&service]() {
+            service.pollTimeouts();
+        });
+        pending_timer.start(10);
     }
 
     LatencyRecorder latency_recorder(arguments.latency_csv, arguments.latency_samples);
@@ -255,6 +261,8 @@ int main(int argc, char* argv[]) {
     }
 
     const int result = application.exec();
+    pending_timer.stop();
+    stale_timer.stop();
     receiver.stop();
     service.unregisterObserver(observer_id);
     return result;
