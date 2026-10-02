@@ -1,5 +1,6 @@
 #include "dashboard_view_model.h"
 #include "test_support.h"
+#include <QColor>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QVariant>
@@ -20,6 +21,13 @@ void run() {
     EXPECT_EQ(landscapeScene->property("width").toInt(),1280);
     EXPECT_EQ(landscapeScene->property("height").toInt(),720);
     EXPECT_EQ(landscapeScene->property("rotation").toInt(),-90);
+    auto* socGauge=root->findChild<QObject*>("socGauge");
+    auto* socGaugeArc=root->findChild<QObject*>("socGaugeArc");
+    EXPECT_TRUE(socGauge != nullptr);
+    EXPECT_TRUE(socGaugeArc != nullptr);
+    EXPECT_EQ(socGaugeArc->property("width").toInt(),
+              socGaugeArc->property("height").toInt());
+    EXPECT_FALSE(socGauge->property("available").toBool());
     auto* indicator=root->findChild<QObject*>("authenticationErrorIndicator");
     EXPECT_TRUE(indicator != nullptr);
     const ivi::SecOcKey dummy{};
@@ -41,9 +49,13 @@ void run() {
     EXPECT_FALSE(model.authenticationError());
     EXPECT_FALSE(indicator->property("visible").toBool());
     EXPECT_TRUE(model.valid());
+    EXPECT_TRUE(socGauge->property("available").toBool());
+    EXPECT_EQ(socGauge->property("value").toDouble(),75.0);
+    EXPECT_EQ(socGauge->property("gaugeColor").value<QColor>(),QColor("#36d399"));
     service.refreshTime(now+std::chrono::milliseconds{300});
     QGuiApplication::processEvents();
     EXPECT_TRUE(model.stale());
+    EXPECT_TRUE(socGauge->property("stale").toBool());
 }
 int main(int argc,char** argv) {
     QGuiApplication app(argc,argv);
