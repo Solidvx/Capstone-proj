@@ -18,6 +18,7 @@ ApplicationWindow {
     readonly property color red: "#fb7185"
     readonly property color panel: "#1b2029"
     readonly property color muted: "#9aa4b2"
+    readonly property bool portraitPanel: height > width
 
     function socColor(band) {
         if (band === "low") return red
@@ -31,10 +32,18 @@ ApplicationWindow {
         return (milliseconds / 1000).toFixed(1) + " s"
     }
 
-    ColumnLayout {
-        anchors.fill: parent
-        anchors.margins: 24
-        spacing: 14
+    Item {
+        id: landscapeScene
+        objectName: "landscapeScene"
+        anchors.centerIn: parent
+        width: root.portraitPanel ? root.height : root.width
+        height: root.portraitPanel ? root.width : root.height
+        rotation: root.portraitPanel ? 90 : 0
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 24
+            spacing: 14
 
         RowLayout {
             Layout.fillWidth: true
@@ -214,18 +223,18 @@ ApplicationWindow {
         }
     }
 
-    Rectangle {
-        anchors.fill: parent
-        visible: root.vehicleModel.failSafeOverlayActive
-        color: "#e6101118"
-        border.color: root.red
-        border.width: 8
-        z: 1000
+        Rectangle {
+            anchors.fill: parent
+            visible: root.vehicleModel.failSafeOverlayActive
+            color: "#e6101118"
+            border.color: root.red
+            border.width: 8
+            z: 1000
 
-        ColumnLayout {
-            anchors.centerIn: parent
-            width: Math.min(parent.width - 120, 760)
-            spacing: 20
+            ColumnLayout {
+                anchors.centerIn: parent
+                width: Math.min(parent.width - 120, 760)
+                spacing: 20
             Text {
                 Layout.alignment: Qt.AlignHCenter
                 text: root.vehicleModel.failSafeState
@@ -255,6 +264,7 @@ ApplicationWindow {
                 font.pixelSize: 16
                 wrapMode: Text.Wrap
                 horizontalAlignment: Text.AlignHCenter
+            }
             }
         }
     }
