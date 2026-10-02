@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <functional>
 #include <mutex>
@@ -13,7 +14,9 @@ namespace ivi {
 
 class SocketCanReceiver {
 public:
-    using FrameCallback = std::function<void(std::uint32_t, const CanPayload&)>;
+    using Clock = std::chrono::steady_clock;
+    using FrameCallback =
+        std::function<void(std::uint32_t, const CanPayload&, Clock::time_point)>;
 
     SocketCanReceiver() = default;
     ~SocketCanReceiver();

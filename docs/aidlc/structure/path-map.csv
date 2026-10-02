@@ -244,6 +244,16 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,docs/aidlc/changes/CHG-004/spec.md,add,Qt current guidance consistency record
 ,docs/aidlc/changes/CHG-004/aidlc-state.md,add,Qt current guidance consistency record
 ,docs/aidlc/changes/CHG-004/audit.md,add,Qt current guidance consistency record
+,docs/aidlc/changes/CHG-003/construction/P3_구현_결과.md,add,CHG-003 IVI Plan B P3 implementation summary
+,docs/aidlc/changes/CHG-003/construction/build-and-test/P3_빌드_시험_증거.md,add,CHG-003 IVI Plan B P3 build and test evidence
+,ivi_platform/test/test_vehicle_data_service_state.cpp,add,CHG-003 IVI Plan B P3 state policy test
+,ivi_platform/test/test_dashboard_view_model.cpp,add,CHG-003 IVI Plan B P3 Qt ViewModel test
+,docs/aidlc/changes/CHG-003/construction/P4_구현_결과.md,add,CHG-003 IVI Plan B P4 implementation summary
+,docs/aidlc/changes/CHG-003/construction/build-and-test/P4_빌드_시험_증거.md,add,CHG-003 IVI Plan B P4 build and test evidence
+,docs/aidlc/changes/CHG-003/construction/build-and-test/P4_latency_summary.csv,add,CHG-003 IVI Plan B P4 latency summary
+,ivi_platform/test/test_socketcan_receiver.cpp,add,CHG-003 IVI Plan B P4 Linux SocketCAN integration test
+,ivi_platform/scripts/run_vcan_integration.sh,add,CHG-003 IVI Plan B P4 vcan build and test automation
+,ivi_platform/scripts/run_vcan_latency.sh,add,CHG-003 IVI Plan B P4 T1-T4 measurement automation
 
 ,docs/aidlc/changes/CHG-007/spec.md,add,Node A 스트리밍 CAN IDS
 

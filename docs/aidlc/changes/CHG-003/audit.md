@@ -16,10 +16,24 @@
 
 ## 완료 판정 제한
 
-- P1~P2 core 빌드·단위 시험만 이 호스트에서 통과로 판정한다.
-- macOS에는 Qt 6가 없어 Qt target 및 화면은 미검증이다.
-- macOS에는 Linux SocketCAN/vcan이 없어 실제 수신·통합은 미실행이다.
-- RPi4, 물리 `can0`, 성능, 장시간 안정성, CI는 P4~P6의 후속 증거가 필요하다.
+- P1~P3 core·Qt Debug/Release와 P4 Linux vcan·Qt Release를 각각 실행한 범위에서 통과로 판정한다.
+- Homebrew Qt 6.11.2 앱 빌드, ViewModel 시험과 offscreen demo 렌더를 검증했다. 실제 Linux/RPi 화면 증거는 아니다.
+- Linux `vcan0` 실제 수신과 Qt offscreen T1~T4를 Lima Ubuntu VM에서 실행했다. 이를 RPi4 물리 화면 증거로 확대하지 않는다.
+- RPi4, 물리 `can0`, 장시간 안정성, CI는 P5~P6의 후속 증거가 필요하다.
+
+## P4 정책 판단
+
+- T1은 원본 CAN `read()` 직후, T2는 인증 성공 Service 게시, T3는 GUI thread ViewModel 교체, T4는 `frameSwapped`로 고정했다.
+- sample id와 시각은 내부 snapshot/signal로만 전달하고 ICD CAN payload를 바꾸지 않았다.
+- 20ms 과부하 실행의 최대 263.512ms 실패값을 보존하고, ICD의 100ms 주기 공식 실행과 구분했다.
+- 공식 1,000표본은 누락 0, T1→T4 평균 6.037ms·최대 10.827ms다. offscreen T4는 물리 HDMI scanout이 아니다.
+
+## P3 정책 판단
+
+- stale은 마지막 인증 성공 BMS 기준 300ms이며 Fail-safe·IDS 이벤트가 이 시각을 갱신하지 않는다.
+- IDS 확인은 sequence가 일치할 때만 현재 경보를 닫아 새 경보와의 경쟁을 방지한다.
+- ICD §8이 아직 활성 wire 계약이 아니므로 sensorState를 UI 모델에 준비하되 현행 byte 7은 해석하지 않았다.
+- Qt T2→T3 측정은 host signal 구간으로 한정하고 CAN·scene graph·display 지연으로 확대하지 않았다.
 
 ## P2 정책 판단
 
@@ -27,4 +41,4 @@
 - pending 100ms는 내부 raw/auth pair 보관 정책이다. ICD §2.5의 정상 인증 BMS 300ms stale 계약과 분리했다.
 - MAC·counter 실패는 pending을 자동 소비하거나 counter를 갱신하지 않는다. 새 원본 또는 만료 시에만 pending이 교체·폐기된다.
 - SecOC 연속 실패 단계는 ICD §2.5.2의 1~3/4~9/10회 이상을 따르며 IDS `0x200` wire 계약을 변경하지 않는다.
-- 실제 Linux SocketCAN 오류 경로는 macOS 단위시험으로 대체 통과하지 않고 P4 vcan 미실행 범위로 유지한다.
+- 실제 Linux SocketCAN filter·poll/read·wake 종료와 정상/변조/replay/timeout은 P4 vcan에서 검증했다. 물리 bus-off·MCP2515 복구는 P5에 남긴다.
