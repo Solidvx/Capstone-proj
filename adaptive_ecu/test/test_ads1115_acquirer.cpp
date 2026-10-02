@@ -68,6 +68,19 @@ TEST(Ads1115Acquirer, LateResultIsRejectedNotPublishedAsValid) {
     const auto s = f.acquirer.snapshot();
     EXPECT_EQ(s.last_error_sequence, 1U);
     EXPECT_EQ(s.last_valid_sequence, 0U);
+    EXPECT_EQ(s.last_error, AdcError::Late);
+    EXPECT_EQ(s.last_error_elapsed_ms, 20U);
+    EXPECT_EQ(describeAdcError(s), "reason=late 20ms");
+}
+
+TEST(Ads1115Acquirer, ReadFailureWhilePollingIsRecorded) {
+    Fixture f;
+    ASSERT_EQ(f.run(0, 0), 0U);  // request started
+    f.bus.fail = true;
+    EXPECT_EQ(f.run(1, 1), 1U);
+    const auto s = f.acquirer.snapshot();
+    EXPECT_EQ(s.last_error, AdcError::ReadFailed);
+    EXPECT_EQ(describeAdcError(s), "reason=i2c-read");
 }
 
 TEST(Ads1115Acquirer, IoErrorIsRecordedAndRetriedAfterInterval) {
@@ -75,6 +88,8 @@ TEST(Ads1115Acquirer, IoErrorIsRecordedAndRetriedAfterInterval) {
     f.bus.fail = true;
     EXPECT_EQ(f.run(0, 0), 1U);
     EXPECT_EQ(f.acquirer.snapshot().last_error_sequence, 1U);
+    EXPECT_EQ(f.acquirer.snapshot().last_error, AdcError::StartFailed);
+    EXPECT_EQ(describeAdcError(f.acquirer.snapshot()), "reason=i2c-start");
     EXPECT_EQ(f.run(1, 99), 0U);  // a failure still respects the request interval
     f.bus.fail = false;
     EXPECT_EQ(f.run(100, 101), 1U);
@@ -89,6 +104,8 @@ TEST(Ads1115Acquirer, UnfinishedConversionExpiresAt20msAndRecovers) {
     EXPECT_EQ(f.run(0, 19), 0U);
     EXPECT_EQ(f.run(20, 20), 1U);
     EXPECT_EQ(f.acquirer.snapshot().last_error_sequence, 1U);
+    EXPECT_EQ(f.acquirer.snapshot().last_error, AdcError::Timeout);
+    EXPECT_EQ(describeAdcError(f.acquirer.snapshot()), "reason=timeout");
     f.bus.hold_busy = f.bus.waiting = false;
     EXPECT_EQ(f.run(21, 99), 0U);
     EXPECT_EQ(f.run(100, 101), 1U);
@@ -98,12 +115,15 @@ TEST(Ads1115Acquirer, UnfinishedConversionExpiresAt20msAndRecovers) {
 TEST(Ads1115Acquirer, OutOfRangeRawIsRejectedAndKeepsLastValidValue) {
     Fixture f;
     ASSERT_EQ(f.run(0, 1), 1U);
-    f.bus.raw = 26417;  // beyond the endpoint tolerance
+    f.bus.raw = static_cast<std::uint16_t>(-33);  // beyond the endpoint tolerance
     EXPECT_EQ(f.run(100, 101), 1U);
     const auto s = f.acquirer.snapshot();
     EXPECT_EQ(s.last_error_sequence, 2U);
     EXPECT_EQ(s.last_valid_sequence, 1U);
     EXPECT_EQ(s.raw, 13200);
+    EXPECT_EQ(s.last_error, AdcError::OutOfRange);
+    EXPECT_EQ(s.last_error_raw, -33);
+    EXPECT_EQ(describeAdcError(s), "reason=range raw=-33");
 }
 
 TEST(Ads1115AcquisitionWorker, PublishesResultsFromItsOwnThread) {

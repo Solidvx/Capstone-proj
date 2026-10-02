@@ -143,11 +143,25 @@ int main(int argc, char** argv) {
         watchdog.kick();
 
         if (adc_worker) {
-            const auto pack_voltage = adc_feed.cycle(adc_worker->snapshot(), monotonicMs());
+            const auto snapshot = adc_worker->snapshot();
+            const auto now_ms = monotonicMs();
+            const auto pack_voltage = adc_feed.cycle(snapshot, now_ms);
             if (adc_feed.quality() != reported_quality) {
                 reported_quality = adc_feed.quality();
                 std::cout << "ADS1115 quality: " << qualityName(reported_quality)
-                          << (pack_voltage ? "" : " (BMS TX paused)") << '\n';
+                          << (pack_voltage ? "" : " (BMS TX paused)");
+                if (reported_quality == SensorQuality::ErrorWithValue ||
+                    reported_quality == SensorQuality::ErrorWithoutValue) {
+                    if (adc_feed.errorCause() == HardwareSampleFeed::ErrorCause::Stale) {
+                        std::cout << " reason=stale";
+                        if (snapshot.last_valid_sequence > 0) {
+                            std::cout << " age=" << (now_ms - snapshot.last_valid_ms) << "ms";
+                        }
+                    } else {
+                        std::cout << ' ' << describeAdcError(snapshot);
+                    }
+                }
+                std::cout << '\n';
             }
             if (!pack_voltage) {
                 // D1: no estimate, Fail-safe evaluation or frame from an invalid or

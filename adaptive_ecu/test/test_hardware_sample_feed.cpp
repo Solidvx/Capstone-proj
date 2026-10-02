@@ -65,6 +65,7 @@ TEST(HardwareSampleFeed, ErrorPausesAndRequiresThreeNewResults) {
     const auto failed = error(valid(3, 200));
     EXPECT_FALSE(feed.cycle(failed, 300).has_value());
     EXPECT_EQ(feed.quality(), SensorQuality::ErrorWithValue);
+    EXPECT_EQ(feed.errorCause(), HardwareSampleFeed::ErrorCause::Acquisition);
 
     EXPECT_FALSE(feed.cycle(valid(5, 400, 36.0f, 4), 400).has_value());
     EXPECT_FALSE(feed.cycle(valid(6, 500, 36.0f, 4), 500).has_value());
@@ -79,4 +80,5 @@ TEST(HardwareSampleFeed, StalledWorkerPausesAsError) {
     EXPECT_TRUE(feed.cycle(valid(3, 200), 200 + HardwareSampleFeed::kFreshnessMs).has_value());
     EXPECT_FALSE(feed.cycle(valid(3, 200), 201 + HardwareSampleFeed::kFreshnessMs).has_value());
     EXPECT_EQ(feed.quality(), SensorQuality::ErrorWithValue);
+    EXPECT_EQ(feed.errorCause(), HardwareSampleFeed::ErrorCause::Stale);
 }

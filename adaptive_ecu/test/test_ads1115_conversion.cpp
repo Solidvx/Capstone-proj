@@ -40,12 +40,12 @@ TEST(Ads1115Conversion, EverySignedCodeIsClassifiedWithEndpointTolerance) {
 
 TEST(Ads1115Conversion, EndpointToleranceBoundaries) {
     float adc = 0.0f, pack = 0.0f;
-    ASSERT_TRUE(convertAds1115Voltage(-16, adc, pack));
+    ASSERT_TRUE(convertAds1115Voltage(-32, adc, pack));
     EXPECT_FLOAT_EQ(pack, 30.0f);
-    ASSERT_TRUE(convertAds1115Voltage(-4, adc, pack));  // measured 0 V end noise
+    ASSERT_TRUE(convertAds1115Voltage(-20, adc, pack));  // lowest measured 0 V end code
     EXPECT_FLOAT_EQ(pack, 30.0f);
-    EXPECT_FALSE(convertAds1115Voltage(-17, adc, pack));
-    ASSERT_TRUE(convertAds1115Voltage(26416, adc, pack));
+    EXPECT_FALSE(convertAds1115Voltage(-33, adc, pack));
+    ASSERT_TRUE(convertAds1115Voltage(26432, adc, pack));
     EXPECT_NEAR(pack, 42.0f, 1e-5f);
-    EXPECT_FALSE(convertAds1115Voltage(26417, adc, pack));
+    EXPECT_FALSE(convertAds1115Voltage(26433, adc, pack));
 }
