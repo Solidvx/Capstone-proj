@@ -1,6 +1,6 @@
 # RPi4 deployment assets
 
-These files target Ubuntu 22.04 arm64 on Raspberry Pi 4, install the Node B Qt dashboard under `/opt/ivi`, and define two services:
+These files target Ubuntu 22.04 arm64 or Debian 13 arm64 on Raspberry Pi 4, install the Node B Qt dashboard under `/opt/ivi`, and define two services:
 
 - `ivi-can0.service`: brings `can0` up at 500 kbit/s with automatic bus-off restart.
 - `ivi-dashboard.service`: starts the dashboard as the restricted `ivi` user after `can0` is ready.

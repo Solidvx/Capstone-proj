@@ -1,6 +1,6 @@
 # Node B IVI — Qt Plan B
 
-Ubuntu 22.04, C++17, SocketCAN, Qt 6 Quick/QML 기반 Node B 구현이다. CAN/SecOC wire 계약은 [ICD](../docs/ICD.md)를 따른다.
+Ubuntu 22.04 또는 Debian 13, C++17, SocketCAN, Qt 6 Quick/QML 기반 Node B 구현이다. CAN/SecOC wire 계약은 [ICD](../docs/ICD.md)를 따른다.
 
 ## 현재 구현 범위
 

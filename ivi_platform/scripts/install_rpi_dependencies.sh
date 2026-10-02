@@ -15,10 +15,14 @@ if [[ ! -r /etc/os-release ]]; then
 fi
 # shellcheck disable=SC1091
 source /etc/os-release
-if [[ "${ID:-}" != "ubuntu" ]] || [[ "${VERSION_ID:-}" != "22.04" ]]; then
-  echo "ERROR: expected Ubuntu 22.04, found ${PRETTY_NAME:-unknown OS}" >&2
-  exit 2
-fi
+case "${ID:-}:${VERSION_ID:-}" in
+  ubuntu:22.04 | debian:13)
+    ;;
+  *)
+    echo "ERROR: expected Ubuntu 22.04 or Debian 13, found ${PRETTY_NAME:-unknown OS}" >&2
+    exit 2
+    ;;
+esac
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
@@ -28,4 +32,4 @@ apt-get install -y \
   qml6-module-qtqml-workerscript qml6-module-qtquick \
   qml6-module-qtquick-controls qml6-module-qtquick-layouts
 
-echo "PASS: RPi IVI build and runtime dependencies installed"
+echo "PASS: RPi IVI build and runtime dependencies installed on ${PRETTY_NAME}"

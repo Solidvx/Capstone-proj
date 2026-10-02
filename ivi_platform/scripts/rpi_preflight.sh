@@ -20,11 +20,14 @@ if [[ -r /etc/os-release ]]; then
   # shellcheck disable=SC1091
   source /etc/os-release
 fi
-if [[ "${ID:-}" == "ubuntu" ]] && [[ "${VERSION_ID:-}" == "22.04" ]]; then
-  pass "Ubuntu 22.04"
-else
-  fail "expected Ubuntu 22.04, found ${PRETTY_NAME:-unknown OS}"
-fi
+case "${ID:-}:${VERSION_ID:-}" in
+  ubuntu:22.04 | debian:13)
+    pass "supported OS: ${PRETTY_NAME:-${ID} ${VERSION_ID}}"
+    ;;
+  *)
+    fail "expected Ubuntu 22.04 or Debian 13, found ${PRETTY_NAME:-unknown OS}"
+    ;;
+esac
 
 if [[ "$(uname -m)" == "aarch64" ]]; then
   pass "aarch64 userspace"
