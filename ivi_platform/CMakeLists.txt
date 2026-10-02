@@ -39,7 +39,8 @@ if(IVI_BUILD_TESTS)
             test_secoc_verifier
             test_vehicle_data_service
             test_vehicle_data_service_security
-            test_vehicle_data_service_state)
+            test_vehicle_data_service_state
+            test_secoc_runtime)
         add_executable(${test_name} test/${test_name}.cpp)
         target_include_directories(${test_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/test)
         target_link_libraries(${test_name} PRIVATE ivi_core)
@@ -61,6 +62,20 @@ if(IVI_BUILD_QT_APP)
         qt_standard_project_setup(REQUIRES 6.2)
         qt_policy(SET QTP0001 NEW)
         qt_policy(SET QTP0004 NEW)
+        if(IVI_BUILD_TESTS)
+            qt_add_executable(test_dashboard_security
+                test/test_dashboard_security.cpp
+                ui_qml/dashboard_view_model.cpp
+                ui_qml/dashboard_view_model.h)
+            target_include_directories(test_dashboard_security PRIVATE test ui_qml)
+            target_link_libraries(test_dashboard_security PRIVATE
+                ivi_core Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::QuickControls2)
+            target_compile_definitions(test_dashboard_security PRIVATE
+                IVI_QML_FILE="${CMAKE_CURRENT_SOURCE_DIR}/ui_qml/qml/Main.qml")
+            add_test(NAME test_dashboard_security COMMAND test_dashboard_security)
+            set_tests_properties(test_dashboard_security PROPERTIES
+                ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
+        endif()
         qt_add_executable(ivi_dashboard
             ui_qml/main.cpp
             ui_qml/dashboard_view_model.cpp
