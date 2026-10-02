@@ -19,7 +19,7 @@ void run() {
     QGuiApplication::processEvents();
     EXPECT_EQ(landscapeScene->property("width").toInt(),1280);
     EXPECT_EQ(landscapeScene->property("height").toInt(),720);
-    EXPECT_EQ(landscapeScene->property("rotation").toInt(),90);
+    EXPECT_EQ(landscapeScene->property("rotation").toInt(),-90);
     auto* indicator=root->findChild<QObject*>("authenticationErrorIndicator");
     EXPECT_TRUE(indicator != nullptr);
     const ivi::SecOcKey dummy{};
