@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADR)
 
-> **버전**: v1.4 | **작성일**: 2026-03-01 | **최종 수정**: 2026-09-22 | **작성자**: 팀원A, 팀원B
+> **버전**: v1.5 | **작성일**: 2026-03-01 | **최종 수정**: 2026-10-03 | **작성자**: 팀원A, 팀원B
 > **프로젝트**: AUTOSAR 계층 기반 IVI-ECU 통합 플랫폼  
 > **목적**: 주요 기술 선택의 컨텍스트·대안·근거를 기록하여 면접 질문 "왜 이 기술을 골랐나요?"에 데이터 기반으로 답변할 수 있게 한다.  
 > **작성 규칙**: 기술 선택 시점에 즉시 작성. 결정 번복 시 상태를 Superseded로 변경하고 새 ADR 추가.
@@ -20,7 +20,7 @@
 | [ADR-007](#adr-007) | Docker ARM64 크로스컴파일 컨테이너 | Accepted | 2026-03-10 |
 | [ADR-008](#adr-008) | Ablation Study 기반 보안 실험 설계 (3가지 방어 구성) | Accepted | 2026-04-01 |
 | [ADR-009](#adr-009) | ML IDS 엔진 실행 위치 — Node A (Ubuntu) | Accepted | 2026-03-15 |
-| [ADR-010](#adr-010) | IVI Plan B — Ubuntu + C++ SocketCAN + Qt Quick/QML | Accepted / Activated | 2026-09-22 |
+| [ADR-010](#adr-010) | IVI Plan B — Debian 13 + C++ SocketCAN + Qt 6.8 Quick/QML | Accepted / Activated | 2026-09-22 |
 | [ADR-011](#adr-011) | 공격 시뮬레이터 및 IDS 구현 언어 — Python (C++ 대신) | Accepted | 2026-03-01 |
 | [ADR-012](#adr-012) | SecOC 인증 프레임 분리 전송 (0x102 / 0x103) | Accepted | 2026-03-01 |
 
@@ -346,7 +346,7 @@ ML IDS(Isolation Forest) 엔진을 어느 노드에서 실행할지 결정해야
 
 ## ADR-010
 
-### IVI Plan B — Ubuntu + C++ SocketCAN + Qt Quick/QML
+### IVI Plan B — Debian 13 + C++ SocketCAN + Qt 6.8 Quick/QML
 
 **상태**: Accepted / Activated | **결정일**: 2026-09-22 | **결정자**: 팀원B
 
@@ -356,7 +356,7 @@ ML IDS(Isolation Forest) 엔진을 어느 노드에서 실행할지 결정해야
 
 #### 결정
 
-현 제출 범위의 Node B를 **Ubuntu 22.04 + C++17 + SocketCAN + Qt 6 Quick/QML**로 구현한다.
+현 제출 범위의 Node B를 **Debian 13 ARM64 + C++17 + SocketCAN + Qt 6.8 Quick/QML**로 구현한다. 실제 RPi4의 Debian 13과 배포판 Qt 6.8을 빌드 기준으로 고정하며, 더 낮은 Qt 버전의 전체 대시보드 빌드는 지원 범위에서 제외한다.
 
 - 수신, SecOC, 상태 서비스, ViewModel, QML의 책임을 분리한다.
 - 첫 구현은 단일 프로세스로 구성하고 C++ 인터페이스로 계층 경계를 유지한다.
@@ -453,8 +453,9 @@ ICD 설계 단계에서 공동 결정이 필요한 인터페이스 수준 결정
 | v1.0 | 2026-03-01 | ADR-001, 002, 005, 010, 011, 012 초안 작성 | 팀원A, 팀원B |
 | v1.1 | 2026-03-10 | ADR-004, 006, 007 추가 (HIDL, QEMU, Docker) | 팀원A, 팀원B |
 | v1.2 | 2026-03-15 | ADR-003, 009 추가 (IDS 알고리즘, IDS 위치) | 팀원A, 팀원B |
-| v1.4 | 2026-09-22 | ADR-010 활성화, ADR-004 대체 표시, Qt Plan B 기준 확정 | 팀원B |
 | v1.3 | 2026-04-01 | ADR-008 추가 (Ablation Study 실험 설계) | 팀원A |
+| v1.4 | 2026-09-22 | ADR-010 활성화, ADR-004 대체 표시, Qt Plan B 기준 확정 | 팀원B |
+| v1.5 | 2026-10-03 | ADR-010 대상 환경을 실제 RPi4 Debian 13·Qt 6.8로 확정 | 팀원B |
 
 
 ## 서면 승인 설계 보완 — S-1~S-3=A
