@@ -164,8 +164,8 @@ int main(int argc, char** argv) {
                 std::cout << '\n';
             }
             if (!pack_voltage) {
-                // D1: no estimate, Fail-safe evaluation or frame from an invalid or
-                // stale input. D3: the estimator resumes from its last state.
+                // ADS-1: no estimate, Fail-safe evaluation or frame from an invalid or
+                // stale input. ADS-3: the estimator resumes from its last state.
                 std::this_thread::sleep_until(cycle_start + std::chrono::milliseconds(100));
                 continue;
             }

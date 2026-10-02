@@ -10,7 +10,7 @@
 // Each finished request counts once by sequence (R-3=A: three new valid
 // results first and after any error). The cycle yields a pack voltage only
 // while quality is Valid and the latest valid result is fresh; otherwise the
-// caller pauses BMS transmission instead of resending an old value (D1).
+// caller pauses BMS transmission instead of resending an old value (ADS-1).
 // Byte 7 sensor state stays inactive until the ICD section 8 joint switch.
 class HardwareSampleFeed {
 public:
