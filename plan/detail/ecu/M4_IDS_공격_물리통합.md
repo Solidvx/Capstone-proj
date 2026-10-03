@@ -59,7 +59,7 @@
 | `security/ids/if_detector.py` | **소스 존재(가드)** | `IsolationForestDetector`, `RANDOM_STATE=42`. sklearn 미설치 시 SKIP |
 | `security/experiments/run_eval.py` | **구현됨** | 탐지율·오탐율·ROC-AUC·공격별 탐지율·탐지지연·멀티 seed 재현성 산출 |
 | `security/tests/test_ids_baseline.py` | **구현됨** | 특징 차원, AUC 하한, 볼륨형 공격 탐지, masquerade 회복, seed 재현성 |
-| **실시간 경로 전체** | **없음** | `collect_normal.py`, `train_model.py`, `ids_alerter.py`, `attacks/fuzzy_attack.py`, `attacks/flooding_attack.py`, `attack_simulator.py` 모두 미존재 |
+| **실시간 경로** | **구현됨(CHG-007/013), 실장비 인수 대기** | `security/ids/runtime.py`, `security/capture_normal.py`, `security/attack_simulator.py`; `0x200` 송신과 4종 제한형 CLI 존재 |
 | `docs/TARA.md` | **존재** | 초안이 아니라 문서가 이미 있음. M4는 IDS 실측 결과 반영 작업 |
 
 ### 해소한 drift와 충돌
@@ -180,7 +180,7 @@ python security/analysis/measure_can_secoc.py
 
 ECU-IDS-01 병합 인수 조건: 아래 규칙/사양 예시는 경보 전송의 최소 사전 검증이다. FR-SEC-006의 실시간 Isolation Forest 구현·모델 저장/로드·윈도우 점수 시험은 필수로 남는다. IF 의존성 누락으로 SKIPPED인 경우 독립 검토는 진행할 수 있지만 IDS 전체 완료 체크는 통과시키지 않는다.
 
-오프라인 평가만으로는 `0x200` 송신을 증명할 수 없다. 아래 조각은 사전 골격이며 실시간 IF·모델 로드·4종 공격 CLI까지 구현해야 완료다.
+오프라인 평가만으로는 `0x200` 송신을 증명할 수 없다. CHG-007/013에서 `security/ids/runtime.py`의 SocketCAN 수신·명시적 정상 캡처 학습·`0x200` 송신과 `security/attack_simulator.py`의 4종 CLI를 구현했다. 아래 조각은 설계 이력이며 완료 판정은 실제 `can0`에서 IT-005 증거를 받아야 한다.
 
 **(1) `0x200` 송신기** — `security/ids/ids_alerter.py` (신규)
 
@@ -332,7 +332,7 @@ if __name__ == "__main__":
 - [ ] 두 스크립트 모두 `--channel`을 받는다 (`--interface`가 아니다 — python-can 관례)
 - [ ] `measure_can_secoc.py`는 비트 수·이론 부하 계산과 실행 호스트 HMAC 시간 측정용이다. 실제 CAN 점유율 측정 증거로 사용하지 않는다.
 - [ ] TC-SEC-005-d는 실제 물리 CAN 캡처의 프레임 수·측정 시간·DLC·비트레이트·오류/드롭과 사용한 부하 산정 방법을 기록한다. 계측기 관측값과 비트 수 기반 추정값을 구분한다. vcan 결과로 물리 버스 점유율을 판정하지 않는다.
-- [ ] `replay_attack.py`·`fuzzy_attack.py`는 [M5](M5_Ablation.md) Ablation 전에 같은 형태로 만든다. S-5=A에 따라 4종 모두 실제 CAN 최종 평가에 필요하다. 공통 `attack_simulator.py --type` 진입점도 FR-SEC-005 인수 전에 연결한다
+- [x] 별도 중복 스크립트 대신 공통 `security/attack_simulator.py --type fuzzy|replay|spoofing|flooding` 진입점을 구현했다. S-5=A에 따른 4종 실제 CAN 최종 평가는 아직 별도 실행해야 한다
 - [ ] 공격 도구는 **격리된 `vcan0` 또는 전용 테스트베드에서만** 실행한다 (SKILL 보안 규칙)
 
 ### 3.6 물리 CAN 통합
@@ -500,7 +500,7 @@ ECU-IDS-01에 N02~N05와 Q1=A·Q2=B를 연결한다. Node A 별도 IDS와 FR-SEC
 | Q2 검증 이벤트 | 계약 확정 후 Node B 사건의 출처·부팅·순번·중복을 검증하고 실패 burst를 집계 | 실제 수신·집계 시각·유실/오류/단절. 단순 사후 분석으로 실시간 완료 처리 금지 |
 | IDS 결합·alerter | Rule/IF/인증 이벤트 개별 결과와 결합 규칙을 calibration에서 고정 | 기존 0x200만 사용, 미지원 유형은 로컬 기록. 정상(None)·다른 공격으로 오매핑 금지 |
 
-원천의 `online_ids.py`를 새 경쟁 진입점으로 추가하지 않는다. 현행 계획의 `realtime_ids.py`와 ADR의 `ids_engine.py` 예정명은 구현 착수 때 실제 파일·호출자를 대조해 주 진입점 하나로 확정하고 관련 실행 문서를 맞춘다. 현재 둘 다 구현된 것으로 간주하지 않는다. `ids_alerter.py`는 경보 인코딩/전송 책임, `run_eval.py`는 합성 탐지기 비교 책임을 유지한다. YAML 프로파일을 채택할 경우 로더 의존성과 ICD 버전 검증을 확인하고 수작업 계약 복제본으로 관리하지 않는다.
+원천의 `online_ids.py`를 새 경쟁 진입점으로 추가하지 않는다. 주 진입점은 `security/ids/runtime.py`로 확정했다. `run_eval.py`는 합성 탐지기 비교 책임을 유지하며 실시간 제품 경로로 사용하지 않는다. YAML 프로파일을 채택할 경우 로더 의존성과 ICD 버전 검증을 확인하고 수작업 계약 복제본으로 관리하지 않는다.
 
 Q2 연결부와 raw 수집·분석·로깅은 유한 큐와 예외 격리로 ECU 제어 루프를 막지 않도록 한다. raw/IF 판정은 전달 채널 단절에도 계속 수행하고, 인증 이벤트 관찰 불가를 진단한다. 경보나 이벤트 실패가 안전 정지 명령으로 바뀌지 않도록 한다.
 

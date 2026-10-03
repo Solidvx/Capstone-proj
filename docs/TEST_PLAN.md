@@ -279,7 +279,7 @@ TC-{모듈}-{번호}
 | 항목 | 내용 |
 |------|------|
 | **요구사항** | FR-SEC-005 |
-| **파일** | `security/tests/test_attack_simulator.py` |
+| **파일** | `security/tests/test_attack_tools.py`, `security/attack_simulator.py` |
 
 | 케이스 | 공격 유형 | 검증 방법 | 기대 결과 |
 |--------|-----------|-----------|-----------|
@@ -434,7 +434,7 @@ Service snapshot 발행(T2)부터 DashboardViewModel property 변경(T3)까지 1
 |------|------|
 | **요구사항** | FR-SEC-006, FR-SEC-007, FR-IVI-006 |
 | **목적** | Flooding 공격 시작 → IDS 탐지 → 0x200 전송 → Node B AlertBanner 표시 end-to-end 확인 |
-| **절차** | `python attack_simulator.py --type flooding --duration 10` → Node B 경보 배너 등장 확인 |
+| **절차** | 격리 시험버스에서 `python -m security.attack_simulator --type flooding --channel can0 --duration 10 --run-id IT005-PHYSICAL-001 --confirm-isolated-test-bus` → Node B 경보 배너 등장 확인. 첫 주입 시각·실제 송신 수·물리 부하를 별도 기록 |
 | **기대 결과** | 공격 시작 후 ≤3초 내 AlertBanner "⚠ Flooding Attack Detected!" 표시 |
 
 ---

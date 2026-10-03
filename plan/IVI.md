@@ -36,7 +36,7 @@ SocketCAN(can0/vcan0)
 
 ## 2. 현재 상태
 
-확인 기준일은 2026-09-23이다.
+확인 기준일은 2026-10-03이다. [전체 진행 보고](../docs/development/reviews/전체계획_진행보고_20261003.md)는 과거 Pi 실행 증거와 최신 003 전달본 검증 대기를 구분한다.
 
 | 영역 | 상태 | 근거 |
 |---|---|---|
@@ -44,10 +44,10 @@ SocketCAN(can0/vcan0)
 | `ivi_platform/` 제품 코드 | P3 상태·UI 완료 | parser·SecOC·pending/stale service·SocketCAN·Qt/QML dashboard 존재 |
 | 이전 Qt/C++ 구현 | 선별 반영 완료 | 출처 해시 확인 후 현 ICD와 ECU 벡터에 맞춰 재구성 |
 | CMake/Qt 빌드 | 검증 완료 | macOS arm64 Qt 6.11.2 Debug/Release 앱 빌드 통과 |
-| IVI 시험 | P4까지 통과 | macOS Qt 8/8, Linux Qt Release 9/9, vcan T1→T4 1,000표본; 물리 시험은 미실행 |
+| IVI 시험 | P4 완료·P5 일부 검증 | 최신 로컬 Linux Qt Release/ASan 12/12. 과거 Node B Pi Qt 11/11은 별도 버전 증거. vcan T1→T4 1,000표본은 실제 픽셀 지연 아님 |
 | GitHub Actions | 미구현 | `.github/workflows/` 없음 |
 | ARM64 toolchain | 미구현 | Dockerfile/toolchain 없음 |
-| 물리 CAN·RPi4 | 미검증 | 장비 증거 없음 |
+| 물리 CAN·RPi4 | P5 진행 | [P5 기록](../docs/aidlc/changes/CHG-003/construction/P5_구현_결과.md)에 Pi 빌드·can0 preflight·실제 DSI/터치·desktop 배포 증거 존재. 최신 전달본 양 노드 통합·재부팅·복구·장시간 인수는 남음 |
 
 이전 구현은 인증 전에 원본 데이터를 게시하는 문제, counter wrap-around 오류, IDS 자동 해제 등 현행 계약과 맞지 않는 부분이 있었다. P1에서 안전한 기준선을 만들고 P2에서 pending·SecOC·CAN 수신 경계를 완성했다. P3에서 BMS 300ms stale, last-good, sequence 기반 IDS 확인, 전체 화면 Fail-safe 경고와 Qt 시험을 완성했다. sensorState wire는 ICD §8의 양측 동시 전환 전까지 미지원으로 표시한다.
 
