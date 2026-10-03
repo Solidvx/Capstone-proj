@@ -321,3 +321,4 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,docs/aidlc/changes/CHG-013/spec.md,add,security experiment tooling record
 ,docs/aidlc/changes/CHG-013/aidlc-state.md,add,security experiment tooling record
 ,docs/aidlc/changes/CHG-013/evidence.md,add,security experiment tooling record
+,docs/development/governance/보안실험_통합시험_진행결정.md,add,user decision question list EXQ-1 to EXQ-11 with answers
