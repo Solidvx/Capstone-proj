@@ -122,3 +122,7 @@ ADS1115 실측 표시 진단: [절차](../../development/playbooks/ads1115-can-s
 ## SecOC counter 범위 명시 — 2026-10-03
 
 ICD v1.6에서 RollingCounter를 인증 CAN ID별 독립으로 명시하고 ECU·Python 송신 측을 맞춘 근거와 시험을 [CHG-012](../changes/CHG-012/aidlc-state.md)에 기록한다.
+
+## 마감 결정 질문 리스트 — 2026-10-03
+
+보안 실험·통합시험의 마감 대응·실험 설계·협업 확인 결정 11건(답변 완료)을 [질문 리스트](../../development/governance/보안실험_통합시험_진행결정.md)에 모았다. 답변은 [의사결정 기록](../../development/governance/의사결정_기록.md)에도 등록했다.
