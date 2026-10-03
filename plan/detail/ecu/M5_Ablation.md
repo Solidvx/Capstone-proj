@@ -66,7 +66,7 @@
 
 **선행조건**: [M4](M4_IDS_공격_물리통합.md) 완료 — 탐지기 학습·평가 경로, `0x200` 송신 경로.
 
-**현재 구현 상태 (확인 기준일 2026-09-05)**
+**현재 구현 상태 (확인 기준일 2026-10-03, CHG-013·014)**
 
 | 대상 | 상태 | 비고 |
 |---|---|---|
@@ -74,8 +74,12 @@
 | `rule_baseline` / `spec_detector` / `if_detector` | **구현됨** | 탐지기 3종 |
 | `run_eval.py` | **구현됨** | **탐지기 비교** 러너다. 방어 구성(Config 1/2/3) 비교는 하지 않는다 |
 | `security/secoc_module.py` | **구현됨** | 합성/호스트 MAC·counter 검증의 비교 근거. 실제 Config 2/3 차단 판정은 대상 수신기의 인증/반영 로그로 확인 |
-| Ablation 하네스 | **없음** | `run_ablation.sh`, `merge_results.py`, `analyze_roc.py` 모두 미존재 |
-| 개별 공격 스크립트 | **없음** | `replay_attack.py`, `spoofing_attack.py` 등 미존재 |
+| 합성 Ablation·ROC | **구현됨** | `run_ablation.py`, `summarize_ablation.py`, `analyze_roc.py`. CHG-013 합성 증거 |
+| 실시간 Ablation | **구현·호스트 시험** | `live_ablation.py`, `live_receiver.py`, `live_trial.py`, `summarize_live.py`. vcan·물리 실행은 인수 대기 |
+| 실제 공격 주입 | **구현·호스트 시험** | `attack_simulator.py`에 4종. 실시간 하네스 replay는 수용된 실제 캡처 쌍을 사용 |
+| 정상 캡처·IF 평가 | **구현·호스트 시험** | `can_capture.py`, `evaluate_normal.py`. 실측 결과는 사용자 실행 대기 |
+
+현재 실행 CLI·프로세스 관리·IVI 담당자 인수 경계는 [실시간 보안 실행 절차](../../../docs/development/playbooks/live-security-validation.md)를 따른다. 아래 기존 골격·예정 CLI는 설계 설명으로 보존하며 새 실행 절차의 실제 CLI와 구분한다. 참조 수신기 판정만으로 IVI 제품 인수를 완료하지 않는다.
 
 > **혼동 금지**: `run_eval.py`가 만드는 "규칙 vs 사양 vs Isolation Forest" 표는 **탐지기 비교**다. M5가 만드는 "Config 1/2/3" 표는 **방어 구성 비교**다. 두 축을 한 표에 합치지 않는다.
 

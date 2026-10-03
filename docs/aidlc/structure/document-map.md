@@ -130,3 +130,7 @@ ICD v1.6에서 RollingCounter를 인증 CAN ID별 독립으로 명시하고 ECU�
 ## 마감 결정 질문 리스트 — 2026-10-03
 
 보안 실험·통합시험의 마감 대응·실험 설계·협업 확인 결정 11건(답변 완료)을 [질문 리스트](../../development/governance/보안실험_통합시험_진행결정.md)에 모았다. 답변은 [의사결정 기록](../../development/governance/의사결정_기록.md)에도 등록했다.
+
+## 실시간 보안 시험 준비 — 2026-10-03
+
+[CHG-014](../changes/CHG-014/aidlc-state.md)에 정상 캡처·IF 평가·실시간 하네스·MAC fixture·Fail-safe 프로파일·ADC 원시 측정과 검증을 기록한다. 반복 실행은 [플레이북](../../development/playbooks/live-security-validation.md), IVI 담당자 경계는 [인계 명세](../../development/security/IVI_실험_인계.md)를 따른다. 물리 시험은 사용자 실행 로그를 받은 뒤 판정한다.

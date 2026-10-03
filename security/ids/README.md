@@ -52,4 +52,6 @@ python -m security.ids.runtime --interface vcan0 --train-normal normal.jsonl --s
 
 ## 완료 범위
 
+2026-10-03 후속: EXQ-11의 규칙 기본 임계는 SDD-ECU §3.9.5에 확정 기록됐고 합성 정상 오탐은 CHG-013에 보존했다. 위 "시험용 초기 정책"은 최초 구현 당시 설명이며 실물 보정이 완료됐다는 뜻은 아니다. 정상 실측 수집·IF 독립 평가와 실시간 실험은 [CHG-014 실행 절차](../../docs/development/playbooks/live-security-validation.md)를 따른다.
+
 [CHG-007](../../docs/aidlc/changes/CHG-007/audit.md)의 소프트웨어 시험 범위만 완료로 판단한다. 물리 CAN·vcan 실제 송수신, Node B 화면까지의 통합, 탐지율/오탐률·CPU/RAM 목표 달성, 인증 이벤트 채널, 새 세션은 후속 검증이다. 이번 작업은 발표의 1차 IDS 소프트웨어 구현이며 ECU M4/M5 전체 완료 선언이 아니다.

@@ -15,3 +15,4 @@ CHG-template은 CHG-<번호>의 구조 템플릿이다. 실제 작업 번호나 
 - [CHG-011: ECU ADS1115 제품 연결](CHG-011/aidlc-state.md)
 - [CHG-012: SecOC RollingCounter 인증 CAN ID별 독립](CHG-012/aidlc-state.md)
 - [CHG-013: 보안 실험 도구와 Ablation 합성 사전검증](CHG-013/aidlc-state.md)
+- [CHG-014: 실시간 보안 시험 준비와 실행 증거](CHG-014/aidlc-state.md)

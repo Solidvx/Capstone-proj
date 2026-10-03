@@ -58,6 +58,8 @@
 ## 하위 자료
 
 - [ADS1115 → CAN → Qt 전압 표시 진단](playbooks/ads1115-can-smoke.md): 기존 프레임을 사용하는 독립 실측 진단과 제품 통합 경계
+- [실시간 보안 실험·실장비 실행](playbooks/live-security-validation.md): 정상 캡처·IF·Ablation·MAC fixture·ADC 원시 측정
+- [IVI 시험 모드·관측 인계](security/IVI_실험_인계.md): IVI 담당자 구현 범위와 제품 증거 인수
 
 - 플레이북: [ECU](playbooks/ecu.md), [보안](playbooks/security.md), [IVI·통합](playbooks/ivi-integration.md), [문서 검토](playbooks/docs-review.md)
 - 양식: [작은 변경](templates/change.md), [요청](templates/spec.md), [상태](templates/aidlc-state.md), [판단](templates/audit.md), [증거](templates/evidence.md)

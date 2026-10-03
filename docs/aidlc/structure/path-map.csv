@@ -324,3 +324,21 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,docs/development/governance/보안실험_통합시험_진행결정.md,add,user decision question list EXQ-1 to EXQ-11 with answers
 ,security/experiments/measure_runtime_fpr.py,add,EXQ-11 runtime IDS normal FPR (synthetic pre-check)
 ,security/tests/test_measure_runtime_fpr.py,add,EXQ-11 runtime IDS normal FPR test
+,security/experiments/can_capture.py,add,CHG-014 receive-only normal capture
+,security/experiments/evaluate_normal.py,add,CHG-014 independent normal rules and IF evaluation
+,security/experiments/live_receiver.py,add,CHG-014 preserved and completed reference receiver
+,security/experiments/live_trial.py,add,CHG-014 preserved and completed trial judging
+,security/experiments/live_ablation.py,add,CHG-014 bounded live runner
+,security/experiments/mac_fixture.py,add,CHG-014 controlled dummy-key MAC fixture
+,security/experiments/summarize_live.py,add,CHG-014 audited live summary
+,security/experiments/analyze_adc.py,add,CHG-014 ADC raw capture analysis
+,security/tests/test_live_experiments.py,add,CHG-014 regression and lifecycle tests
+,adaptive_ecu/data/failsafe_demo.csv,add,CHG-014 deterministic Fail-safe input
+,adaptive_ecu/data/failsafe_demo.manifest.json,add,CHG-014 input and model manifest
+,adaptive_ecu/test/test_failsafe_profile.cpp,add,CHG-014 production algorithm profile test
+,adaptive_ecu/tools/ads1115_capture.cpp,add,CHG-014 raw ADC measurement without CAN
+,docs/development/playbooks/live-security-validation.md,add,CHG-014 operator runbook
+,docs/development/security/IVI_실험_인계.md,add,CHG-014 IVI owner handoff
+,docs/aidlc/changes/CHG-014/spec.md,add,CHG-014 scope and user decisions
+,docs/aidlc/changes/CHG-014/aidlc-state.md,add,CHG-014 canonical work state
+,docs/aidlc/changes/CHG-014/evidence.md,add,CHG-014 verification evidence
