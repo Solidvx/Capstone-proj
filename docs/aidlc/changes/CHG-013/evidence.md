@@ -40,7 +40,7 @@ python security/experiments/summarize_ablation.py tmp/ablation_synth.csv
 
 해석: 무방어는 spoofing·replay가 100% 성공하고, SecOC는 두 공격을 100% 차단하며, IDS(Config 3)는 네 공격을 모두 탐지한다. flooding은 SecOC가 차단하지 못하지만(0%) IDS가 탐지(100%)해 "탐지≠차단"을 보여준다. fuzzy의 block 52%는 임의 ID 중 0x100에 맞은 프레임이 인증 거부된 trial 비율이다.
 
-Config 3의 IDS는 실시간 탐지기 `security.ids.runtime_detector`의 규칙(기본 `Config()`: 최소 주기 50ms, 초당 100프레임 등 시험용 초기값)이다. 탐지는 **시행 단위**(공격 시행 중 ANOMALY 1건 이상)로 셌다. 정상 구간만 넣은 이 탐지기의 오탐은 아직 측정하지 않았다. 아래 ROC는 다른 탐지기(오프라인 규칙 베이스라인)의 윈도우 단위 결과다.
+Config 3의 IDS는 실시간 탐지기 `security.ids.runtime_detector`의 규칙(기본 `Config()`: 최소 주기 50ms, 초당 100프레임 등 시험용 초기값)이다. 탐지는 **시행 단위**(공격 시행 중 ANOMALY 1건 이상)로 셌다. 정상 구간만 넣은 이 탐지기의 오탐은 아래 "실시간 IDS 정상 오탐" 절에서 측정했다(2026-10-03 후속). 아래 ROC는 다른 탐지기(오프라인 규칙 베이스라인)의 윈도우 단위 결과다.
 
 ## ROC·임계·정상 오탐 (등급: synthetic)
 
@@ -56,6 +56,21 @@ python security/experiments/analyze_roc.py --out-dir tmp
 - matplotlib 미설치로 ROC 그래프 PNG는 생성하지 않고 `tmp/roc_points.csv`만 남겼다. 필요 시 `pip install matplotlib` 후 재실행하면 PNG가 생성된다.
 
 **정정(2026-10-03)**: 처음 버전은 공식 실험 대상이 아닌 masquerade까지 넣어 ROC를 계산해 "ROC-AUC 0.872, TPR≥90%·FPR≤5% 동시 만족점 없음, 임계 3.428, 정상 오탐 1.1%"로 기록했다. NFR-SEC-003은 공식 4종 공격별 기준이므로 공식 4종으로 다시 판정하고 masquerade를 분리했다. 앞선 "목표 미달" 서술은 분석 범위의 오류였다.
+
+## 실시간 IDS 정상 오탐 (등급: synthetic, 2026-10-03 후속)
+
+브랜치 `feat/ecu-realtime-harness`(기준 `develop`), 같은 WSL2 Python 환경. 사용자 결정 [EXQ-11=A](../../../development/governance/보안실험_통합시험_진행결정.md#answers-applied)에 따라 Config 3 판정에 쓴 실시간 탐지기(`runtime_detector.py`)의 규칙 기본 임계를 확정값으로 두고, 정상 트래픽만의 오탐을 측정했다.
+
+```bash
+python security/experiments/measure_runtime_fpr.py --duration 150 --out tmp/fpr_ledger.csv
+python -m pytest security/tests/test_measure_runtime_fpr.py -q
+```
+- 입력: Node A 정상 0x100(10 Hz)+0x102, seed 20261003, 149.918 s, 2998프레임 (합성)
+- 분모: 완료 1초 창 149개(≥100)
+- 결과: 오탐 창 0/149 = **0.00%**, 오탐 이벤트 0건 → TC-EXP-005 기준(≤5%) 충족(합성 등급)
+- 확정 임계는 [SDD-ECU §3.9.5](../../../SDD-ECU.md) 표에 기록. 단위 시험 `test_measure_runtime_fpr.py` 3건 포함, 전체 pytest 37 passed.
+
+> 합성 사전검증이다. 최종 오탐(TC-EXP-005)은 물리 CAN 정상 캡처로 판정하며 이 수치로 대체하지 않는다.
 
 ## 미실행 (물리 등급 과제)
 

@@ -1,5 +1,5 @@
 > **문서명**: Software Design Document — Node A (ECU) (SDD-ECU)  
-> **버전**: v1.7 | **작성일**: 2026-03-15 | **최종 수정**: 2026-10-03 | **작성자**: 팀원A  
+> **버전**: v1.8 | **작성일**: 2026-03-15 | **최종 수정**: 2026-10-03 | **작성자**: 팀원A  
 > **참조**: ICD v1.6, SRS v1.6 (FR-BSW-*, FR-BMS-*, FR-SEC-*), ADR-001/002/003/005/008/009/011/012
 
 ---
@@ -612,6 +612,25 @@ contamination은 학습 분포에서 이상치로 둘 비율에 따라 offset을
 | 모델 로드 | `joblib.load('data/models/isolation_forest.pkl')` |
 | 의존성 | python-can, scikit-learn, numpy, pandas |
 
+### 3.9.5. 실시간 IDS 규칙 임계 확정과 정상 오탐 (EXQ-11)
+
+Config 3의 탐지는 `security/ids/runtime_detector.py`의 규칙으로 판정한다(스트리밍 탐지기). 사용자 결정 [EXQ-11=A](development/governance/보안실험_통합시험_진행결정.md#answers-applied)에 따라 아래 기본 임계를 **확정 동작점**으로 쓰고, 정상 트래픽만 넣은 오탐을 먼저 측정했다. 이 임계는 ROC로 고른 값이 아니라 공학적 기본값이며, 규칙 베이스라인 ROC(`rule_baseline.py`)와는 다른 탐지기다.
+
+| 규칙 | 확정값 | `Config` 필드 |
+| --- | --- | --- |
+| 최소 주기 | 50 ms | `min_period_s=0.050` |
+| 메시지 누락 | 300 ms | `missing_s=0.300` |
+| 인증 대기 만료 | 100 ms | `pending_s=0.100` |
+| 초당 프레임 | 100 | `max_frames_per_second=100` |
+| 1초 내 실패 반복 | 3 | `failure_repeat_count=3` |
+| SOC 변화 | 20 %p | `max_soc_step=20.0` |
+| 온도 변화 | 20 °C | `max_temperature_step=20.0` |
+| 전류 변화 | 100 A | `max_current_step=100.0` |
+
+**정상 오탐 측정(합성, 사전검증).** `security/experiments/measure_runtime_fpr.py`로 Node A 정상 트래픽(0x100 10 Hz + 0x102, seed 20261003, 149.918 s, 2998프레임)을 위 임계의 탐지기에 넣었다. 완료 1초 창 **149개 중 오탐 0개, FPR 0.00%** 로 TC-EXP-005 기준(≤5%)을 합성 등급에서 충족했다. 단위 시험은 `security/tests/test_measure_runtime_fpr.py`다.
+
+> 이 수치는 **합성(grade 1)** 사전검증이다. 잘 짜인 정상 트래픽에 대한 느슨한 규칙 임계의 결과이며, 실제 버스의 기동 과도·지터·다른 ID 혼입은 반영하지 않는다. **TC-EXP-005 최종 오탐은 물리 CAN 정상 캡처로 판정**하고 그 결과를 이 표와 별도로 기록한다. 측정 환경이 바뀌어 오탐이 5%를 넘으면 임계를 EXQ-11 B안(선정용/평가용 분리 보정)으로 다시 정한다.
+
 ---
 
 # 4. 데이터 흐름도
@@ -673,6 +692,7 @@ C++ `test/`는 `adaptive_ecu/` 기준이다. 파일 존재와 공식 TC 전체 �
 | v1.3 | 2026-04-15 | 테스트 케이스 매핑 §5 추가 | 팀원A |
 | v1.4 | 2026-05-09 | §3.1 디렉토리 구조에 `data/` 디렉토리 추가, §5 테스트 매핑에 WatchdogManager·SensorSimulator 추가, 참조 문서 버전 ICD/SRS v1.3 반영 | 팀원A |
 | v1.5 | 2026-05-09 | §4 데이터 흐름도에 CanPublisher 모듈 명시, 참조 문서 SRS v1.3→v1.4 반영 | 팀원A |
+| v1.8 | 2026-10-03 | §3.9.5 추가 — 실시간 IDS 규칙 임계 확정값(EXQ-11=A)과 정상 오탐 합성 사전검증(149창 중 0건, FPR 0.00%). 최종 오탐은 물리 CAN에서 판정 | 사용자 |
 | v1.7 | 2026-10-03 | §3.7.3 ADS1115 제품 연결: 별도 취득 worker, 순번 기반 새 측정, 3회 확인·200ms 신선도, 오류·준비 중 송신 보류(ADS-1), 가상 고정 전류·온도(ADS-2), EKF 재개(ADS-3), 끝점 ±32코드 허용(B안, ±16에서 1000회 재측정 후 확대, 실측 기반 설계값·추가 측정 후 재검토), 오류 원인 로그. §3.7.1 모드 이름 검증·`setHardwareVoltage` 추가, POTENTIOMETER 제거(I-5=B). §3.5.1 송신 counter를 인증 CAN ID별 독립으로 갱신(ICD v1.6, CHG-012) | 팀원A |
 | v1.6 | 2026-09-06 | §3.7.2 OCV-SOC 3차 계수 교체 — 기존 계수는 SOC 12.3% 아래에서 단조성이 깨져 EKF 보정 방향이 반전되고 §3.7.3 ADS1115 범위(팩 30~42V)와도 불일치했다. 단조 증가·끝점 정합 제약의 가상 계수로 교체하고 검증표를 추가(실측 피팅 근거 없음). §3.4.1에 팩→단셀 변환 명시. §3.4.3에 Watchdog 실패 전이(ICD 사유 코드 `0x07`)와 CRITICAL 복귀 경로 부재 근거 추가 | 팀원A |
 
