@@ -311,4 +311,14 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,docs/aidlc/changes/CHG-012/spec.md,add,SecOC per-ID rolling counter record
 ,docs/aidlc/changes/CHG-012/aidlc-state.md,add,SecOC per-ID rolling counter record
 ,docs/aidlc/changes/CHG-012/evidence.md,add,SecOC per-ID rolling counter record
+,security/attacks/attack_simulator.py,add,CHG-013 SocketCAN attack injector
+,security/tests/test_attack_simulator.py,add,CHG-013 attack injector test
+,security/experiments/ablation_core.py,add,CHG-013 ablation judging core
+,security/experiments/run_ablation.py,add,CHG-013 ablation runner
+,security/experiments/summarize_ablation.py,add,CHG-013 ablation summary
+,security/experiments/analyze_roc.py,add,CHG-013 ROC and normal FPR
+,security/tests/test_ablation_core.py,add,CHG-013 ablation core test
+,docs/aidlc/changes/CHG-013/spec.md,add,security experiment tooling record
+,docs/aidlc/changes/CHG-013/aidlc-state.md,add,security experiment tooling record
+,docs/aidlc/changes/CHG-013/evidence.md,add,security experiment tooling record
 ,docs/development/governance/보안실험_통합시험_진행결정.md,add,user decision question list EXQ-1 to EXQ-11 with answers
