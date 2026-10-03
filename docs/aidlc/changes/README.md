@@ -19,3 +19,4 @@ CHG-template은 CHG-<번호>의 구조 템플릿이다. 실제 작업 번호나 
 - [CHG-015: 수동 Pi 시험 사전 설정·로그·IF 분석 준비](CHG-015/aidlc-state.md)
 - [CHG-016: 독립 선행 준비·wire FPR·재현성·ASan 검증](CHG-016/aidlc-state.md)
 - [CHG-017: 전체 계획 대조·Fail-safe 회귀·품질 실측](CHG-017/aidlc-state.md)
+- [CHG-018: 후속 변경 Draft PR 정리](CHG-018/aidlc-state.md)

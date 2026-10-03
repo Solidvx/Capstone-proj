@@ -2,6 +2,18 @@
 
 2026-10-03: Linux vcan 실행 경로 구현. 물리 1,200회 결과나 보안 인수 완료 기록이 아니다.
 
+## 합성 도구 분리 — PR #21 구현 보존
+
+최신 develop 통합 시 초기 합성 CLI와 후속 물리 러너의 파일명이 겹쳤다. 초기 구현은 아래 이름으로 보존한다. `ablation_core.py`·기존 회귀시험은 그대로 유지한다. 기존 `run_ablation.py`/`summarize_ablation.py`/`analyze_roc.py`는 후속 managed run·원장·독립 캡처 분석용이며, 아래 합성 결과와 섞지 않는다.
+
+```bash
+python3 security/experiments/run_ablation_synthetic.py --out tmp/NEW-synthetic.csv
+python3 security/experiments/summarize_ablation_synthetic.py tmp/NEW-synthetic.csv
+python3 security/experiments/analyze_roc_synthetic.py --out-dir tmp/NEW-synthetic-roc
+```
+
+합성 ROC 출력 디렉토리는 새로 준비한다. 초기 WSL 측정과 후속 로컬 IF 후보 `NO_FEASIBLE_THRESHOLD`는 서로 다른 탐지기/자료의 결과다. 합성 1,200행은 물리 1,200회 인수 완료가 아니다.
+
 ## 구성과 안전 경계
 
 | 구성 | 시험 수신기 | IDS |
