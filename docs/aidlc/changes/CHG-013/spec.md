@@ -8,7 +8,7 @@
 - `security/experiments/ablation_core.py`: 세 구성(Config 1 무방어 / 2 SecOC / 3 SecOC+IDS)이 같은 trial 입력을 받고, 공격 성공·SecOC 차단·IDS 탐지를 각각 독립 관측. 수신 판정은 실제 `SecOcModule`, IDS는 `runtime_detector` 규칙.
 - `security/experiments/run_ablation.py`: 3구성×4공격×100회=1,200행 CSV(합성 등급). 기존 파일 덮어쓰기 거부.
 - `security/experiments/summarize_ablation.py`: (구성,공격)별 성공률·차단율·탐지율. 분모 명시, 미측정은 공백 유지.
-- `security/experiments/analyze_roc.py`: 규칙 IDS ROC-AUC·확정 임계·정상 오탐(TC-EXP-005). 선정 seed와 평가 seed 분리(M5 3.5.1).
+- `security/experiments/analyze_roc.py`: 오프라인 규칙 베이스라인의 ROC-AUC·확정 임계·정상 오탐(TC-EXP-005). 공식 4종으로 NFR-SEC-003·004를 판정하고 공식 외 masquerade는 규칙·사양기반 참고로 분리. 선정 seed와 평가 seed 분리(M5 3.5.1). Ablation Config 3의 실시간 IDS와는 다른 탐지기다.
 
 M5 준수: 공격 성공을 `not(blocked or detected)`로 계산하지 않는다. seed에 config를 넣지 않는다. 합성에서 측정 불가한 flooding·fuzzy 가용성은 공백으로 둔다. 모든 결과에 실행 환경 등급(synthetic)을 표기한다.
 

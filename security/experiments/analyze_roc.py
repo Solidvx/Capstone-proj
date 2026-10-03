@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
-"""ROC and operating point for the rule IDS, plus the TC-EXP-005 normal FPR.
+"""ROC, operating point and normal FPR for the offline rule baseline (synthetic).
 
-Threshold selection and final evaluation use disjoint seed sets (M5 3.5.1): the
-ROC/operating point come from selection seeds, the reported FPR from evaluation
-seeds. matplotlib is optional; without it the ROC points are written as CSV.
+Scope: this is the window-level z-score baseline (rule_baseline.RuleBaseline),
+the same detector family as run_eval.py. It is NOT the streaming IDS
+(security.ids.runtime_detector) used for Ablation Config 3; that detector has
+its own fixed test thresholds.
+
+Judgement follows NFR-SEC-003 (each official attack >= 90%) and NFR-SEC-004 /
+TC-EXP-005 (normal FPR <= 5%) on the four official attacks only. Masquerade is
+outside the official matrix and is reported separately as a reference, together
+with the spec-based detector. Operating point selection and evaluation use
+disjoint seed sets (M5 3.5.1). matplotlib is optional.
 """
 
 from __future__ import annotations
@@ -17,28 +24,44 @@ _SEC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 for sub in ("ids", "attacks"):
     sys.path.insert(0, os.path.join(_SEC, sub))
 
-from traffic_gen import ATTACKS, gen_attack, gen_normal        # noqa: E402
-from feature_extractor import windows                          # noqa: E402
+from traffic_gen import gen_attack, gen_normal                 # noqa: E402
+from feature_extractor import raw_windows, windows             # noqa: E402
 from rule_baseline import RuleBaseline, roc_auc                # noqa: E402
+from spec_detector import SpecDetector                         # noqa: E402
 
+OFFICIAL_ATTACKS = ["flooding", "fuzzy", "replay", "spoofing"]
+REFERENCE_ATTACK = "masquerade"
 SELECT_SEEDS = (42, 43, 44)
 EVAL_SEEDS = (142, 143, 144)
-TARGET_FPR = 0.05
+TRAIN_SEED = 7
+MAX_FPR = 0.05      # NFR-SEC-004 / TC-EXP-005
+MIN_TPR = 0.90      # NFR-SEC-003, per attack
 
 
-def _dataset(seeds, train_s=90.0, normal_s=60.0, attack_s=30.0):
-    rng = random.Random(seeds[0])
-    train = [v for v, _, _ in windows(gen_normal(train_s, rng))]
-    test = []
+def _scored(model, seeds, attacks, normal_s=60.0, attack_s=30.0):
+    """(score, label, attack_type) per window for the given seeds."""
+    rows = []
     for seed in seeds:
-        sr = random.Random(seed)
-        test += [(v, y) for v, y, _ in windows(gen_normal(normal_s, sr))]
-        for atk in ATTACKS:
-            test += [(v, y) for v, y, _ in windows(gen_attack(atk, attack_s, sr))]
-    return train, test
+        rng = random.Random(seed)
+        rows += [(model.score(v), y, a) for v, y, a in windows(gen_normal(normal_s, rng))]
+        for atk in attacks:
+            rows += [(model.score(v), y, a) for v, y, a in windows(gen_attack(atk, attack_s, rng))]
+    return rows
 
 
-def roc_points(scores, labels):
+def _rates(rows, thr, attacks):
+    normal = [s for s, y, _ in rows if y == 0]
+    fpr = sum(s >= thr for s in normal) / len(normal) if normal else 0.0
+    per = {}
+    for atk in attacks:
+        hits = [s >= thr for s, y, a in rows if y == 1 and a == atk]
+        per[atk] = sum(hits) / len(hits) if hits else 0.0
+    return fpr, per, len(normal)
+
+
+def roc_points(rows):
+    scores = [s for s, _, _ in rows]
+    labels = [y for _, y, _ in rows]
     pos = sum(labels)
     neg = len(labels) - pos
     pts = []
@@ -49,44 +72,70 @@ def roc_points(scores, labels):
     return pts
 
 
+def select_threshold(rows):
+    """Lowest threshold whose selection-set normal FPR is <= MAX_FPR."""
+    for thr in sorted({s for s, _, _ in rows}):
+        fpr, _, _ = _rates(rows, thr, [])
+        if fpr <= MAX_FPR:
+            return thr
+    return max(s for s, _, _ in rows)
+
+
+def _spec_reference(attacks):
+    spec = SpecDetector().fit(w for w, _, _ in raw_windows(gen_normal(90.0, random.Random(TRAIN_SEED))))
+    hit, total, fp, tn = {}, {}, 0, 0
+    for seed in EVAL_SEEDS:
+        rng = random.Random(seed)
+        for w, _, _ in raw_windows(gen_normal(60.0, rng)):
+            flagged = spec.flag(w)
+            fp += flagged
+            tn += not flagged
+        for atk in attacks:
+            for w, y, _ in raw_windows(gen_attack(atk, 30.0, rng)):
+                if y:
+                    hit[atk] = hit.get(atk, 0) + spec.flag(w)
+                    total[atk] = total.get(atk, 0) + 1
+    fpr = fp / (fp + tn) if (fp + tn) else 0.0
+    return fpr, {a: hit[a] / total[a] for a in total}
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out-dir", default="tmp")
     args = parser.parse_args(argv)
     os.makedirs(args.out_dir, exist_ok=True)
 
-    train, sel = _dataset(SELECT_SEEDS)
+    train = [v for v, _, _ in windows(gen_normal(90.0, random.Random(TRAIN_SEED)))]
     model = RuleBaseline().fit(train)
-    scores = [model.score(v) for v, _ in sel]
-    labels = [y for _, y in sel]
-    auc = roc_auc(scores, labels)
-    pts = roc_points(scores, labels)
 
-    chosen = next((t for fp, tp, t in pts if fp <= TARGET_FPR and tp >= 0.90), None)
-    if chosen is None:
-        chosen = min(pts, key=lambda p: (abs(p[0] - TARGET_FPR)))[2]
-        note = "TPR>=90%&FPR<=5% 동시 만족점 없음; 차선 동작점"
-    else:
-        note = "TPR>=90% & FPR<=5% 만족"
+    # 1) Operating point on the selection seeds, official attacks only.
+    sel = _scored(model, SELECT_SEEDS, OFFICIAL_ATTACKS)
+    auc = roc_auc([s for s, _, _ in sel], [y for _, y, _ in sel])
+    thr = select_threshold(sel)
+    pts = roc_points(sel)
 
-    # Evaluation FPR on disjoint seeds (TC-EXP-005: normal windows only).
-    _, ev = _dataset(EVAL_SEEDS)
-    normal_vectors = [v for v, y in ev if y == 0]
-    normal_denom = len(normal_vectors)
-    normal_fpr = (sum(model.score(v) >= chosen for v in normal_vectors) / normal_denom
-                  if normal_denom else 0.0)
+    # 2) Frozen threshold evaluated on disjoint seeds.
+    ev = _scored(model, EVAL_SEEDS, OFFICIAL_ATTACKS + [REFERENCE_ATTACK])
+    fpr, per, denom = _rates(ev, thr, OFFICIAL_ATTACKS + [REFERENCE_ATTACK])
+    meets = fpr <= MAX_FPR and all(per[a] >= MIN_TPR for a in OFFICIAL_ATTACKS)
+
+    print("대상: 오프라인 규칙 베이스라인(z-score), 합성 트래픽 — Ablation Config 3의 실시간 IDS와 별개")
+    print(f"[공식 4종] ROC-AUC(선정 seed {SELECT_SEEDS}) = {auc:.3f}")
+    print(f"[공식 4종] 확정 임계 = {thr:.3f} (선정 seed에서 정상 오탐 ≤{MAX_FPR:.0%}인 가장 낮은 임계)")
+    print(f"[공식 4종] 평가 seed {EVAL_SEEDS}: 정상 오탐 {fpr:.1%} (분모 {denom} 윈도우), " +
+          ", ".join(f"{a} {per[a]:.1%}" for a in OFFICIAL_ATTACKS))
+    print(f"[공식 4종] NFR-SEC-003·004 기준(공격별 ≥{MIN_TPR:.0%}, 오탐 ≤{MAX_FPR:.0%}): "
+          f"{'충족' if meets else '미충족'}")
+    spec_fpr, spec_per = _spec_reference([REFERENCE_ATTACK])
+    print(f"[참고·공식 외] masquerade 탐지: 규칙 {per[REFERENCE_ATTACK]:.1%} / "
+          f"사양기반 {spec_per[REFERENCE_ATTACK]:.1%} (사양기반 정상 오탐 {spec_fpr:.1%})")
 
     csv_path = os.path.join(args.out_dir, "roc_points.csv")
     with open(csv_path, "w", encoding="utf-8") as handle:
         handle.write("fpr,tpr,threshold\n")
         for fp, tp, t in pts:
             handle.write(f"{fp:.4f},{tp:.4f},{t:.4f}\n")
-
-    print(f"ROC-AUC(선정 seed {SELECT_SEEDS}) = {auc:.3f}")
-    print(f"확정 임계 = {chosen:.3f}  ({note})")
-    print(f"TC-EXP-005 정상 오탐(평가 seed {EVAL_SEEDS}) = {normal_fpr:.1%} "
-          f"(분모 {normal_denom} 윈도우)")
-    print(f"ROC 포인트: {csv_path}")
+    print(f"ROC 포인트(공식 4종, 선정 seed): {csv_path}")
 
     try:
         import matplotlib
@@ -95,15 +144,18 @@ def main(argv=None) -> int:
         plt.figure(figsize=(6, 5))
         plt.plot([p[0] for p in pts], [p[1] for p in pts], "b-", label=f"Rule (AUC={auc:.3f})")
         plt.plot([0, 1], [0, 1], "k--", linewidth=1)
-        plt.xlabel("False Positive Rate"); plt.ylabel("True Positive Rate")
-        plt.title("ROC - CAN IDS (synthetic, selection seeds)")
-        plt.legend(); plt.grid(True, alpha=0.3); plt.tight_layout()
+        plt.xlabel("False Positive Rate")
+        plt.ylabel("True Positive Rate")
+        plt.title("ROC - rule baseline, 4 official attacks (synthetic)")
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
         png = os.path.join(args.out_dir, "roc_curve.png")
         plt.savefig(png, dpi=150)
         print(f"ROC 그래프: {png}")
     except Exception as exc:  # noqa: BLE001
         print(f"matplotlib 미사용({exc}); CSV만 생성")
-    return 0
+    return 0 if meets else 1
 
 
 if __name__ == "__main__":
