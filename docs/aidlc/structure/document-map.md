@@ -122,3 +122,7 @@ ADS1115 실측 표시 진단: [절차](../../development/playbooks/ads1115-can-s
 ## SecOC counter 범위 명시 — 2026-10-03
 
 ICD v1.6에서 RollingCounter를 인증 CAN ID별 독립으로 명시하고 ECU·Python 송신 측을 맞춘 근거와 시험을 [CHG-012](../changes/CHG-012/aidlc-state.md)에 기록한다.
+
+## 보안 실험 도구·Ablation 사전검증 — 2026-10-03
+
+공격 주입기 4종, Ablation 하네스·집계·ROC 도구와 합성 등급 1,200 매트릭스를 [CHG-013](../changes/CHG-013/aidlc-state.md)에 기록한다. 물리 등급 최종 판정은 장비 과제다.
