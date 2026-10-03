@@ -530,39 +530,32 @@ ADC-2=A의 첫 시험 설정(2026-09-08): 내부 128SPS, 요청 사이 최소 10
 
 ### 3.8.1. 디렉토리 구조
 
-아래 트리는 초기 목표 배치다. 실제 자산은 `secoc_module.py`, `attacks/traffic_gen.py`, `ids/{feature_extractor,rule_baseline,spec_detector,if_detector}.py`, `experiments/run_eval.py`, `tests/{test_secoc,test_ids_baseline}.py`다. 그 외 실시간 CLI·모델·수집/학습 파일은 미구현이다. 상세 파일 인수는 ECU M4/M5를 따른다.
+현행 구현은 합성 생성기와 실 CAN 도구를 분리한다. `attack_simulator.py`는 물리 `canN`에서 격리 시험 확인·10초 상한을 강제하고, `capture_normal.py`는 학습 JSONL과 manifest를 새 파일로만 만든다. `secoc_tamper_fixture.py`는 IT-004의 정상 기준→MAC 1비트 변조→같은 counter 정상 복구를 통제한다. 모델 pickle은 로드하지 않으며 `ids/runtime.py`가 명시적으로 제공된 정상 캡처를 학습한다.
 
 ```
 security/
 ├── secoc_module.py           # SecOC HMAC-SHA256 인증 모듈 (C++ 이식 전 프로토타입)
-├── attack_simulator.py       # CLI 엔트리포인트
+├── can_socket.py             # 표준 라이브러리 Classical SocketCAN 경계
+├── attack_simulator.py       # 4종 제한형 실 CAN CLI
+├── capture_normal.py         # IDS 정상 JSONL + manifest 수집
+├── secoc_tamper_fixture.py   # IT-004 통제형 변조/복구 fixture
 ├── attacks/
-│   ├── __init__.py
-│   ├── fuzzy_attack.py       # Fuzzy Attack 구현
-│   ├── replay_attack.py      # Replay Attack 구현
-│   ├── spoofing_attack.py    # Spoofing Attack 구현
-│   └── flooding_attack.py    # Flooding Attack 구현
+│   └── traffic_gen.py        # 결정적 합성 입력(실 CAN 송신 아님)
 ├── ids/
-│   ├── __init__.py
 │   ├── feature_extractor.py  # 1초 슬라이딩 윈도우 특징 추출
-│   ├── ids_engine.py         # Isolation Forest 학습/탐지
-│   └── ids_alerter.py        # 탐지 결과 CAN 0x200 전송
-├── data/
-│   ├── normal_traffic.csv    # 정상 트래픽 학습 데이터
-│   └── models/
-│       └── isolation_forest.pkl  # 학습 완료 모델
-├── collect_normal.py         # 정상 트래픽 수집 스크립트
-├── train_model.py            # IDS 모델 학습 스크립트
+│   ├── if_detector.py        # Isolation Forest 학습/점수
+│   ├── runtime_detector.py   # 규칙·SecOC·IF 스트리밍 판정
+│   └── runtime.py            # JSONL/SocketCAN 실행과 0x200 송신
 ├── tests/
-│   ├── test_attack_simulator.py  # 공격 시뮬레이터 단위 테스트
-│   ├── test_ids_engine.py        # IDS 엔진 단위 테스트
-│   └── test_ids_alerter.py       # IDS 경보 전송 단위 테스트
-└── requirements.txt          # python-can, scapy, scikit-learn, numpy, pandas
+│   ├── test_attack_tools.py  # 공격·변조 fixture 단위 테스트
+│   ├── test_runtime_ids.py   # 스트리밍 IDS·경보 시험
+│   └── test_runtime_cli.py   # CLI·SocketCAN 모의 시험
+└── requirements.txt
 ```
 
 ### 3.8.2. CLI 인터페이스
 
-공통 `attack_simulator.py`의 `--type` 선택 CLI는 FR-SEC-005 구현 과제다. 개별 실 CAN 도구는 `--channel`, `--duration` 또는 `--count`를 사용하는 ECU M4/M5 예제를 따른다. 합성 생성기는 버스 송신 CLI가 아니며 4종을 선택 실행하는 실제 송신/실패 처리를 구현한 뒤 `--help`와 TC-SEC-005로 인수한다.
+공통 `attack_simulator.py`는 `--type fuzzy|replay|spoofing|flooding`, `--channel`, `--duration`, `--rate`, `--seed`, `--run-id`, `--log`를 제공한다. `vcanN` 이외의 물리 인터페이스는 `--confirm-isolated-test-bus` 없이는 거부하고 실행시간 10초·요청률 4,000fps 상한을 둔다. Replay는 표준 `0x100` raw 또는 `--replay-mode authenticated-pair`의 과거 `0x100/0x102` 쌍을 사용한다. 인증 쌍 모드에서 rate는 쌍/초이며 상한은 두 프레임을 포함한 fps로 검증한다. 실행 JSON과 journal은 소켓 송신 수락 시각·성공 송신 수·중단 상태를 보존한다. 실제 버스 주입/수신 시각은 별도 Node B 관측기로 기록하고 버스 점유율은 추정값으로 채우지 않는다.
 
 ### 3.8.3. 공격별 핵심 로직
 
@@ -664,9 +657,9 @@ C++ `test/`는 `adaptive_ecu/` 기준이다. 파일 존재와 공식 TC 전체 �
 | WatchdogManager | TC-BSW-006 ~ TC-BSW-007 | FR-BSW-006, NFR-REL-001~002 | `test/test_watchdog_manager.cpp` |
 | SensorSimulator | TC-BSW-008 | FR-BSW-007 | `test/test_sensor_simulator.cpp` |
 | SecOcModule | TC-SEC-001 ~ TC-SEC-004 | FR-SEC-001~004 | `test/test_secoc.cpp` |
-| AttackSimulator | TC-SEC-005 (a~d) | FR-SEC-005 | 예정: `security/tests/test_attack_simulator.py` |
-| IdsEngine | TC-SEC-006 | FR-SEC-006 | 예정: `security/tests/test_ids_engine.py` |
-| IdsAlerter | TC-SEC-007 | FR-SEC-007 | 예정: `security/tests/test_ids_alerter.py` |
+| AttackSimulator | TC-SEC-005 (a~d) | FR-SEC-005 | `security/tests/test_attack_tools.py`; 물리 부하는 별도 실측 필요 |
+| IdsEngine | TC-SEC-006 | FR-SEC-006 | `security/tests/test_runtime_ids.py`, `security/tests/test_runtime_cli.py` |
+| IdsAlerter | TC-SEC-007 | FR-SEC-007 | `security/tests/test_runtime_ids.py`, `security/tests/test_runtime_cli.py`; 실 CAN은 미검증 |
 
 ---
 

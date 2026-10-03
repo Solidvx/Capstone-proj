@@ -10,10 +10,35 @@ import socket
 import struct
 import sys
 import time
+from collections import OrderedDict
 
 from .feature_extractor import extract
 from .if_detector import IsolationForestDetector
 from .runtime_detector import Config, Observation, RuntimeDetector
+
+
+class AlertThrottle:
+    """Fair FIFO of at most four attack types; codes are not priorities."""
+
+    def __init__(self, cooldown_s=0.1):
+        if not math.isfinite(cooldown_s) or cooldown_s <= 0:
+            raise ValueError("cooldown must be finite and positive")
+        self.cooldown_s = cooldown_s
+        self.last_sent = float("-inf")
+        self.pending = OrderedDict()
+
+    def offer(self, event):
+        if event.attack_type not in (1, 2, 3, 4):
+            return
+        # Replacing a same-type event never changes its position in the queue.
+        self.pending[event.attack_type] = event
+
+    def pop_ready(self, now):
+        if not self.pending or now-self.last_sent < self.cooldown_s:
+            return None
+        _, event = self.pending.popitem(last=False)
+        self.last_sent = now
+        return event
 
 
 def read_records(path):
@@ -35,9 +60,11 @@ def read_records(path):
                 raise ValueError(f"invalid replay record at line {number}") from error
 
 
-def train_model(path):
+def train_model(path, manifest_path):
     """Fit only explicitly supplied normal traffic, in nonoverlapping 1s windows."""
     from .runtime_detector import KNOWN_IDS
+    from security.capture_normal import validate_capture
+    validate_capture(Path(path), Path(manifest_path))
     vectors, bucket = [], []
     start = None
     previous = float("-inf")
@@ -120,6 +147,9 @@ def main(argv=None):
     mode.add_argument("--train-normal",help="separate known-normal JSONL capture for mandatory IF mode")
     mode.add_argument("--rules-only",action="store_true",help="explicit rule-only development/ablation mode")
     parser.add_argument("--secoc-key",help="32-byte key file for independent local SecOC observation")
+    parser.add_argument("--normal-manifest",help="validated manifest for --train-normal")
+    parser.add_argument("--run-id",default="development",help="shared trial/run identifier")
+    parser.add_argument("--ready-file",help="new JSON readiness file written after SocketCAN opens")
     parser.add_argument("--config",help="JSON Config overrides; thresholds require deployment calibration")
     parser.add_argument("--log",required=True,help="new output JSONL path; existing files are not overwritten")
     parser.add_argument("--send-alerts",action="store_true",help="opt in to ICD 0x200 transmission on --interface")
@@ -127,39 +157,60 @@ def main(argv=None):
     args=parser.parse_args(argv)
     if args.send_alerts and not args.interface:
         parser.error("--send-alerts requires --interface")
+    if bool(args.train_normal) != bool(args.normal_manifest):
+        parser.error("--train-normal and --normal-manifest must be supplied together")
+    if args.ready_file and not args.interface:
+        parser.error("--ready-file requires --interface")
     if not 0<args.duration<86400:
         parser.error("duration must be between 0 and 86400 seconds")
     transport=None
     try:
         config=Config(**(json.loads(Path(args.config).read_text()) if args.config else {}))
         key=Path(args.secoc_key).read_bytes() if args.secoc_key else None
-        model=train_model(args.train_normal) if args.train_normal else None
+        if args.ready_file and Path(args.ready_file).exists():
+            raise ValueError("ready file already exists")
+        model=train_model(args.train_normal,args.normal_manifest) if args.train_normal else None
         detector=RuntimeDetector(config,key,model,time.monotonic() if args.interface else 0.0)
         with Path(args.log).open("x",encoding="utf-8") as output:
-            output.write(json.dumps({"result":"START","mode":"rules+if" if model else "rules-only",
+            output.write(json.dumps({"result":"START","run_id":args.run_id,"mode":"rules+if" if model else "rules-only",
                                      "secoc_observation":key is not None,"config":asdict(config)})+"\n")
             if args.replay:
                 count=run_replay(detector,read_records(args.replay),output)
                 output.write(json.dumps({"result":"END","events":count})+"\n")
             else:
                 transport=SocketCan(args.interface)
+                ready={"result":"READY","run_id":args.run_id,"interface":args.interface,
+                       "timestamp":time.monotonic(),"mode":"rules+if" if model else "rules-only",
+                       "send_alerts":args.send_alerts}
+                output.write(json.dumps(ready)+"\n")
+                output.flush()
+                if args.ready_file:
+                    with Path(args.ready_file).open("x",encoding="utf-8") as ready_output:
+                        json.dump(ready,ready_output)
+                print(json.dumps(ready),flush=True)
                 deadline=time.monotonic()+args.duration
-                last_sent={}
+                alert_throttle=AlertThrottle()
                 while time.monotonic()<deadline:
                     frame=transport.receive()
-                    events=detector.observe(frame) if frame else detector.tick(time.monotonic())
+                    now=frame.t if frame else time.monotonic()
+                    events=detector.observe(frame) if frame else detector.tick(now)
                     if frame and not events:
                         output.write(json.dumps({"timestamp":frame.t,"can_id":frame.can_id,
                                                  "result":"NORMAL","reason":"NO_RULE_VIOLATION",
                                                  "anomaly_score":0.0})+"\n")
                     for event in events:
                         output.write(json.dumps(asdict(event),sort_keys=True)+"\n")
-                        # Global 100ms cooldown prevents IDS amplification of an attack.
-                        payload=event.alert_payload(int(time.time()))
-                        if args.send_alerts and payload and event.timestamp-last_sent.get("all",float("-inf"))>=0.1:
-                            transport.send(payload)
-                            last_sent["all"]=event.timestamp
-                            output.write(json.dumps({"result":"ALERT_SENT","can_id":0x200,"data":payload.hex()})+"\n")
+                        alert_throttle.offer(event)
+                    # Four bounded type slots, FIFO and global rate limiting.
+                    selected=alert_throttle.pop_ready(now) if args.send_alerts else None
+                    if selected:
+                        payload=selected.alert_payload(int(time.time()))
+                        transport.send(payload)
+                        output.write(json.dumps({"result":"ALERT_SENT","can_id":0x200,
+                                                 "timestamp":now,"run_id":args.run_id,
+                                                 "reason":selected.reason,
+                                                 "attack_type":selected.attack_type,
+                                                 "data":payload.hex()})+"\n")
                     output.flush()
                 output.write(json.dumps({"result":"END"})+"\n")
     except (OSError,ValueError,TypeError,RuntimeError) as error:

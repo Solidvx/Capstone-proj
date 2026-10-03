@@ -8,6 +8,18 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(ECU_BUILD_TESTS "Build adaptive ECU tests" ON)
 option(ENABLE_COVERAGE "Build with gcov coverage flags" OFF)
+option(ENABLE_ASAN "Build with AddressSanitizer" OFF)
+
+if(ENABLE_ASAN)
+    if(ENABLE_COVERAGE)
+        message(FATAL_ERROR "ENABLE_ASAN and ENABLE_COVERAGE must not be enabled together")
+    endif()
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        message(FATAL_ERROR "ENABLE_ASAN requires GCC or Clang")
+    endif()
+    add_compile_options(-fsanitize=address -fno-omit-frame-pointer -g)
+    add_link_options(-fsanitize=address)
+endif()
 
 if(ENABLE_COVERAGE)
     add_compile_options(--coverage)
