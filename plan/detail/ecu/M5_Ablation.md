@@ -66,7 +66,7 @@
 
 **선행조건**: [M4](M4_IDS_공격_물리통합.md) 완료 — 탐지기 학습·평가 경로, `0x200` 송신 경로.
 
-**현재 구현 상태 (확인 기준일 2026-09-05)**
+**현재 구현 상태 (확인 기준일 2026-10-03; CHG-014 검증)**
 
 | 대상 | 상태 | 비고 |
 |---|---|---|
@@ -74,8 +74,10 @@
 | `rule_baseline` / `spec_detector` / `if_detector` | **구현됨** | 탐지기 3종 |
 | `run_eval.py` | **구현됨** | **탐지기 비교** 러너다. 방어 구성(Config 1/2/3) 비교는 하지 않는다 |
 | `security/secoc_module.py` | **구현됨** | 합성/호스트 MAC·counter 검증의 비교 근거. 실제 Config 2/3 차단 판정은 대상 수신기의 인증/반영 로그로 확인 |
-| Ablation 하네스 | **없음** | `run_ablation.sh`, `merge_results.py`, `analyze_roc.py` 모두 미존재 |
-| 개별 공격 스크립트 | **없음** | `replay_attack.py`, `spoofing_attack.py` 등 미존재 |
+| Ablation 하네스 | **구현·vcan 파일럿 검증** | `security/experiments/run_ablation.py`, `summarize_ablation.py`; 실제 물리 공식 평가는 대기 |
+| ROC/정상 오탐률/재현성 | **구현·로컬 검증** | CHG-015/016: offline IF score/ROC/SVG와 실제 wire 0x200 정상 윈도우 FPR를 분리. CSV/REP-1 비교 포함. [분석 절차](../../../docs/development/playbooks/experiment-analysis.md) |
+| 실제 공격 CLI | **구현·vcan 검증** | `security.attack_simulator`: fuzzy/replay/spoofing/flooding. Replay는 과거 `0x100/0x102` 인증 쌍 지원 |
+| 인증 OFF 수신기 | **격리 시험 타깃만 구현** | `ivi_dashboard_experiment`; 제품 `ivi_dashboard`에서는 인증 OFF 금지 |
 
 > **혼동 금지**: `run_eval.py`가 만드는 "규칙 vs 사양 vs Isolation Forest" 표는 **탐지기 비교**다. M5가 만드는 "Config 1/2/3" 표는 **방어 구성 비교**다. 두 축을 한 표에 합치지 않는다.
 
@@ -86,7 +88,7 @@
 | `--secoc=on` / `--secoc=off` (등호) | **`--secoc on` / `--secoc off`** (공백 구분) |
 | `--ids=on` / `--ids=off` | **존재하지 않는다.** IDS는 Python 별도 프로세스다 |
 
-아래는 Node A 송신 프로세스의 실행 예다. 이것만으로 수신측 방어 설정이 전환되는 것은 아니다. Config 1에서는 격리 시험 수신기의 인증 OFF, Config 2/3에서는 인증 ON을 별도로 확인하며 Config 3에만 IDS를 연결한다. 수신측 전환 CLI·계측·복구는 미구현 과제다. 세 명령 블록을 동시에 실행하지 않는다.
+아래는 제품 ECU의 수동 송신 설정 예시이며 하네스 실행 명령이 아니다. 송신 옵션만으로 수신측 방어 설정이 전환되지 않는다. 구현 하네스는 signed SOC75 fixture를 모든 구성에 동일하게 보내고 Config 1에서만 격리 시험 수신기의 인증 검증을 끈다. Config 2/3은 동일 수신기의 인증 ON, Config 3에만 IDS를 연결한다. fixture와 제품 ECU를 동시에 실행하지 않는다. 실행·계측·설정 파일은 [M5 하네스 절차](../../../docs/development/playbooks/m5-ablation-runner.md)를 따른다.
 
 ```bash
 # Config 1: 무방어
@@ -97,10 +99,14 @@
 
 # Config 3: SecOC + IDS  (ECU는 Config 2와 동일, IDS 프로세스를 함께 띄운다)
 ./adaptive_ecu/build/adaptive_ecu --interface vcan0 --secoc on &
-python3 security/ids/realtime_ids.py --channel vcan0        # M4 3.5에서 만든 루프
+python3 -m security.ids.runtime --interface vcan0 \
+  --train-normal results/ids-normal.jsonl \
+  --normal-manifest results/ids-normal.manifest.json \
+  --secoc-key /etc/secoc/key.bin --log results/ids-live.jsonl \
+  --duration 30 --send-alerts
 ```
 
-- [ ] 하네스가 별도 IDS 프로세스의 준비·종료를 관리한다. 현재 없는 `--ids` 인자를 ECU 명령에 넣지 않는다
+- [x] 하네스가 별도 IDS 프로세스의 READY·종료와 시행 로그를 관리한다(vcan 파일럿 검증). 실제 장비 인수는 별도다. 현재 없는 `--ids` 인자를 ECU 명령에 넣지 않는다
 
 ---
 
@@ -119,9 +125,9 @@ python3 security/ids/realtime_ids.py --channel vcan0        # M4 3.5에서 만�
 
 실제 부하·지연은 물리 CAN에서 계측한다. measure_can_secoc.py 계산값과 vcan 결과를 실제 점유율로 사용하지 않는다. 전체 일정에는 준비·정상 기준·cooldown·실패 분석·장비 반복 시간을 포함한다.
 
-### 3.1 오프라인 Ablation 하네스 (준비·분석 경로)
+### 3.1 실행 Ablation 하네스 (vcan 검증·물리 인수 대기)
 
-`security/experiments/run_ablation.py` (신규). 기존 자산만 조합하고 새 생성기·특징 추출기를 만들지 않는다.
+`security/experiments/run_ablation.py`와 `summarize_ablation.py`가 실제 프로세스·SocketCAN 관측을 관리한다. 합성 ReceiverModel 결과로 수신 측 차단을 대신하지 않는다. 제품 ECU 자체의 처리량·방어 성능은 fixture 결과와 별도로 검증한다.
 
 **판정 규칙 — 세 값을 독립적으로 관측한다.**
 
@@ -145,7 +151,7 @@ python3 security/ids/realtime_ids.py --channel vcan0        # M4 3.5에서 만�
 Flooding은 MAC 거부와 별개로 **정상 메시지의 처리·지연·가용성**을 본다. SecOC는 위조 프레임을 막지만 버스 점유 자체를 막지는 못하므로, `blocked=True`여도 `attack_success=True`가 될 수 있다.
 
 ```python
-# 개요 (security/experiments/run_ablation.py)
+# 역사적 설계 골격 — 현재 run_ablation.py의 실행 코드가 아님
 import random
 from secoc_module import SecOcModule          # security/
 from traffic_gen import gen_attack            # security/attacks/
@@ -192,14 +198,16 @@ def run_trial(config: int, attack: str, trial: int) -> dict:
 위 `ReceiverModel`, `ids_flags`, `observe_success`와 수신 카운터 속성은 미구현 모형 API다. 실제 `SecOcModule.verify(original_can_id, payload, auth_data)`만 호출해서는 인증 쌍 만료·수신 상태 오염·버스 전달·IDS 지연을 관측할 수 없다. `blocked=True`는 해당 시행에서 인증 거부가 한 번 이상 있었다는 뜻이며 전량 차단율 100%의 증거가 아니다. 공격 프레임별 수용/인증 거부/파서 거부/유실 카운터도 보존한다. 지연은 IDS 계측의 공격 시작·판정·0x200 수신·UI 표시를 각각 연결하고 수신 모형의 임의 필드로 채우지 않는다.
 
 ```bash
-python security/experiments/run_ablation.py --trials 100 --out results/ablation.csv
-wc -l results/ablation.csv
-# 기대: 1201 (헤더 1 + 1200 시행)
+python -m security.experiments.run_ablation \
+  --settings results/m5-settings.json --output-dir results/m5-physical-001 \
+  --run-id M5-PHYSICAL-001 --environment physical-can --interface can0 --trials 100 \
+  --confirm-product-ecu-stopped --confirm-isolated-test-bus
+# pilot 인수·설정 동결 후에만 공식 100회를 실행한다.
 ```
 
 ### 3.2 결과 요약
 
-`security/experiments/summarize_ablation.py` (신규)
+실행 집계: `python -m security.experiments.summarize_ablation --input-dir results/m5-physical-001 --output results/m5-physical-001.summary.json`. 아래 pandas 코드는 역사적 CSV 분석 골격이며 실제 JSONL 원장 검증을 대체하지 않는다.
 
 아래 집계는 **동일 run·환경·계약/모델/설정, 중복 없는 유효 시행**으로 검증한 입력의 요약 골격이다. 원시 CSV 전체를 바로 읽어 모든 행을 유효 시행으로 간주하지 않는다. 하네스 구현 시 전체 시도 원장과 유효 시행 표를 분리하고 `(run_id, config, attack_type, trial)` 중복·결측/비유한 수치·잘못된 bool·분모 0을 오류 처리한다. 실패한 공격 탐지는 유효 시행의 미탐지이며 INVALID로 제외하지 않는다. 미탐지 지연은 결측 상태와 이유를 남기고 탐지된 시행의 평균/최대 및 미탐지·기한 초과 수를 별도 보고한다. 아래 평균은 검출된 유효 지연만의 통계이며 전체 응답 합격 기준을 대신하지 않는다.
 
@@ -238,7 +246,7 @@ config attack_type  total  attack_success  blocked  detected  success_rate  bloc
 
 공격 없이 정상 윈도우만 평가한다. TEST_PLAN TC-EXP-005는 **"정상 100윈도우"** 를 요구하므로 완전한 평가 윈도우를 100개 이상 사전 고정한다. 길이·이동폭·시작/끝 경계와 빈 윈도우 처리, 실제 수집 손실을 구분한다. 100초 수집이나 마지막 프레임 시각만으로 완전한 윈도우 100개가 확보됐다고 가정하지 않는다. 최종 오탐률은 물리 CAN 정상 입력으로 판정하며 아래 합성 예제는 준비용이다.
 
-> **현재 상태 확인 필요**: `run_eval.py`의 정상 평가 윈도우는 **60개**다(실행 출력의 "정상 60"). 이 상태로는 TC-EXP-005를 판정할 수 없다. `gen_normal()`의 `duration`을 늘려 **100개 이상**을 확보한다.
+> `run_eval.py`의 정상 평가는 60윈도우이며 합성 detector 비교다. 그 duration만 늘려 TC-EXP-005를 완료 처리하지 않는다. 실제 정상 wire 평가는 `run_normal_fpr.py`/`analyze_normal_fpr.py`로 사전 고정한 100개 이상의 완전 윈도우를 검증한다. [분석 절차](../../../docs/development/playbooks/experiment-analysis.md)를 따른다. 아래 합성 예제는 역사적 준비 골격이다.
 
 ```python
 # 개요 — 윈도우 1초 슬라이딩이므로 duration(초) ≈ 윈도우 수
@@ -258,8 +266,10 @@ assert fpr <= 0.05, f"FPR {fpr:.2%} > 5%"
 
 `rule_baseline.roc_auc()`는 비교용 AUC 계산에 재사용할 수 있다. 공식 FR-SEC-006 및 Config 3 평가에는 실제 Isolation Forest 경로가 필요하다. sklearn 미가용이면 규칙 탐지기의 독립 분석은 진행할 수 있으나 IF/공식 IDS 완료는 보류한다.
 
+현재 실행은 `score_ids_captures.py`/`analyze_roc.py`/`render_roc.py`다. train/calibration/evaluation run·SHA 분리를 검사하고 선정 임계를 최종 평가에 고정한다. 그림은 headless SVG로 저장한다. 아래 matplotlib 코드는 역사적 설계 예제이며 실제 분석 CLI가 아니다.
+
 ```python
-# security/experiments/analyze_roc.py (신규)
+# 역사적 ROC 시각화 골격
 import matplotlib
 matplotlib.use("Agg")          # 헤드리스 환경 대비
 import matplotlib.pyplot as plt
@@ -321,8 +331,9 @@ NFR-SEC-003은 네 공격 각각 ≥90%이므로 전체 공격을 합친 TPR ≥
 vcan 준비는 Linux에서 기존 인터페이스 유무·종류를 먼저 확인하고, 없으면 vcan 생성·활성화 명령의 종료 코드를 각각 확인한다. 기존 인터페이스 충돌이나 권한 오류를 `|| true`로 숨기지 않는다. 하네스는 각 config의 송신기·수신기·IDS 프로세스를 소유하고 실제 준비 완료를 확인해야 한다. 고정 `sleep`이나 단일 ECU 기동만으로 준비/구성 전환 성공을 판정하지 않는다. 정상·오류·사용자 중단 모두에서 자신이 시작한 프로세스를 종료·회수하고 원시 결과를 보존한다.
 
 ```bash
-# 예정 CLI: --channel·수신 관측·프로세스 수명 관리 구현과 독립 검증 후 실행
-python security/experiments/run_ablation.py --channel vcan0 --trials 100 --out results/ablation_vcan.csv
+python -m security.experiments.vcan_review_smoke \
+  --interface vcan91 \
+  --receiver-bin "$PWD/ivi_platform/build-experiment/ivi_dashboard_experiment"
 ```
 
 1,200 시행 × 3초 = 1시간은 공격 구간만의 계산 예시다. 정상 기준 구간·프로세스 준비/회수·cooldown·실패 분석·재시도·물리 반복을 포함한 총 소요시간이 아니다. §3.0의 pilot에서 구간별 시간을 측정해 전체 일정을 산정한다. 3초도 모든 시행의 확정 길이로 자동 적용하지 않는다.
@@ -333,7 +344,7 @@ python security/experiments/run_ablation.py --channel vcan0 --trials 100 --out r
 
 ### 3.5.1 임계 선정 데이터와 성능 평가 데이터를 분리한다
 
-앞의 vcan 명령은 미구현 하네스의 목표 사용법이다. §3.0의 config별 양측 준비·시험 상태·프로세스 수명 관리와 수신 관측이 구현되기 전에는 명령을 인수 절차로 실행하지 않는다.
+앞의 vcan smoke는 연결·계측 경로 검증이며 임계 선정/최종 성능 인수가 아니다. 상세 선행조건과 실행 범위는 M5 하네스 절차를 따른다.
 
 같은 데이터로 임계값도 고르고 성능도 재면 **성능이 실제보다 좋게 나온다**(시험 문제를 미리 보고 그 문제로 시험 보는 것과 같다).
 
@@ -364,9 +375,10 @@ python security/experiments/run_ablation.py --channel vcan0 --trials 100 --out r
 ## 4. 검증 명령과 합격 기준
 
 ```bash
-python security/experiments/run_ablation.py --trials 100 --out results/ablation.csv
-python security/experiments/summarize_ablation.py
-python security/experiments/analyze_roc.py
+python -m security.experiments.summarize_ablation \
+  --input-dir results/m5-physical-001 --output results/m5-physical-001.summary.json
+# offline IF ROC, 실제 wire FPR는 각각 별도 입력/분모를 사용한다.
+# 현재 CLI와 manifest 준비는 docs/development/playbooks/experiment-analysis.md 참조.
 python -m pytest security/tests -v
 ```
 
@@ -377,7 +389,7 @@ python -m pytest security/tests -v
 | TC-EXP-001~004 | 실제 CAN 공격 4종 × 방어 구성 3개 × 유효 100시행과 전체 시도 원장. Config 3의 공격별 탐지율 ≥90%, 각 TC의 성공/거부/전달/지연을 독립 보고 |
 | TC-EXP-005 | 실제 CAN 정상 입력 오탐율 ≤5%, 완전한 윈도우 100개 이상·길이/이동폭/분모·누락 기록 |
 | 데이터 | 유효 조합 1,200개, 중복 없음, 실패/INVALID/재시도 원장 및 관측 로그 대응. 행 수만으로 PASS하지 않음 |
-| 산출물 | `results/roc_curve.png`, 확정 임계값 |
+| 산출물 | 원수 JSON+`roc_curve.svg` (PNG 필요 시 별도 변환), 선정 근거. runtime 적용·확정은 독립 장비 인수 후 |
 | 문서 | TARA·ADR에 실험 결과 반영 |
 | 태그 | `v0.5.0` |
 
@@ -463,7 +475,7 @@ ECU-EXP-01에 Q1=A·Q3=A와 N06/N07을 연결한다. 기존 4공격×3구성×10
 2. A0 정상, A1 Flood, A2 Fuzz, A3 Spoof, A4 Replay, A5 Suspension, A6 정상 주기 대체 위장으로 원자료를 연결한다. 21조합은 시나리오 목록이며 동일 반복 수의 새 공식 인수표가 아니다. A5/A6 반복·강도·준비/복구 구간은 pilot 후 사전 고정한다.
 3. raw log·label CSV·manifest를 묶고 JSONL 사건을 보완한다. run/boot/trial/sample/profile/source_mode·seed·코드/입력/모델/규칙 hash·실험 설정·버전·시계·드롭을 연결한다. 실제 Git이 없으면 commit을 만들지 않고 파일 hash로 식별한다.
 4. frame·event/window·시행 라벨을 구분한다. train/calibration/final-test는 capture/run 단위로 분리하고 인접 윈도우나 source timestamp·정답 라벨이 학습의 지름길이 되지 않게 한다. 새 seed를 미지 공격으로 부르지 않는다. family/profile holdout 주장에는 실제 분리 목록을 제시한다.
-5. 기존 `run_eval.py`는 합성 detector 비교로 유지하고, 예정 `run_ablation.py`와 물리 수집 어댑터에 보강한다. 별도 `run_matrix.py`를 중복 생성하지 않는다. raw·대형 모델은 제외/외부 보존 경로에 두고 최종 증거에는 위치·hash·재현 절차를 남긴다.
+5. 기존 `run_eval.py`는 합성 detector 비교로 유지하고, 구현된 `run_ablation.py`와 물리 수집 어댑터의 장비 인수를 진행한다. 별도 `run_matrix.py`를 중복 생성하지 않는다. raw·대형 모델은 제외/외부 보존 경로에 두고 최종 증거에는 위치·hash·재현 절차를 남긴다.
 
 ### 수행 절차 — N06/N07
 

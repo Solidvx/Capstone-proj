@@ -4,7 +4,7 @@
 
 > **담당**: ECU / BSW / BMS / SecOC / IDS · **플랫폼**: RPi4 Ubuntu 22.04, C++17, Python
 > **짝 계획**: [IVI.md](IVI.md) · **공동 절차**: [detail/common/](detail/common/)
-> **갱신 기준일**: 2026-09-09 (문서 안내 정정; 구현 스냅샷 날짜와 별개)
+> **갱신 기준일**: 2026-10-03 · [전체 계획 진행·남은 관문 보고](../docs/development/reviews/전체계획_진행보고_20261003.md)
 
 ---
 
@@ -76,31 +76,32 @@ Node A를 실제 차량 ECU처럼 동작시키고, Node B IVI와 CAN 버스로 e
 
 ## 2. 현재 구현 상태 스냅샷
 
-**확인 기준일 2026-09-06.** 실제 파일을 읽어 작성했다. 소스 존재와 시험 통과는 다르다.
+**확인 기준일 2026-10-03.** develop 작업 트리와 로컬 Linux 시험 기준이다. 소스 존재·로컬 시험·물리 인수는 다르다. 003 전달본과 이후 테스트 보강은 [전체 진행 보고](../docs/development/reviews/전체계획_진행보고_20261003.md)에서 구분한다.
 
 | 영역 | 상태 | 근거 |
 |---|---|---|
 | C++ BSW·App 모듈 | **구현됨** | `can_cdd`, `can_publisher`, `mock_can_driver`, `secoc_module`, `watchdog_manager`, `ekf_soc_estimator`, `failsafe_sm`, `sensor_simulator`, `soh_estimator` |
 | 100ms 주기 ECU 루프 | **구현됨** | `adaptive_ecu/main.cpp`. `sleep_until` 기반, SecOC 동반 송신 포함 |
-| C++ 단위 시험 | **13종 등록됨** | CTest: `test_ads1115_conversion`, `test_sensor_quality`, `test_adc_acquisition_gate`, `test_ads1115_registers`, `test_publisher`, `test_mock_can_driver`, `test_sensor_simulator`, `test_can_publisher`, `test_ekf_soc`, `test_soh_estimator`, `test_failsafe_sm`, `test_watchdog_manager`, `test_secoc` |
+| C++ 단위 시험 | **16개 CTest 통과** | Release 전달본 및 Debug/ASan 로컬 증거. CTest 실행 파일 수이며 개별 GTest case 수와 다름 |
 | SecOC | **Python·C++ 양쪽 구현** | 입력 14B, 절단 MAC 4B, 카운터 윈도우 100, 상수시간 비교 |
 | IDS 오프라인 평가 | **구현됨** | `traffic_gen`(공격 5종), `feature_extractor`(7차원), `rule_baseline`, `spec_detector`, `if_detector`, `run_eval` |
-| IDS 실시간 경로 | **미구현** | 수집·학습·`0x200` 송신 스크립트 없음 |
-| Ablation 하네스 | **미구현** | Config 1/2/3 비교 러너 없음 |
-| 그래프·재현성 도구 | **미구현** | plot / verify 스크립트 없음 |
-| RPi4·MCP2515·물리 CAN | **보유 사양·배선 확인, 동작 미검증** | RPi4 8GB 2대, MCP2515-I/SO+TJA1050 8MHz 모듈 2개, 레벨 컨버터 5개와 기존 배선표 확인. `can0`·양방향 CAN은 실장비에서 검증 필요 |
+| IDS 실시간 경로 | **구현·로컬 검증, 물리 인수 대기** | `security/ids/runtime.py`, 정상 수집·학습·공격 도구 존재. IF 미분류 진단의 새 wire 정책은 도입하지 않음 |
+| Ablation 하네스 | **구현·vcan 파일럿 검증** | 12조합 두 run 및 원장·요약. 물리 1,200회 완료 아님 |
+| 그래프·재현성 도구 | **부분 구현** | ROC SVG·혼동지표·CSV·REP 비교 존재. M6 Ablation 3종/EKF 그림은 남음 |
+| RPi4·MCP2515·물리 CAN | **일부 관찰·기록, 최신 전달본 인수 대기** | 사용자 CAN100/102 및 Fail-safe101/103 로그·화면 관찰. 버전·동일 run을 연결한 정식 IT/TC 결과는 별도 필요 |
+| 커버리지 | **목표 미달** | 제품 src/include/main/tools 포함 라인 520/853=60.96%, Fail-safe 분기 30/32=93.75%. 누락 cpp 0; gcc15.2 로컬 단위시험 범위 |
 
 ### 문서·구현 차이와 해소 상태
 
 | # | 내용 | 처리 |
 |---|---|---|
 | D1 | IDS 특징 벡터의 문서·구현 불일치 해소: 7개 특징 이름·순서 일치 확인(2026-09-10) | [M6](detail/ecu/M6_문서_품질.md)에서 특징·전처리·threshold와 실행 증거를 대조한다. 정적 일치는 IDS 실행 인수 완료가 아님 |
-| D2 | SDD의 EKF가 3차 OCV·50Ah 전제, 제품은 3차 OCV·50Ah로 수정됐으나 실행 미검증 | SOC-2=A 적용 소스의 C++ 시험 실행 ([M3](detail/ecu/M3_EKF_Failsafe_SecOC.md)); 현 구현과 목표를 구분 |
+| D2 | SDD·제품의 3차 OCV·50Ah 전제 일치, 로컬 EKF 시험 통과 | TC-BMS-001 전체 인수 및 정확도 원시 증거는 별도 대조 ([M3](detail/ecu/M3_EKF_Failsafe_SecOC.md)) |
 | D3 | `SensorSimulator` 모드가 문서 4개, 구현 5개(`POTENTIOMETER` 추가) | **해소(2026-10-03, [CHG-011](../docs/aidlc/changes/CHG-011/aidlc-state.md))**: POTENTIOMETER와 setter 3종을 제거하고 시험을 ADS1115 모드·모드 이름 검증으로 이관했다. 미지원 모드는 종료 코드 2. 이전 계획: I-5=B에 따라 [M3 §3.11.1](detail/ecu/M3_EKF_Failsafe_SecOC.md)에서 사용처·필요 시험 이관 후 추가 모드를 제거하고 소스·CLI·시험을 공식 4모드에 맞춘다. [M6](detail/ecu/M6_문서_품질.md)에서 정합성과 증거 확인; SDD를 5모드로 확대하지 않음 |
 | D4 | TC-BSW-007(Watchdog 재시작 3회 연속 실패 → WARNING) 로직 없음 | 재시작·실패 집계·reason 0x07 구현 과제 ([M3](detail/ecu/M3_EKF_Failsafe_SecOC.md) 3.6) |
-| D5 | Fail-safe에 CRITICAL → NORMAL 복귀 경로 없음 | SRS와 대조 후 결론 기록 ([M3](detail/ecu/M3_EKF_Failsafe_SecOC.md) 3.5) |
+| D5 | CRITICAL → NORMAL 자동 복귀 없음: 현행 latch 정책 | 오류로 자동 해제하지 않음. 입력 회복 후 CRITICAL 유지·SHUTDOWN 수동 reset을 회귀시험으로 확인 ([M3](detail/ecu/M3_EKF_Failsafe_SecOC.md) 3.5) |
 | D6 | TC-SEC-005-d의 과거 fps 기준은 버스 점유율 ≥50%로 정정 완료. 약 3,700fps는 특정 프레임 길이 가정의 계산값이며 보편적 물리 상한이 아님 | [M4](detail/ecu/M4_IDS_공격_물리통합.md) §3.4와 TEST_PLAN에 따라 실제 물리 CAN 캡처·계측으로 점유율을 인수한다. 합성/vcan은 사전 검증이며 실측 인수는 별도 |
-| D7 | S-21 7조건 제품 시험은 추가됐으나 미실행. TC-BMS-001의 전체 인수도 미완료 | 기존 시험과 공식 TC 범위를 대조하고 C++17 환경에서 실행·증거 인수 ([M3](detail/ecu/M3_EKF_Failsafe_SecOC.md) 3.3) |
+| D7 | S-21 관련 EKF 제품 시험 로컬 통과. TC-BMS-001 전체 인수는 미완료 | 등록 시험 통과와 공식 TC의 조건·분모·오차 증거를 별도 연결 ([M3](detail/ecu/M3_EKF_Failsafe_SecOC.md) 3.3) |
 
 ---
 
@@ -191,14 +192,14 @@ ECU 담당은 계약·더미 벡터·송신/공격 도구·검증된 빌드와 �
 
 | 단계 | 상태 | 검증 결과 | 차단 요인 | 갱신일 |
 |---|---|---|---|---|
-| M1 | | | | |
-| M2 | | | | |
-| M3 | | | | |
-| M4 | | | | |
-| M5 | | | | |
-| M6 | | | | |
-| M7 | | | | |
-| M8 | | | | |
+| M1 | 검증대기 | 로컬 빌드·과거 Pi 환경 증거 | 최신003 양 노드 환경/빌드 확인, CI 환경 별도 | 2026-10-03 |
+| M2 | 검증대기 | ADC/Publisher 등 로컬 CTest 및 사용자 CAN 관찰 | 물리 주기·실취득·동일 run TC 증거 | 2026-10-03 |
+| M3 | 진행 | ECU CTest16/16·ASan16/16, Fail-safe 분기93.75% | 워치독 재시작/3실패 WARNING 미구현, branch100%/공식 SOC·보안 인수 | 2026-10-03 |
+| M4 | 진행 | IDS·공격 도구와 vcan 검증 | 물리 IT-001~005·IDS 경보/점유율/복구 | 2026-10-03 |
+| M5 | 진행 | 12조합×두 vcan pilot, FPR100윈도우, ROC 도구 | 물리 학습/보정/독립 평가·유효1,200시행 | 2026-10-03 |
+| M6 | 진행 | gcov 라인60.96%, ROC/CSV·문서 일부 정정 | 품질 목표·cppcheck·4그림·CI·공식TC 추적성 | 2026-10-03 |
+| M7 | 진행 | pilot 재현 비교0.0%p, 단기 ASan | 공식 규모 반복·Pi8h/CPU/RSS/성능·최종교차검토 | 2026-10-03 |
+| M8 | 진행 | 데모/제출 계획·실행 안내 준비 | 리허설·최종 영상/슬라이드/보고서·Release | 2026-10-03 |
 
 기록 규칙: 상태는 `미착수 / 진행 / 검증대기 / 완료`. 검증 결과에는 **실행한 명령과 결과**를 적는다. 차단 요인에는 의존 대상과 필요한 조치를 적는다.
 
@@ -207,4 +208,4 @@ Plan 승계 과제 색인: [공동 병합 기록](detail/common/00_협업_규약
 
 ## IDS 독립 브랜치 인계 (CHG-007)
 
-`feat/ecu-can-ids`에 스트리밍 규칙·IF·독립 SecOC 관찰·replay/SocketCAN 경로를 추가했다. 위 기존 현황의 “실시간 경로 미구현”은 이 브랜치에서 소스 구현/소프트웨어 시험으로 갱신하며 장비 인수는 미완료다. [실행 방법](../security/ids/README.md), [증거](../docs/aidlc/changes/CHG-007/audit.md). 물리 통합·인증 이벤트 채널·세션·M5 실험은 별도 과제다.
+`feat/ecu-can-ids`에 스트리밍 규칙·IF·독립 SecOC 관찰·replay/SocketCAN 경로를 추가한 이력이다. 2026-10-03 현재 develop 작업 트리에서도 실시간 코드·로컬 실행 증거를 확인했으며 위 §2/§8에 반영했다. [실행 방법](../security/ids/README.md), [당시 증거](../docs/aidlc/changes/CHG-007/audit.md). 물리 통합 인수·새 인증 이벤트/세션 계약·공식 M5 실험 완료를 뜻하지 않는다.

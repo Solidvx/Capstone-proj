@@ -1,5 +1,5 @@
 > **문서명**: CI/CD Pipeline Specification (CICD_SPEC)
-> **최종 검토**: 2026-09-22 · **상태**: 예정 명세. `.github/`, Dockerfile, toolchain, 배포 스크립트는 현재 없다.
+> **최종 검토**: 2026-10-03 · **상태**: CI 예정 명세. GitHub workflow·Docker ARM64·cross toolchain은 없으나 IVI 제품/수동 배포 스크립트와 ECU 계측 옵션은 존재한다. [실행 현황](development/reviews/전체계획_진행보고_20261003.md)
 > **원천**: [SRS](SRS.md) FR-CI-001~006/NFR-QA, [TEST_PLAN](TEST_PLAN.md) TC-CI-001~006, ADR-006/007
 
 # 1. 개요
@@ -20,7 +20,7 @@ Stage 1 정적 분석 → Stage 2 ARM64 빌드 → Stage 3 시험·커버리지 
 | `.github/workflows/ci.yml` | 예정. 이벤트·jobs·품질 게이트 |
 | `Dockerfile.arm64`, `toolchain-aarch64.cmake` | 예정. 대상 compiler/runtime/의존성 |
 | `scripts/health_check.sh` | 예정. Node A 정상 데이터 확인·실패 코드 |
-| `ivi_platform/` | 미구현. Qt 6/CMake 빌드·Qt Test·QML Test를 Node A와 구분해 추가할 대상 |
+| `ivi_platform/` | 구현됨. Qt/CMake·CTest·수동 Pi 빌드/배포 스크립트 존재. GitHub CI 연결·자동 health/rollback 인수는 남음 |
 
 # 2. GitHub Actions 파이프라인 상세
 
@@ -42,7 +42,7 @@ Docker에서 실제 CMake 타겟 `adaptive_ecu`를 빌드한다. IVI 소스가 �
 
 ## 2.4. Stage 3 — 단위 테스트 + 커버리지 (FR-CI-004)
 
-`ECU_BUILD_TESTS=ON`으로 구성한다. `ENABLE_COVERAGE`는 현재 CMake에 없는 **추가 구현 과제**이며 인자만 전달하고 계측됐다고 판정하지 않는다. 호스트·ARM64 계측 빌드 디렉토리를 분리한다. `/workspace`에서 생성한 CTest는 동일 마운트 경로의 컨테이너에서 실행한다. ARM64 dynamic loader·라이브러리와 emulator/binfmt를 실제 시험 실행으로 확인한다.
+`ECU_BUILD_TESTS=ON`으로 구성한다. ECU CMake에는 `ENABLE_COVERAGE`가 존재하며 로컬 GCC 계측 시험을 실행했다. 옵션 존재만으로 CI 게이트 통과를 뜻하지 않으며 전체 분모·목표 충족은 별도 검증한다. 호스트·ARM64 계측 빌드 디렉토리를 분리한다. `/workspace`에서 생성한 CTest는 동일 마운트 경로의 컨테이너에서 실행한다. ARM64 dynamic loader·라이브러리와 emulator/binfmt를 실제 시험 실행으로 확인한다.
 
 | 게이트 | 합격 조건 | 무효/실패 조건 |
 |---|---|---|
@@ -69,7 +69,7 @@ Docker에서 실제 CMake 타겟 `adaptive_ecu`를 빌드한다. IVI 소스가 �
 
 ## 3.3. adaptive_ecu/CMakeLists.txt 필수 옵션
 
-기존 CMake를 별도 골격으로 덮어쓰지 않는다. 실제 옵션 `ECU_BUILD_TESTS`와 타겟을 보존하고 coverage 기능만 추가한다. 현재 로컬 재현 명령은 [AGENTS 검증 기준](../AGENTS.md#6-verification-baseline)을 따른다. 계측 활성화·테스트 이름·누락 소스와 실패 전파를 검증한 뒤 CI에 연결한다.
+기존 CMake를 별도 골격으로 덮어쓰지 않는다. 실제 옵션 `ECU_BUILD_TESTS`·`ENABLE_COVERAGE`와 타겟을 보존한다. 현재 로컬 재현 명령은 [AGENTS 검증 기준](../AGENTS.md#6-verification-baseline)을 따른다. 계측 활성화·테스트 이름·누락 소스와 실패 전파를 검증한 뒤 CI에 연결한다.
 
 # 4. QEMU user-mode 에뮬레이션 상세 (ADR-006)
 

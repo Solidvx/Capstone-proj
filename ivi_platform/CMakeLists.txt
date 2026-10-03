@@ -10,6 +10,16 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(IVI_BUILD_TESTS "Build IVI core tests" ON)
 option(IVI_BUILD_QT_APP "Build the Qt Quick dashboard when Qt 6 is available" ON)
+option(IVI_BUILD_EXPERIMENT_TOOLS "Build separate, unprotected CAN experiment dashboard" OFF)
+option(ENABLE_ASAN "Build with AddressSanitizer" OFF)
+
+if(ENABLE_ASAN)
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        message(FATAL_ERROR "ENABLE_ASAN requires GCC or Clang")
+    endif()
+    add_compile_options(-fsanitize=address -fno-omit-frame-pointer -g)
+    add_link_options(-fsanitize=address)
+endif()
 
 find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
@@ -46,6 +56,10 @@ if(IVI_BUILD_TESTS)
         target_link_libraries(${test_name} PRIVATE ivi_core)
         add_test(NAME ${test_name} COMMAND ${test_name})
     endforeach()
+    add_executable(test_unprotected_test_receiver test/test_unprotected_test_receiver.cpp)
+    target_include_directories(test_unprotected_test_receiver PRIVATE test ui_qml)
+    target_link_libraries(test_unprotected_test_receiver PRIVATE ivi_core)
+    add_test(NAME test_unprotected_test_receiver COMMAND test_unprotected_test_receiver)
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         add_executable(test_socketcan_receiver test/test_socketcan_receiver.cpp)
         target_include_directories(test_socketcan_receiver PRIVATE
@@ -106,6 +120,17 @@ if(IVI_BUILD_QT_APP)
         )
         install(TARGETS ivi_dashboard
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+        if(IVI_BUILD_EXPERIMENT_TOOLS)
+            qt_add_executable(ivi_dashboard_experiment
+                ui_qml/main.cpp ui_qml/dashboard_view_model.cpp ui_qml/dashboard_view_model.h)
+            target_include_directories(ivi_dashboard_experiment PRIVATE hal service ui_qml)
+            target_compile_definitions(ivi_dashboard_experiment PRIVATE IVI_EXPERIMENT_BUILD=1)
+            target_link_libraries(ivi_dashboard_experiment PRIVATE
+                ivi_core ivi_socketcan Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::QuickControls2)
+            qt_add_qml_module(ivi_dashboard_experiment
+                URI IviDashboard VERSION 1.0 OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/experiment-qml"
+                QML_FILES ui_qml/qml/Main.qml ui_qml/qml/SocGauge.qml)
+        endif()
         if(IVI_BUILD_TESTS)
             add_executable(test_dashboard_view_model
                 test/test_dashboard_view_model.cpp

@@ -17,7 +17,7 @@ JSONL의 CAN ID는 10진 정수, 데이터는 16진 문자열, `t`는 0 이상 �
 python -m pip install -r security/requirements.txt
 python -m pytest security/tests -q
 python -m security.ids.runtime --replay input.jsonl --rules-only --log events.jsonl
-python -m security.ids.runtime --replay input.jsonl --train-normal normal.jsonl --log if-events.jsonl
+python -m security.ids.runtime --replay input.jsonl --train-normal normal.jsonl --normal-manifest normal.manifest.json --log if-events.jsonl
 ```
 
 로그는 신규 파일만 생성한다. 이미 있는 파일을 덮어쓰지 않는다. START에는 모드·임계 설정·SecOC 관찰 활성 여부, 프레임에는 NORMAL 또는 ANOMALY/DIAGNOSTIC와 timestamp/can_id/reason/anomaly_score, 정상 종료에는 END를 기록한다. NORMAL은 해당 검사에서 위반 없음이며 인증·무공격 보증이 아니다. 종료 코드 2는 입력/설정/통신 오류, 130은 사용자 중단이다.
@@ -45,11 +45,13 @@ IF는 최근 1초의 최대 4096개 프레임에서 7개 특징을 계산해 1�
 이미 준비된 가상/실 CAN 인터페이스만 연다. 이 프로그램은 인터페이스 생성·bitrate 변경을 하지 않는다.
 
 ```sh
-python -m security.ids.runtime --interface vcan0 --train-normal normal.jsonl --secoc-key /path/to/key.bin --log live.jsonl --duration 30 --send-alerts
+python -m security.ids.runtime --interface vcan0 --train-normal normal.jsonl --normal-manifest normal.manifest.json --secoc-key /path/to/key.bin --log live.jsonl --duration 30 --send-alerts
 ```
 
 `--send-alerts` 없이 수신·로그만 수행한다. 송신은 기존 ICD 0x200 8바이트 BE이며 epoch 초의 하위32비트를 사용한다. 전체 경보 송신은 100ms 간격으로 제한한다. 로그에는 모든 탐지와 실제 ALERT_SENT를 구분한다. 키/페이로드를 로그에 복사하지 않는다. 송신/수신 오류는 종료하고 소켓을 닫는다.
 
 ## 완료 범위
+
+현재 학습·평가·오탐률/ROC·반복 절차는 [how_to_train.md](how_to_train.md)를 따른다. READY에는 `send_alerts`를 명시해 수신-only를 경보 모드로 오인하지 않는다. CHG-014~016의 vcan/분석 검증은 아래 원래 CHG-007 소프트웨어 범위를 보완하며 물리 합격을 대신하지 않는다.
 
 [CHG-007](../../docs/aidlc/changes/CHG-007/audit.md)의 소프트웨어 시험 범위만 완료로 판단한다. 물리 CAN·vcan 실제 송수신, Node B 화면까지의 통합, 탐지율/오탐률·CPU/RAM 목표 달성, 인증 이벤트 채널, 새 세션은 후속 검증이다. 이번 작업은 발표의 1차 IDS 소프트웨어 구현이며 ECU M4/M5 전체 완료 선언이 아니다.

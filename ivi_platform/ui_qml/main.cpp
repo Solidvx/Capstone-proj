@@ -3,16 +3,24 @@
 #include <QQuickWindow>
 #include <QTimer>
 #include <QUrl>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #include <chrono>
 #include <deque>
 #include <fstream>
 #include <iostream>
+#include <map>
+#include <mutex>
 #include <string>
 
 #include "dashboard_view_model.h"
 #include "socketcan_receiver.h"
 #include "vehicle_data_service.h"
+#ifdef IVI_EXPERIMENT_BUILD
+#include "unprotected_test_receiver.h"
+#endif
 
 namespace {
 
@@ -24,6 +32,11 @@ struct Arguments {
     int demo_exit_ms = 0;
     std::string latency_csv;
     std::size_t latency_samples = 0;
+    bool experiment_secoc_off = false;
+    bool isolated_bus = false;
+    std::string observation_jsonl;
+    std::string ready_file;
+    std::string run_id = "development";
 };
 
 Arguments parseArguments(int argc, char** argv) {
@@ -44,6 +57,16 @@ Arguments parseArguments(int argc, char** argv) {
             result.latency_csv = argv[++index];
         } else if (argument == "--latency-samples" && index + 1 < argc) {
             result.latency_samples = static_cast<std::size_t>(std::stoul(argv[++index]));
+        } else if (argument == "--experiment-secoc-off") {
+            result.experiment_secoc_off = true;
+        } else if (argument == "--confirm-isolated-test-bus") {
+            result.isolated_bus = true;
+        } else if (argument == "--observation-jsonl" && index + 1 < argc) {
+            result.observation_jsonl = argv[++index];
+        } else if (argument == "--ready-file" && index + 1 < argc) {
+            result.ready_file = argv[++index];
+        } else if (argument == "--run-id" && index + 1 < argc) {
+            result.run_id = argv[++index];
         }
     }
     return result;
@@ -150,9 +173,28 @@ int main(int argc, char* argv[]) {
     QGuiApplication application(argc, argv);
     const auto arguments = parseArguments(argc, argv);
 
+#ifndef IVI_EXPERIMENT_BUILD
+    if (arguments.experiment_secoc_off) {
+        std::cerr << "Unprotected mode requires the separately built ivi_dashboard_experiment\n";
+        return 2;
+    }
+#endif
+    if (arguments.experiment_secoc_off && !arguments.isolated_bus) {
+        std::cerr << "Experiment SecOC OFF requires --confirm-isolated-test-bus\n";
+        return 2;
+    }
+    QFile observations(QString::fromStdString(arguments.observation_jsonl));
+    const bool observation_opened = arguments.observation_jsonl.empty() ||
+        (arguments.observation_jsonl == "-" ? observations.open(stdout, QIODevice::WriteOnly) :
+         observations.open(QIODevice::WriteOnly | QIODevice::NewOnly));
+    if (!observation_opened) {
+        std::cerr << "Observation path must be a new writable file\n";
+        return 2;
+    }
+
     ivi::VehicleDataService service;
     const bool demo_mode = !arguments.demo_scenario.empty();
-    if (!demo_mode &&
+    if (!demo_mode && !arguments.experiment_secoc_off &&
         (arguments.key_path.empty() || !service.loadSecOcKey(arguments.key_path))) {
         std::cerr << "A valid 32-byte SecOC key is required via --secoc-key\n";
         return 2;
@@ -169,11 +211,80 @@ int main(int argc, char* argv[]) {
         });
 
     ivi::SocketCanReceiver receiver;
+#ifdef IVI_EXPERIMENT_BUILD
+    UnprotectedTestReceiver unprotected_receiver;
+#endif
+    std::map<std::uint32_t, ivi::CanPayload> observation_pending;
+    std::mutex observation_mutex;
+    auto record_timeouts = [&](std::uint32_t before, const ivi::VehicleSnapshot& snapshot,
+                               ivi::SocketCanReceiver::Clock::time_point at) {
+        if (!observations.isOpen() || snapshot.pending_timeout_count <= before) return;
+        auto remaining = snapshot.pending_timeout_count - before;
+        for (auto it = snapshot.logs.rbegin(); it != snapshot.logs.rend() && remaining; ++it) {
+            if (it->find("reason=AUTH_TIMEOUT") == std::string::npos) continue;
+            --remaining;
+            const auto id = it->find("channel=BMS") != std::string::npos ?
+                ivi::kCanIdBmsStatus : ivi::kCanIdBmsFailSafe;
+            const auto pending = observation_pending.find(id);
+            if (pending == observation_pending.end()) continue;
+            const auto data = QString::fromLatin1(QByteArray(
+                reinterpret_cast<const char*>(pending->second.data()), 8).toHex());
+            const auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(at.time_since_epoch()).count();
+            QJsonObject row{{"result", "TIMEOUT"}, {"run_id", QString::fromStdString(arguments.run_id)},
+                {"can_id", static_cast<int>(id)}, {"data", data}, {"source_data", data},
+                {"timestamp_ns", QString::number(ns)},
+                {"process_result", static_cast<int>(ivi::ProcessResult::kRejected)},
+                {"secoc_on", true}, {"soc", snapshot.vehicle.soc_percent},
+                {"message", QString::fromStdString(*it)}};
+            observations.write(QJsonDocument(row).toJson(QJsonDocument::Compact) + '\n');
+            observations.flush();
+            observation_pending.erase(pending);
+        }
+    };
     receiver.setCallback(
-        [&service](std::uint32_t can_id,
+        [&](std::uint32_t can_id,
                    const ivi::CanPayload& payload,
                    ivi::SocketCanReceiver::Clock::time_point received_at) {
-            service.processFrame(can_id, payload, received_at);
+            std::lock_guard<std::mutex> observation_lock(observation_mutex);
+            const auto timeout_before = service.latest().pending_timeout_count;
+            auto result = ivi::ProcessResult::kIgnored;
+            ivi::VehicleSnapshot snapshot;
+#ifdef IVI_EXPERIMENT_BUILD
+            if (arguments.experiment_secoc_off) {
+                result = unprotected_receiver.process(can_id, payload);
+                snapshot = unprotected_receiver.latest();
+                if (result == ivi::ProcessResult::kPublished) view_model.updateSnapshot(snapshot);
+            } else
+#endif
+            {
+                result = service.processFrame(can_id, payload, received_at);
+                snapshot = service.latest();
+            }
+            if (observations.isOpen()) {
+                record_timeouts(timeout_before, snapshot, received_at);
+                const auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(received_at.time_since_epoch()).count();
+                QJsonObject row{{"result", "FRAME"}, {"run_id", QString::fromStdString(arguments.run_id)},
+                    {"can_id", static_cast<int>(can_id)},
+                    {"data", QString::fromLatin1(QByteArray(reinterpret_cast<const char*>(payload.data()), 8).toHex())},
+                    {"timestamp_ns", QString::number(ns)},
+                    {"process_result", static_cast<int>(result)},
+                    {"secoc_on", !arguments.experiment_secoc_off},
+                    {"soc", snapshot.vehicle.soc_percent},
+                    {"message", QString::fromStdString(snapshot.last_message)}};
+                if ((can_id == ivi::kCanIdBmsStatus || can_id == ivi::kCanIdBmsFailSafe) &&
+                    (result == ivi::ProcessResult::kPendingAuthentication || result == ivi::ProcessResult::kPublished))
+                    observation_pending[can_id] = payload;
+                const auto original_id = can_id == ivi::kCanIdBmsSecOc ? ivi::kCanIdBmsStatus :
+                    can_id == ivi::kCanIdFailSafeSecOc ? ivi::kCanIdBmsFailSafe : can_id;
+                if (observation_pending.count(original_id)) {
+                    const auto& original = observation_pending.at(original_id);
+                    row["source_data"] = QString::fromLatin1(QByteArray(reinterpret_cast<const char*>(original.data()), 8).toHex());
+                }
+                observations.write(QJsonDocument(row).toJson(QJsonDocument::Compact) + '\n');
+                observations.flush();
+                if ((can_id == ivi::kCanIdBmsSecOc || can_id == ivi::kCanIdFailSafeSecOc) && result == ivi::ProcessResult::kPublished)
+                    observation_pending.erase(original_id);
+            }
         });
     if (!demo_mode &&
         (!receiver.open(arguments.interface_name) || !receiver.start())) {
@@ -190,14 +301,18 @@ int main(int argc, char* argv[]) {
         } else {
             view_model.updateSnapshot(demoSnapshot(arguments.demo_scenario));
         }
-    } else {
+    } else if (!arguments.experiment_secoc_off) {
         QObject::connect(&stale_timer, &QTimer::timeout, [&service]() {
             service.refreshTime();
         });
         stale_timer.start(50);
         // The 100ms pending deadline needs a finer tick than the 50ms stale refresh.
-        QObject::connect(&pending_timer, &QTimer::timeout, [&service]() {
-            service.pollTimeouts();
+        QObject::connect(&pending_timer, &QTimer::timeout, [&]() {
+            std::lock_guard<std::mutex> observation_lock(observation_mutex);
+            const auto before = service.latest().pending_timeout_count;
+            const auto now = ivi::SocketCanReceiver::Clock::now();
+            service.pollTimeouts(now);
+            record_timeouts(before, service.latest(), now);
         });
         pending_timer.start(10);
     }
@@ -216,6 +331,20 @@ int main(int argc, char* argv[]) {
     if (engine.rootObjects().isEmpty()) {
         receiver.stop();
         return 4;
+    }
+    if (!demo_mode) {
+        const QJsonObject ready{{"result", "READY"}, {"run_id", QString::fromStdString(arguments.run_id)},
+                               {"secoc_on", !arguments.experiment_secoc_off}};
+        if (!arguments.ready_file.empty()) {
+            QFile ready_file(QString::fromStdString(arguments.ready_file));
+            if (!ready_file.open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
+                receiver.stop();
+                std::cerr << "Ready file must be new\n";
+                return 2;
+            }
+            ready_file.write(QJsonDocument(ready).toJson(QJsonDocument::Compact));
+        }
+        std::cout << QJsonDocument(ready).toJson(QJsonDocument::Compact).constData() << std::endl;
     }
 
     if (latency_recorder.enabled()) {

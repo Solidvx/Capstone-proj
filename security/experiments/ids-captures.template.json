@@ -1,0 +1,18 @@
+{
+  "schema": "ids-capture-evaluation-v1",
+  "environment": "physical-can",
+  "note": "Example durations only, not measured evidence. Use verified capture durations, distinct raw files/run IDs and SHA256s. Label only wholly normal/attack intervals; do not label baseline/warmup/drain as attack. COMPLETE requires verified uninterrupted capture.",
+  "training": {"capture": "REPLACE_TRAIN_CAPTURE.jsonl", "manifest": "REPLACE_TRAIN_MANIFEST.json"},
+  "captures": [
+    {"path": "REPLACE_CAL_NORMAL.jsonl", "sha256": "REPLACE_SHA256", "run_id": "cal-normal", "purpose": "calibration", "environment": "physical-can", "status": "COMPLETE", "duration_s": 120, "label": 0, "attack_type": ""},
+    {"path": "REPLACE_CAL_FUZZY.jsonl", "sha256": "REPLACE_SHA256", "run_id": "cal-fuzzy", "purpose": "calibration", "environment": "physical-can", "status": "COMPLETE", "duration_s": 3, "label": 1, "attack_type": "fuzzy"},
+    {"path": "REPLACE_CAL_REPLAY.jsonl", "sha256": "REPLACE_SHA256", "run_id": "cal-replay", "purpose": "calibration", "environment": "physical-can", "status": "COMPLETE", "duration_s": 3, "label": 1, "attack_type": "replay"},
+    {"path": "REPLACE_CAL_SPOOFING.jsonl", "sha256": "REPLACE_SHA256", "run_id": "cal-spoofing", "purpose": "calibration", "environment": "physical-can", "status": "COMPLETE", "duration_s": 3, "label": 1, "attack_type": "spoofing"},
+    {"path": "REPLACE_CAL_FLOODING.jsonl", "sha256": "REPLACE_SHA256", "run_id": "cal-flooding", "purpose": "calibration", "environment": "physical-can", "status": "COMPLETE", "duration_s": 3, "label": 1, "attack_type": "flooding"},
+    {"path": "REPLACE_EVAL_NORMAL.jsonl", "sha256": "REPLACE_SHA256", "run_id": "eval-normal", "purpose": "evaluation", "environment": "physical-can", "status": "COMPLETE", "duration_s": 120, "label": 0, "attack_type": ""},
+    {"path": "REPLACE_EVAL_FUZZY.jsonl", "sha256": "REPLACE_SHA256", "run_id": "eval-fuzzy", "purpose": "evaluation", "environment": "physical-can", "status": "COMPLETE", "duration_s": 3, "label": 1, "attack_type": "fuzzy"},
+    {"path": "REPLACE_EVAL_REPLAY.jsonl", "sha256": "REPLACE_SHA256", "run_id": "eval-replay", "purpose": "evaluation", "environment": "physical-can", "status": "COMPLETE", "duration_s": 3, "label": 1, "attack_type": "replay"},
+    {"path": "REPLACE_EVAL_SPOOFING.jsonl", "sha256": "REPLACE_SHA256", "run_id": "eval-spoofing", "purpose": "evaluation", "environment": "physical-can", "status": "COMPLETE", "duration_s": 3, "label": 1, "attack_type": "spoofing"},
+    {"path": "REPLACE_EVAL_FLOODING.jsonl", "sha256": "REPLACE_SHA256", "run_id": "eval-flooding", "purpose": "evaluation", "environment": "physical-can", "status": "COMPLETE", "duration_s": 3, "label": 1, "attack_type": "flooding"}
+  ]
+}
