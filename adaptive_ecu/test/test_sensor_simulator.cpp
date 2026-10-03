@@ -1,9 +1,13 @@
 #include "sensor_simulator.h"
+#include "ekf_soc_estimator.h"
+#include "failsafe_sm.h"
 
 #include <gtest/gtest.h>
 
 #include <stdexcept>
 #include <string>
+#include <utility>
+#include <vector>
 
 TEST(SensorSimulator, ConstantModeReturnsNominalData) {
     SensorSimulator simulator(SensorSimulator::Mode::CONSTANT);
@@ -49,6 +53,33 @@ TEST(SensorSimulator, ProfileCsvReturnsRowsThenHoldsLast) {
     EXPECT_FLOAT_EQ(first.voltage_v, 42.0f);
     EXPECT_FLOAT_EQ(second.voltage_v, 41.8f);
     EXPECT_FLOAT_EQ(third.voltage_v, 41.5f);
+}
+
+TEST(SensorSimulator, FailSafeDemoProducesSeparatedWarningAndCriticalTransitions) {
+    const std::string path = std::string(ECU_SOURCE_DIR) + "/data/failsafe_demo.csv";
+    SensorSimulator simulator(SensorSimulator::Mode::PROFILE_CSV, path);
+    EkfSocEstimator estimator;
+    FailSafeStateMachine failsafe;
+    std::vector<std::pair<int, FailSafeEvent>> events;
+    int cycle = 0;
+    failsafe.setEventCallback([&](const FailSafeEvent& event) {
+        events.emplace_back(cycle, event);
+    });
+
+    for (; cycle < 310; ++cycle) {
+        const auto sample = simulator.next();
+        const float soc = estimator.update(0.1f, sample.current_a, sample.voltage_v) * 100.0f;
+        failsafe.evaluate(soc, sample.temperature_c);
+    }
+
+    ASSERT_EQ(events.size(), 2U);
+    EXPECT_EQ(events[0].second.prev_state, 0U);
+    EXPECT_EQ(events[0].second.new_state, 1U);
+    EXPECT_EQ(events[0].second.reason, FailSafeStateMachine::REASON_LOW_SOC_WARNING);
+    EXPECT_EQ(events[1].second.prev_state, 1U);
+    EXPECT_EQ(events[1].second.new_state, 2U);
+    EXPECT_EQ(events[1].second.reason, FailSafeStateMachine::REASON_LOW_SOC_CRITICAL);
+    EXPECT_GE(events[1].first - events[0].first, 100);
 }
 
 TEST(SensorSimulator, RandomWalkStaysInExpectedRange) {
