@@ -149,3 +149,47 @@ MATCH=기대유형만, COMPOUND=기대유형 포함 여러 유형, MISMATCH=다�
 CAN payload 일치는 발신자 인증이 아니다. Replay는 키 없이 정상 버스에서 관찰한 raw/auth 쌍을 복사하며, MAC 검증 여부를 `authenticated=false`로 명시한다. 실제 SecOC 검증은 ECU·IVI가 수행한다. ECU IDS 원본의 ANOMALY/ALERT_SENT를 ECU 관찰기 구간으로 분리하고, IVI에 게시된 같은 경보 payload와 연결한다. raw CAN 경보와 실제 IDS 송신에 연결된 IVI 유형 결과를 구분한다. 0x200은 인증 비대상이므로 payload 일치 자체를 암호학적 발신 증명으로 간주하지 않는다. IVI 유형 판정은 Node B 관찰기 구간과 IVI의 같은 호스트 monotonic 타임스탬프를 비교하며 다른 노드의 시각을 빼지 않는다. 이 모드의 차단율·공격 성공률·탐지 지연은 측정하지 않으며 null/NOT_EVALUATED로 남긴다. 과거 공격자 참조 인증 지표와 합산하지 않는다.
 
 종료 코드0은 모든 계획 번호의 유효한 수집 완료이며 탐지 합격을 뜻하지 않는다. 무효/실행 오류는2, Ctrl+C는130이다. 소프트웨어 시험 통과와 실장비360회 성공은 구분한다.
+
+## 공격 유형 분리 예비 시험 (isolated-v1)
+
+`--attack-profile isolated-v1`을 명시한다. 기본 mixed-v1의 기존 고속 복합 공격 조건과 결과는 보존한다.
+분리 조건은 flooding만 `--rate`를 사용하고 fuzzy/spoofing은 초당 5프레임,
+replay는 초당 5쌍(raw/auth 연속 송신, C1은 raw만)이다.
+Fuzzy는 기존 메시지 ID와 경보 ID를 제외한 무작위 표준 ID와 payload를 사용한다.
+Spoofing은 키 없이 범위를 벗어난 SOC를 주입한다. 이 조건은 모든 가능한 fuzzy/spoofing 공격의 대표성을 보장하지 않는다.
+ECU IDS는 최근 1초에 서로 다른 미등록 ID 3개 이상일 때 fuzzy로 분류한다.
+단일 UNKNOWN_ID와 PERIOD_TOO_SHORT는 이상 기록을 보존하되 유형을 단정하지 않는다.
+Flooding은 기존 FRAME_RATE 기준으로 분류한다. 실제 복합 징후는 COMPOUND로 유지한다.
+CAN ID/레이아웃과 SecOC 계약은 변경하지 않는다. IDS에는 실험 정답/공격 이름을 전달하지 않는다.
+
+검증: 관련 Python 시험 73 passed, 1 skipped(macOS Linux 전용 시험).
+실장비 분리 시험은 아직 수행하지 않았다. 기존 정상 구간 IF_ANOMALY 원인과 정상 오탐률은 미해결이며
+이번 변경으로 해결됐다고 주장하지 않는다. 기존 pilot과 비교 시 규칙과 공격 조건이 모두 바뀌었다는 점을 명시해야 한다.
+
+### 오류가 발생해도 다른 조합 계속 실행
+
+PC 실행기에 `--max-recoveries 2 --continue-on-error --no-can-reset`을 사용하면,
+종료 확인·로그 봉인이 끝난 복구 가능 실행 오류를 최대 2회 재시도한다.
+CAN 상태 확인은 수행하지만 관리자 권한이 필요한 자동 재설정은 하지 않는다.
+재시도 소진 후 CAN이 정상이면 해당 조합의 남은 번호를 미완료로 남기고 다음 조합으로 진행한다.
+`deferred-cases.jsonl`에 보류 이력을 보존하며 종료 상태는 PARTIAL, 종료 코드는 2다.
+`--resume`은 미완료 번호부터 재시도한다. 미완료 회차는 VALID/완료 수에 포함하지 않는다.
+설정·키·로그 수집/저장 실패, 종료 미확인, CAN 상태 이상은 계속 실행하지 않는다.
+해당 정책은 회차별 강제 재시작을 추가하지 않으며 정상 조합 내 연속 실행을 유지한다.
+
+### 장비 직접 수정본을 Git 버전으로 통일
+
+먼저 PC와 장비의 현재 소스/결과를 보존한다. 장비에서 `git status --short`로 범위를 확인한다.
+직접 수정한 ECU IDS 2파일 또는 Pi3 worker 1파일만 `git stash push -m pre-type-separation-update -- <해당 경로>`로 보관한 후
+머지된 develop을 `git pull --ff-only origin develop`으로 받는다. stash를 자동 pop하지 않는다.
+PC의 실행 worktree는 별도 분리되어 있으므로 원래 dirty 작업 폴더에서 pull/reset하지 않는다.
+
+### 실제 화면 표시 시험
+
+IVI 데스크톱에 로그인한 상태에서 데스크톱 터미널의 `printf '%s\n' "$XDG_SESSION_TYPE" "$XDG_RUNTIME_DIR" "$WAYLAND_DISPLAY" "$DISPLAY"`로
+실제 그래픽 세션을 확인한다. 임의의 DISPLAY 값을 가정하지 않는다.
+PC 설정을 별도 파일로 복사하고 receiver_on/off의 QT_QPA_PLATFORM=offscreen을 해당 세션에 맞춰 변경한다.
+Wayland이면 QT_QPA_PLATFORM=wayland와 확인한 XDG_RUNTIME_DIR/WAYLAND_DISPLAY를 전달하며 IVI 사용자로 실행한다.
+동일한 실험 바이너리를 사용하고 대시보드를 별도로 중복 실행하지 않는다.
+새 run-id/output과 `--stage pilot --attack-profile isolated-v1`로 네 공격의 C3 경보 문구 및 정상 데이터 갱신을 사람이 확인한다.
+화면 관찰 결과는 서비스 MATCH와 별도로 기록한다. 기존 offscreen 360회 결과를 화면 증거로 재분류하지 않는다.

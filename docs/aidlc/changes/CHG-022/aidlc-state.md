@@ -30,3 +30,10 @@
 최신 origin/develop 0b99070에서 feat/pc-campaign 작업을 분리했다. pc_campaign이 PC에서 모든 원격 역할을 관리하며 can_attack_worker는 Pi3에서 키 없이 실제 SocketCAN 송신만 한다. replay는 관찰 raw/auth 쌍을 검증 없이 복사하고, 실제 인증은 ECU·IVI에 남긴다. IVI 게시와 ECU IDS 송신 로그를 대조하며 이전 공격자 참조 차단율·성공률·지연을 추정하지 않는다. 원본 IDS 로그까지 PC 결과 폴더에 수집한다.
 
 SSH 선별 정리 도구는 기본 preview, --apply일 때만 해당 Pi3 키 권한과 파일을 제거한다. PC의 독립 키로 세 노드 접근을 검증하며 기존 authorized_keys를 백업한다. 관련91통과/2Linux생략. 실제 장비 실험·키 삭제는 수행하지 않았다. PC 접속·설정 파일·원격 권한·pilot 확인이 남아 있다. 변경 전후 Python3.9에서 동일한 기존 publication/file_digest 실패가 재현되며 이번 범위 밖으로 유지한다. 자세한 검증은 evidence와 PC 안내 참조.
+
+## 분리 유형 물리360회 후속
+
+isolated-v1 물리360회는 360 VALID, C3 네 공격 각30회 ECU/IVI MATCH로 완료.
+PC 진행/키 없는 Pi3/CAN 공격 역할을 유지한다. 실제 화면·정상 오탐률·차단율은 별도 미검증.
+원본 혼합 공격은 유지하며 분리 조건과 IDS 근거 규칙을 추가했다.
+복구 소진 시 다음 조합 진행은 단위 시험 완료, 물리 오류 복구는 미검증.

@@ -62,6 +62,14 @@ def observer_window(records):
     return barrier('baseline'),barrier('attack'),barrier('idle')
 
 
+def unexpected_off_alert(records, worker, trial):
+    """Exclude payloads injected by this trial; this is not sender authentication."""
+    injected = {(r['can_id'], r['data']) for r in worker
+                if r.get('result') == 'TX' and r.get('trial') == trial}
+    return any(r.get('result') == 'OBS_FRAME' and r.get('can_id') == 0x200
+               and (r['can_id'], r.get('data')) not in injected for r in records)
+
+
 def evaluate(config,attack,trial,worker,observers,ivi,ids_events=None):
     """Remote arrival and IVI service evidence; never infer attacker-key reference metrics."""
     tx=[r for r in worker if r.get('result')=='TX' and r.get('trial')==trial]
@@ -97,7 +105,8 @@ def evaluate(config,attack,trial,worker,observers,ivi,ids_events=None):
             published={int(r['data'][:2],16) for r in ivi if r.get('result')=='FRAME'
                 and r.get('can_id')==0x200 and r.get('process_result')==2
                 and attack_start<=int(r['timestamp_ns'])/1e9<=end and r.get('data')}
-    if config!=3 and codes:reasons.append('ALERT_WITH_IDS_OFF')
+    if config!=3 and any(unexpected_off_alert(records,worker,trial) for records in observers):
+        reasons.append('ALERT_WITH_IDS_OFF')
     expected=CODES[attack]
     ids_codes=set();sent_payloads=set();linked_codes=set()
     if config==3:
@@ -153,10 +162,15 @@ def run_case(settings,args,config,attack,root):
             ids=actors.start(render_command(settings['ids'],values),root,'ids-console');ids_started=True
             ids.ready(run_id,timeout=60)
             ready=next(r for r in ids.snapshot() if r.get('result')=='READY')
+            if getattr(args,'attack_profile','mixed-v1')=='isolated-v1' and ready.get('classification_version')!='evidence-v2':
+                raise ValueError('update ECU IDS: evidence-v2 required')
             if ready.get('mode')!='rules+if' or not ready.get('send_alerts'):raise ValueError('IDS mode mismatch')
         attacker=actors.start(render_command(settings['attacker'],values),root,'attacker')
         attacker.ready(run_id)
         if not any(r.get('role')=='keyless-can-attacker' for r in attacker.snapshot()):raise ValueError('wrong attacker worker')
+        profile = getattr(args,'attack_profile','mixed-v1')
+        if profile == 'isolated-v1' and not any(profile in r.get('profiles',[]) for r in attacker.snapshot()):
+            raise ValueError('update Pi3 worker: isolated-v1 profile unsupported')
         wait_for(actors,max(3,args.baseline))
         for trial in range(args.start_trial,args.start_trial+args.trials):
             active={'run_id':run_id,'environment':'physical','config':config,'ids_mode':manifest['ids_mode'],
@@ -178,7 +192,7 @@ def run_case(settings,args,config,attack,root):
                     raise ValueError('IVI baseline not published: inspect keys, configuration and receiver log before attacking')
                 time.sleep(.02)
             phase_barrier(observers,'attack',actors)
-            request={'trial':trial,'attack':attack,'rate':args.rate,'duration':args.duration,
+            request={'trial':trial,'attack':attack,'rate':(args.rate if profile=='mixed-v1' or attack=='flooding' else 5),'duration':args.duration,'profile':profile,
                      'seed':active['seed'],'interface':args.interface,'secoc':config!=1}
             attacker.process.stdin.write(json.dumps(request)+'\n');attacker.process.stdin.flush()
             wait_for(actors,args.duration+10,attacker,trial)
@@ -188,12 +202,12 @@ def run_case(settings,args,config,attack,root):
             pending.append((active,captures))
             print(json.dumps({'result':'TRIAL_COLLECTED',**active}),flush=True)
             active=None
-            if config!=3 and any(r.get('can_id')==0x200 for records in captures for r in records):
+            if config!=3 and any(unexpected_off_alert(records,attacker.snapshot(),trial) for records in captures):
                 raise ValueError('IDS OFF configuration emitted alerts')
     except KeyboardInterrupt:status='INTERRUPTED'
     except (OSError,ValueError,RuntimeError,TimeoutError) as error:
         status='ERROR';manifest['error']=str(error)
-        manifest['recoverable']=isinstance(error,RuntimeError) and any(s in str(error) for s in
+        manifest['recoverable']=isinstance(error,(RuntimeError,TimeoutError)) and any(s in str(error) for s in
             ('remote actor exited','baseline ECU/reference not ready','attack worker timeout','observer phase timeout'))
     finally:
         errors=actors.close()
