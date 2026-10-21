@@ -36,6 +36,7 @@ def trial_seed(attack, trial):
 
 class Child:
     def __init__(self, command, root, name):
+        self.read_error=None
         self.records=[]
         self.lock=threading.Lock()
         self.output=(root/f'{name}.jsonl').open('x',encoding='utf-8')
@@ -50,6 +51,12 @@ class Child:
         self.thread.start()
 
     def _read(self):
+        try:
+            self._read_lines()
+        except OSError as error:
+            self.read_error = error
+
+    def _read_lines(self):
         for line in self.process.stdout:
             self.output.write(line); self.output.flush()
             try:
@@ -60,6 +67,7 @@ class Child:
                 pass
 
     def snapshot(self):
+        if self.read_error is not None:raise self.read_error
         with self.lock:return list(self.records)
 
     def ready(self,run_id,timeout=20):
@@ -74,7 +82,7 @@ class Child:
         if self.output.closed:return
         self.process.stdin.close()
         # The remote supervisor observes stdin EOF and reaps its process group.
-        if self.process.poll() is None and 'security.experiments.remote_process' in ' '.join(self.process.args):
+        if self.process.poll() is None and any(module in ' '.join(self.process.args) for module in ('security.experiments.remote_process', 'security.experiments.trial_observer')):
             try:self.process.wait(timeout=4)
             except subprocess.TimeoutExpired:pass
         if self.process.poll() is None:

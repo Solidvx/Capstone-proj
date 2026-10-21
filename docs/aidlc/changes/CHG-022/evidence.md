@@ -117,3 +117,20 @@ E3P 구매 페이지 자동 접근은 실패했다. 실물 헤더 방향·동일
 - IVI: 새 외부 빌드 폴더에 `cmake -S ivi_platform -B <build> -DIVI_BUILD_TESTS=ON -DIVI_BUILD_QT_APP=OFF`, build, CTest → **9/9 통과**.
 - 두 Python CLI `--help` 통과. 변경 문서 상대 링크와 `git diff --check` 통과. 키/장비 주소/스크린샷/빌드 산출물 포함 여부 점검.
 - 사용자 제공 화면: ECU·IVI·Pi3의 단발0x123 각 송신을 다른 두 노드가 수신, 표시 오류0 확인. 장시간/고부하/IDS/Qt 실제 게시/원격 supervisor/12회 pilot/1,200회 검증으로 확대 해석하지 않는다.
+
+## 360회 테스트 실행기 후속 검증
+
+`live_three_node_test360` 진입점을 추가하고 공유 실행기에서 30회 고정 test360 단계로 실행한다. 기존 CLI의 pilot1회/official100회와 공식 pilot 게이트는 유지한다. 결과 stage 표시, 12조건×30회 예약, 기존 출력 거부, 시험 버스 확인, ERROR/INTERRUPTED 후 조건 중단, INVALID의 비성공 종료, 테스트 결과의 공식 pilot 대체 거부를 검증했다.
+
+실행: `python -m pytest security/tests/test_live_three_node_test360.py security/tests/test_live_three_node.py security/tests/test_three_node.py security/tests/test_live_experiments.py -q` → **36 passed, 1 skipped** (Linux 전용). macOS 로컬 모의 시험이며 실제360회는 수행하지 않았다.
+
+## 테스트360 오류 처리·재개 후속 검증 (2026-10-22)
+
+- 테스트 전용 독립 360번호 실행, 실패 attempt 보존, 최대2회 복구, 완료 번호 건너뛰기, 소스·설정 변경/미봉인/종료 불명 시 재개 거부를 추가했다. 기존1,200회 연속 실행 계약은 보존했다.
+- ECU·IVI 전체 CAN 수신 관찰기, phase ACK, 원격 소유 프로세스 종료 ACK, CAN 상태 확인/실패 인터페이스 제한 복구를 추가했다. IVI 유형 판정은 종료 후 로그 drain까지 기다린다.
+- 검증: macOS/Python3.9.6에서 `python -m pytest security/tests/test_live_three_node.py security/tests/test_live_three_node_test360.py security/tests/test_test360_observers.py security/tests/test_three_node.py security/tests/test_live_experiments.py security/tests/test_ablation_lifecycle.py security/tests/test_ablation_resume.py -q` → 70 passed, 2 skipped (Linux 조건).
+- 시험 범위: 360개 고유 번호, INVALID 계속, 재시도 예산/실패 보존, 재개 중복 방지, 종료 불명 차단, 잘못된 설정·저장 오류 차단, 원격 수신 없는 echo 거부, 늦게 도착한 IVI 로그 반영, 관찰기 phase 경계/EOF, 실패 CAN만 reset, 정식1,200회 유지. CLI help와 diff 공백 검사 통과.
+- 실장비 SSH·sudo·SocketCAN·관찰기 부하 및 360회는 미실행. payload 일치는 송신자 인증이 아니며 baseline과 동일한 replay의 고유 도착을 보장하지 않는다. 독립 trial 시작/IDS 재학습 비용 때문에 정식 연속시험과 합산하지 않는다.
+# 연속 실행 전환 후속 — 2026-10-22
+
+사용자 요청에 따라 구성·공격 조합별 30회 연속 실행으로 전환했다. 정상 360회는 12세션으로 실행하며 오류 시 완료 번호를 보존하고 실패 번호부터 제한 복구한다. 회차별 관찰기 ACK·수신·드롭 증거를 분리하고 모든 완료 행의 IVI 로그를 종료 후 확정한다. schema=test360-v3-continuous로 이전 독립 실행 결과와 재개를 혼합하지 않는다. 관련 pytest 74통과/2Linux생략. 실제 장비 실행은 미실행이다.

@@ -205,9 +205,25 @@ nano tmp/live-three-node-settings.json</code></pre></div>
   --run-id THREE-FULL-001 --out tmp/three-full-001 \
   --key &quot;$SECOC_KEY&quot; --i-am-on-a-test-bus</code></pre></div>
 <div class="pass"><b>확인 결과</b><br>파일럿과 공식 결과는 실제 출력으로 판정합니다. 1,200은 계획 시행 수이며 1,200개 유효 결과를 보장하지 않습니다.</div>
-<div class="stop"><b>여기서 멈추는 경우</b><br>학습·보정 데이터 생성부터 결과 해석까지는 <a href="../docs/development/playbooks/three-node-hardware-experiment.md">상세 실험 절차</a>를 따릅니다. 중단 캠페인 부분 재개는 제공하지 않습니다.</div>
+<div class="stop"><b>여기서 멈추는 경우</b><br>학습·보정 데이터 생성부터 결과 해석까지는 <a href="../docs/development/playbooks/three-node-hardware-experiment.md">상세 실험 절차</a>를 따릅니다. 정식 1,200회 실행은 부분 재개를 제공하지 않습니다. 아래 테스트360은 --resume을 지원합니다.</div>
 <label class="check"><input type="checkbox" class="done">이 단계 확인 완료</label></section>
-<div class="group" id="trouble"><h2>문제가 생기면 여기에서 멈추기</h2><p>에러를 없애기 위해 설정을 계속 추가하지 말고, 해당 노드의 출력부터 확인합니다.</p></div>
+<section class="step" id="test360"><span class="where">공격 Pi3 · 프로젝트 루트</span><h3>테스트360: 실패 기록을 남기며 진행하기</h3>
+<p><b>목적:</b> Pi3 공격이 ECU·IVI에 도착하는지, 의도한 공격 유형이 IVI에 같은 유형으로 게시되는지 확인합니다.</p>
+<h4>① 세 노드 소스 업데이트 → 테스트 설정 작성</h4>
+<p>새 관찰기와 종료 확인 코드가 필요하므로 ECU·IVI·Pi3 모두 같은 버전을 사용합니다. 기존 원격 설정을 참고해 새 템플릿의 REPLACE 항목을 채우세요.</p>
+<pre><code>cp security/experiments/live-three-node-test360-settings.template.json tmp/live-three-node-test360-settings.json
+nano tmp/live-three-node-test360-settings.json</code></pre>
+<h4>② 실행하기</h4><pre><code>read -r -p "공격 Pi3 시험용 키 파일 절대경로: " SECOC_KEY
+.venv-handoff/bin/python -m security.experiments.live_three_node_test360 \
+  --settings tmp/live-three-node-test360-settings.json \
+  --run-id THREE-TEST360-001 --out tmp/three-test360-001 \
+  --key "$SECOC_KEY" --i-am-on-a-test-bus</code></pre>
+<div class="pass"><b>계속 진행:</b> 유형 불일치·미탐·개별 INVALID는 결과로 남기고 다음 번호로 갑니다.<br><b>최대 2회 재시도:</b> 복구 가능한 실행 오류는 원격 종료와 세 노드 CAN 상태를 확인한 뒤 같은 번호를 다시 실행합니다.</div>
+<div class="stop"><b>멈춤:</b> 키·설정·저장 오류, 원격 종료 확인 실패, 복구 실패나 재시도 한도 초과. 무조건 건너뛰어 정상 결과처럼 만들지 않습니다.</div>
+<h4>③ 중단 후 이어서 실행하기</h4><p>문제를 해결한 뒤 <b>②의 같은 명령 끝에 --resume</b>을 붙입니다. 완료된 번호는 다시 실행하지 않습니다. 소스·설정을 바꿨거나 종료 확인이 불가능하면 새 캠페인으로 시작하세요.</p>
+<h4>④ 결과 보기</h4><p><code>checkpoint.json</code>: 최근 번호. <code>summary.json</code>: 종료 후 완료·유효·무효·남은 수와 유형 집계.</p>
+<p><b>MATCH</b> 일치 · <b>COMPOUND</b> 기대 유형 포함 복합 · <b>MISMATCH</b> 다른 유형 · <b>MISSED</b> 미탐. C1·C2는 IDS OFF라 유형 평가를 하지 않습니다.</p>
+<p>360개 번호와 재시도 횟수는 따로 기록합니다. 각 구성·공격 조합에서 프로그램을 한 번 켜고 30회를 연속 실행합니다. 정상일 때는 유지하고 실행 오류 복구 때만 재시작합니다. 총12조합은 한 명령으로 자동 진행합니다. <a href="../docs/development/playbooks/three-node-hardware-experiment.md">복구 조건·권한 준비·결과 해석 상세 안내</a></p></section><div class="group" id="trouble"><h2>문제가 생기면 여기에서 멈추기</h2><p>에러를 없애기 위해 설정을 계속 추가하지 말고, 해당 노드의 출력부터 확인합니다.</p></div>
 <section class="step" id="step-22"><div class="num">STEP 22</div><span class="where">문제가 있는 Pi</span><h3>can0가 없거나 BUS-OFF일 때</h3><p>아래 읽기 명령으로 원인을 확인합니다.</p>
 <div class="cmd"><div class="cmdhead"><span>터미널에 입력</span><button class="copy" data-copy="cmd-39" type="button">복사</button></div><pre><code id="cmd-39">sudo dmesg | grep -Ei &#x27;mcp251|spi|can|i2c&#x27; | tail -60
 ip -details -statistics link show can0</code></pre></div>
