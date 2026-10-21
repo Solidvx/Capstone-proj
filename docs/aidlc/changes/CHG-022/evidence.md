@@ -177,3 +177,12 @@ C2/C3 replay 각480 auth 후보 중 published30/rejected450이며 수집 단계�
 invalid BMS payload로 거부됐다. 이는 SecOC 효과가 아니라 입력 범위 검사다.
 Flooding/fuzzy는 IVI 수신 필터 때문에 해당 FRAME 로그가 없어 0을 차단 성공으로 해석하지 않는다.
 일반 차단율은 아직 미측정이다. 정상 오탐률은 새 독립 정상 캡처로 평가할 예정이다.
+
+## 정상 오탐률·추가 인증 거부 사용자 출력 — 2026-10-22
+
+고정: 300.0044229770001초/5996프레임/오류·드롭0, 규칙0/298 PASS, 규칙+IF2/298 PASS.
+조작: 300.0077544479991초/6000프레임/오류·드롭0, 양 모드0/298 PASS.
+Replay 동일 auth 송신16개, 게시1(원본 정상 후보), 거부16(counter backward11/orphan5).
+변조 raw/auth1쌍, IVI 연결 원본 일치, MAC_FAIL(counter16123) 거부.
+근거는 사용자 제공 manifest·CLI·payload 필터 출력이며 장비 원본 전체 재수집은 아직 미수행이다.
+상세 수치·로그 상대 위치·실패 시도·해석 제한은 [통합 보고서](../../../development/experiments/three-node-validation-20261022.md) 6·8절을 따른다.
