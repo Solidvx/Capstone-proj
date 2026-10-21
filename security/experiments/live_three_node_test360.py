@@ -83,6 +83,7 @@ def summarize(root):
 def execute(settings, args, root, runner=None):
     runner = runner or live.run_case
     count = getattr(args, 'per_case', 30)
+    deferred = False
     for config in (1, 2, 3):
         for attack in live.ATTACK_TYPES:
             directory = root / f'C{config}-{attack}'
@@ -115,13 +116,25 @@ def execute(settings, args, root, runner=None):
                 if status == 'INTERRUPTED':return status
                 # Progress to a new failing number gives that number its own retry budget.
                 if len(completed) >= trial:retries = 0
-                if not manifest.get('recoverable') or retries >= args.max_recoveries:
+                if not manifest.get('recoverable'):
                     return 'ERROR'
-                check_health(settings, segment, recover=True)
+                if retries >= args.max_recoveries:
+                    if not getattr(args,'continue_on_error',False):return 'ERROR'
+                    # Only proceed after sealed logs, acknowledged cleanup and healthy CAN.
+                    check_health(settings, segment)
+                    with (root/'deferred-cases.jsonl').open('a') as stream:
+                        stream.write(json.dumps({'config':config,'attack':attack,
+                            'next_trial':len(completed)+1,'remaining':count-len(completed),
+                            'error':manifest.get('error','recoverable execution failure')})+'\n')
+                    print(json.dumps({'result':'CASE_DEFERRED','config':config,'attack':attack,
+                                      'remaining':count-len(completed)}),flush=True)
+                    deferred = True
+                    break
+                check_health(settings, segment, recover=not getattr(args,'no_can_reset',False))
                 retries += 1
                 print(json.dumps({'result': 'RETRY', 'config': config, 'attack': attack,
                                   'trial': len(completed)+1, 'next_session': number+1}), flush=True)
-    return 'COMPLETE'
+    return 'PARTIAL' if deferred else 'COMPLETE'
 
 
 def main(argv=None, *, pc=False):
@@ -131,6 +144,9 @@ def main(argv=None, *, pc=False):
     else:
         parser.add_argument('--stage',choices=('pilot','test360','official'),default='test360')
         parser.add_argument('--pilot-dir')
+        parser.add_argument('--continue-on-error',action='store_true')
+        parser.add_argument('--no-can-reset',action='store_true')
+        parser.add_argument('--attack-profile', choices=('mixed-v1','isolated-v1'), default='mixed-v1')
     parser.add_argument('--interface', default='can0')
     parser.add_argument('--sensor-mode', choices=('constant', 'ads1115'), default='constant')
     for name, default in (('rate', 1000), ('duration', 3), ('baseline', 2), ('post', 1)):
@@ -154,6 +170,7 @@ def main(argv=None, *, pc=False):
             validate_extra(settings, live.validate_settings(settings))
             if len(Path(args.key).read_bytes()) != 32:raise ValueError('key must have 32 bytes')
         phases = {k: getattr(args, k) for k in ('rate', 'duration', 'baseline', 'post', 'sensor_mode', 'interface')}
+        if pc:phases['attack_profile'] = args.attack_profile
         metadata = {'schema': 'pc-test360-v1' if pc else 'test360-v3-continuous', 'stage': args.stage, 'trials': args.per_case, 'run_id': args.run_id,
                     'settings_sha256': live.sha256(args.settings), 'phases': phases,
                     'source_sha256': {p.as_posix(): live.sha256(p) for p in sorted(Path('security').rglob('*.py'))}}

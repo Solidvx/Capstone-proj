@@ -46,10 +46,27 @@ def replay_pair(records, require_auth):
     raise RuntimeError('no observed replay pair in quiet baseline')
 
 
+def injection_frames(attack, rng, sent, pair, profile):
+    if profile == 'isolated-v1':
+        if attack == 'replay':
+            return pair  # Send raw/auth together; never stretch them beyond pending timeout.
+        if attack == 'fuzzy':
+            cid = rng.randrange(0x800)
+            while cid in (0x100, 0x101, 0x102, 0x103, 0x200):
+                cid = rng.randrange(0x800)
+            return [(cid, bytes(rng.getrandbits(8) for _ in range(8)))]
+        if attack == 'spoofing':
+            cid, data = build_frame(attack, rng, sent)
+            return [(cid, bytes([201]) + data[1:])]  # Explicit out-of-range SOC, keyless.
+    return [pair[sent % len(pair)] if pair else build_frame(attack, rng, sent)]
+
+
 def inject(bus, request, control, deadline, acknowledged):
     attack, rate, duration = request['attack'], float(request['rate']), float(request['duration'])
     error = validate(attack, request['interface'], rate, duration, acknowledged)
     if error:raise ValueError(error)
+    profile = request.get('profile', 'mixed-v1')
+    if profile not in ('mixed-v1', 'isolated-v1'):raise ValueError('unknown attack profile')
     trial = request['trial']
     rng = random.Random(request['seed'])
     captured = []
@@ -73,15 +90,15 @@ def inject(bus, request, control, deadline, acknowledged):
         if control.poll() is not None:raise ValueError('unexpected command during injection')
         now=time.monotonic()
         if now>=next_at:
-            cid,data=pair[sent%len(pair)] if pair else build_frame(attack,rng,sent)
-            try:
-                bus.send(cid,data)
-                sent+=1
-                emit({'result':'TX','trial':trial,'t':time.monotonic(),'can_id':cid,'data':data.hex()})
-            except OSError as error:
-                emit({'result':'TX_ERROR','trial':trial,'errno':error.errno})
-                if error.errno not in (errno.ENOBUFS,errno.EAGAIN):raise
-                errors+=1
+            for cid,data in injection_frames(attack,rng,sent,pair,profile):
+                try:
+                    bus.send(cid,data)
+                    sent+=1
+                    emit({'result':'TX','trial':trial,'t':time.monotonic(),'can_id':cid,'data':data.hex()})
+                except OSError as error:
+                    emit({'result':'TX_ERROR','trial':trial,'errno':error.errno})
+                    if error.errno not in (errno.ENOBUFS,errno.EAGAIN):raise
+                    errors+=1
             next_at=max(next_at+1/rate,now)
         value=bus.receive(min(.001,max(0,next_at-time.monotonic())))
         if value:
@@ -101,7 +118,7 @@ def run(channel, duration, run_id, acknowledged, control=None):
     def stop(*_):raise EOFError('worker stopped')
     old={s:signal.signal(s,stop) for s in (signal.SIGTERM,signal.SIGINT,signal.SIGHUP)}
     try:
-        emit({'result':'READY','run_id':run_id,'role':'keyless-can-attacker'})
+        emit({'result':'READY','run_id':run_id,'role':'keyless-can-attacker','profiles':['mixed-v1','isolated-v1']})
         while time.monotonic()<deadline:
             request=control.poll()
             if request is not None:
