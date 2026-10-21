@@ -1,0 +1,10 @@
+{
+  "schema": "m5-command-settings-v1",
+  "observer_receiver_same_node": true,
+  "note": "Copy under tmp/, replace every REPLACE marker, then validate. SSH offscreen is backend acceptance only; physical UI latency is separate.",
+  "observer": ["ssh", "-o", "BatchMode=yes", "REPLACE_NODE_B_USER@REPLACE_NODE_B_HOST", "cd /REPLACE_NODE_B_PROJECT && .venv-handoff/bin/python -m security.experiments.bus_observer --interface can0 --run-id {run_id} --duration {lifetime_s}"],
+  "receiver_on": ["ssh", "-o", "BatchMode=yes", "REPLACE_NODE_B_USER@REPLACE_NODE_B_HOST", "cd /REPLACE_NODE_B_PROJECT && sudo -n env QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software ./ivi_platform/build-handoff/ivi_dashboard_experiment --interface can0 --secoc-key /REPLACE_NODE_B_KEY --run-id {run_id} --observation-jsonl - --demo-exit-ms {lifetime_ms}"],
+  "receiver_off": ["ssh", "-o", "BatchMode=yes", "REPLACE_NODE_B_USER@REPLACE_NODE_B_HOST", "cd /REPLACE_NODE_B_PROJECT && sudo -n env QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software ./ivi_platform/build-handoff/ivi_dashboard_experiment --interface can0 --secoc-key /REPLACE_NODE_B_KEY --run-id {run_id} --observation-jsonl - --demo-exit-ms {lifetime_ms} --experiment-secoc-off --confirm-isolated-test-bus"],
+  "normal_sender": [".venv-handoff/bin/python", "-m", "security.experiments.normal_sender", "--interface", "can0", "--secoc", "on", "--key", "/REPLACE_NODE_A_KEY", "--run-id", "{run_id}", "--duration", "{lifetime_s}", "--confirm-isolated-test-bus"],
+  "ids": [".venv-handoff/bin/python", "-m", "security.ids.runtime", "--interface", "can0", "--train-normal", "/REPLACE_NODE_A_TRAIN_CAPTURE", "--normal-manifest", "/REPLACE_NODE_A_TRAIN_MANIFEST", "--secoc-key", "/REPLACE_NODE_A_KEY", "--run-id", "{run_id}", "--log", "/REPLACE_NODE_A_LOG_DIRECTORY/ids-{run_id}.jsonl", "--duration", "{lifetime_s}", "--send-alerts"]
+}

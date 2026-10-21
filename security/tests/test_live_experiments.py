@@ -280,7 +280,7 @@ def test_adc_summary_preserves_outliers_errors_and_missing_samples():
 
 
 def test_synthetic_summary_does_not_pool_environments():
-    from security.experiments.summarize_ablation import summarise
+    from security.experiments.summarize_ablation_synthetic import summarise
     row = {"config": "1", "attack_type": "replay", "attack_success": "True", "blocked": "False", "detected": "False"}
     assert len(summarise([{**row, "environment": "synthetic"}, {**row, "environment": "vcan"}])) == 2
     with pytest.raises(ValueError):

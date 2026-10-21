@@ -1,21 +1,34 @@
 {
-  "purpose": "IT-002 deterministic ECU profile path; physical IVI acceptance requires separate evidence",
-  "profile": "failsafe_demo.csv",
-  "units": {"voltage": "pack V (10 cells)", "current": "A, negative discharge", "temperature": "deg C"},
-  "dt_s": 0.1,
-  "initial_soc": 0.75,
-  "capacity_ah": 50.0,
-  "initial_covariance": 0.01,
-  "process_noise": 0.00001,
-  "measurement_noise": 0.02,
-  "ocv_coefficients_a3_a2_a1_a0": [2.1667, -3.7321, 2.7655, 3.0],
-  "input": "10 rows at 42V, then 30V held by production CSV last-row behavior; -2A and 25C throughout",
-  "initial_state": "NORMAL",
-  "expected_sequence": ["NORMAL", "WARNING (reason 0x01)", "CRITICAL (reason 0x02)"],
-  "verification": "test_failsafe_profile uses production SensorSimulator, EkfSocEstimator and FailSafeStateMachine for 1000 steps",
-  "observed_host_test": [
-    {"zero_based_step": 47, "model_time_s": 4.7, "soc_percent": 18.422, "state": "WARNING"},
-    {"zero_based_step": 63, "model_time_s": 6.3, "soc_percent": 4.63028, "state": "CRITICAL"}
+  "artifact": "failsafe_demo.csv",
+  "purpose": "Deterministic software backup for IT-002; not SOC accuracy evidence",
+  "protocol": "ICD-v1.6",
+  "sha256": "acb1fd0052f2b4bf82fb2713e778af9b56072bde9c5642e1fab168eebed6e66c",
+  "columns": ["pack_voltage_v", "current_a", "temperature_c"],
+  "sample_period_s": 0.1,
+  "rows": 310,
+  "model": {
+    "initial_soc": 0.75,
+    "capacity_ah": 50.0,
+    "initial_covariance": 0.01,
+    "process_noise": 0.00001,
+    "measurement_noise": 0.02,
+    "cells_in_series": 10,
+    "ocv_coefficients": [2.1667, -3.7321, 2.7655, 3.0]
+  },
+  "phases": [
+    {"rows": 10, "pack_voltage_v": 42.0, "current_a": -2.0, "temperature_c": 25},
+    {"rows": 200, "pack_voltage_v": 33.5, "current_a": -2.0, "temperature_c": 25},
+    {"rows": 100, "pack_voltage_v": 30.0, "current_a": -2.0, "temperature_c": 25}
   ],
-  "limits": "Model time is not physical end-to-end latency. CSV simulates inputs, not real battery discharge. No ECU default or wire contract changed."
+  "expected": {
+    "transition_order": ["NORMAL_TO_WARNING_LOW_SOC", "WARNING_TO_CRITICAL_LOW_SOC"],
+    "minimum_transition_gap_cycles": 100,
+    "minimum_transition_gap_s": 10.0,
+    "final_state": "CRITICAL"
+  },
+  "limitations": [
+    "Uses the project virtual battery model and is not a measured battery trace",
+    "Does not establish SOC accuracy, battery lifetime, or real pack safety behavior",
+    "CRITICAL is latched by the current state machine and requires the documented restart procedure"
+  ]
 }

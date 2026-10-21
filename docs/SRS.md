@@ -146,9 +146,9 @@
 | FR-SEC-002 | SDD-ECU 3.5 SecOC | 존재: `adaptive_ecu/src/bsw/secoc_module.cpp`; 수신 통합 예정: `ivi_platform/hal/secoc_verifier.cpp` | TC-SEC-002 |
 | FR-SEC-003 | SDD-ECU 3.5 SecOC | 존재: `adaptive_ecu/src/bsw/secoc_module.cpp`; 수신 통합 예정: `ivi_platform/hal/secoc_verifier.cpp` | TC-SEC-003 |
 | FR-SEC-004 | SDD-ECU 3.5 SecOC | 존재: `adaptive_ecu/src/bsw/secoc_module.cpp`; 수신 통합 예정: `ivi_platform/hal/secoc_verifier.cpp` | TC-SEC-004 |
-| FR-SEC-005 | SDD-ECU 3.8 공격 시뮬레이터 | 존재: `security/attacks/traffic_gen.py` (합성); 예정: `security/attack_simulator.py`, 실 CAN 공격 CLI | TC-SEC-005 |
-| FR-SEC-006 | SDD-ECU 3.9 IDS 엔진 | 존재: `security/ids/if_detector.py`, `security/ids/feature_extractor.py`; 예정: 실시간 수집·모델 로드 루프 | TC-SEC-006 |
-| FR-SEC-007 | SDD-ECU 3.9.4 IDS 실행 환경 | 예정: `security/ids/ids_alerter.py` | TC-SEC-007 |
+| FR-SEC-005 | SDD-ECU 3.8 공격 시뮬레이터 | 존재: `security/attacks/traffic_gen.py`(합성), `security/attack_simulator.py`(제한형 실 CAN CLI) | TC-SEC-005 |
+| FR-SEC-006 | SDD-ECU 3.9 IDS 엔진 | 존재: `security/ids/if_detector.py`, `security/ids/feature_extractor.py`, `security/ids/runtime.py`, `security/capture_normal.py` | TC-SEC-006 |
+| FR-SEC-007 | SDD-ECU 3.9.4 IDS 실행 환경 | 존재: `security/ids/runtime.py`의 ICD `0x200` 송신 경로 | TC-SEC-007 |
 | FR-IVI-001 | SDD-IVI 3.1 SocketCanReceiver | 예정: `ivi_platform/hal/socketcan_receiver.cpp` | TC-IVI-001 |
 | FR-IVI-002 | SDD-IVI 3.2~3.3 인증·파싱 | 예정: `ivi_platform/hal/can_parser.cpp`, `secoc_verifier.cpp` | TC-IVI-002 |
 | FR-IVI-003 | SDD-IVI 3.4 Service | 예정: `ivi_platform/service/vehicle_data_service.cpp` | TC-IVI-003 |

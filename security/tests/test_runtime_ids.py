@@ -5,7 +5,7 @@ import struct
 import unittest
 
 from security.ids.runtime_detector import Config, Event, Observation, RuntimeDetector
-from security.ids.runtime import run_replay
+from security.ids.runtime import AlertThrottle, run_replay
 
 KEY=bytes(32)  # Explicit dummy test key.
 BMS=bytes([150,190,0x10,0x68,0xff,0xec,65,0])
@@ -101,5 +101,29 @@ class RuntimeIdsTests(unittest.TestCase):
         d=RuntimeDetector();d.tick(1)
         with self.assertRaises(ValueError):d.tick(.5)
         with self.assertRaises(ValueError):d.tick(float('nan'))
+
+    def test_alert_throttle_preserves_later_flooding_classification(self):
+        throttle=AlertThrottle(.1)
+        fuzzy=Event(.0,0,"UNKNOWN_ID",1)
+        flooding=Event(.03,0,"FRAME_RATE",4)
+        throttle.offer(fuzzy)
+        self.assertEqual(throttle.pop_ready(.0),fuzzy)
+        throttle.offer(flooding)
+        self.assertIsNone(throttle.pop_ready(.03))
+        self.assertEqual(throttle.pop_ready(.1),flooding)
+        throttle.offer(Event(.2,0,"UNKNOWN_ID",1))
+        self.assertEqual(throttle.pop_ready(.2).attack_type,1)
+
+    def test_mixed_attacks_are_fair_under_continuous_flooding(self):
+        throttle=AlertThrottle(.1)
+        throttle.offer(Event(0,0,"FRAME_RATE",4))
+        throttle.pop_ready(0)
+        for kind in (3,2,1,4):
+            throttle.offer(Event(.01,0,"attack",kind))
+        sent=[]
+        for now in (.11,.22,.33,.44):
+            throttle.offer(Event(now,0,"FRAME_RATE",4))
+            sent.append(throttle.pop_ready(now).attack_type)
+        self.assertEqual(sent,[3,2,1,4])
 
 if __name__=="__main__":unittest.main()
