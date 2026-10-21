@@ -1,0 +1,123 @@
+{
+  "ecu_frames": 50024,
+  "ivi_frames": 50024,
+  "prefix_match": true,
+  "receiver_frames": 453,
+  "filtered_match": true,
+  "messages": {
+    "EXPERIMENT ONLY: unauthenticated data published": 453
+  },
+  "exit_codes": {
+    "canbusload-exit-code.txt": "0",
+    "candump-exit-code.txt": "0",
+    "dashboard-exit-code.txt": "0"
+  },
+  "trials": [
+    {
+      "trial": 1,
+      "interior_load_reports": [
+        [
+          "2026-10-04 09:08:20",
+          60
+        ],
+        [
+          "2026-10-04 09:08:21",
+          60
+        ]
+      ],
+      "load_ge50": true,
+      "runner_status": "VALID"
+    },
+    {
+      "trial": 2,
+      "interior_load_reports": [
+        [
+          "2026-10-04 09:08:26",
+          59
+        ],
+        [
+          "2026-10-04 09:08:27",
+          60
+        ]
+      ],
+      "load_ge50": true,
+      "runner_status": "VALID"
+    },
+    {
+      "trial": 3,
+      "interior_load_reports": [
+        [
+          "2026-10-04 09:08:32",
+          61
+        ],
+        [
+          "2026-10-04 09:08:33",
+          60
+        ]
+      ],
+      "load_ge50": true,
+      "runner_status": "VALID"
+    },
+    {
+      "trial": 4,
+      "interior_load_reports": [
+        [
+          "2026-10-04 09:08:38",
+          60
+        ],
+        [
+          "2026-10-04 09:08:39",
+          60
+        ]
+      ],
+      "load_ge50": true,
+      "runner_status": "VALID"
+    },
+    {
+      "trial": 5,
+      "interior_load_reports": [
+        [
+          "2026-10-04 09:08:44",
+          60
+        ],
+        [
+          "2026-10-04 09:08:45",
+          60
+        ]
+      ],
+      "load_ge50": true,
+      "runner_status": "VALID"
+    },
+    {
+      "trial": 6,
+      "interior_load_reports": [
+        [
+          "2026-10-04 09:08:50",
+          60
+        ],
+        [
+          "2026-10-04 09:08:51",
+          60
+        ]
+      ],
+      "load_ge50": true,
+      "runner_status": "VALID"
+    },
+    {
+      "trial": 7,
+      "interior_load_reports": [
+        [
+          "2026-10-04 09:08:56",
+          61
+        ],
+        [
+          "2026-10-04 09:08:57",
+          60
+        ]
+      ],
+      "load_ge50": true,
+      "runner_status": "INVALID"
+    }
+  ],
+  "valid_with_load_evidence": 6
+}

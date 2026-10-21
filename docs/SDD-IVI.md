@@ -1,4 +1,7 @@
 > **문서명**: Software Design Document — Node B (IVI)
+
+> 2026-10-04 실장비 증거 연결: [실행 상태·시험 추적](development/experiments/physical-ablation-formal-2026-10-04/METHODS-AND-TRACEABILITY.md). 계획/설계의 존재와 시험 인수를 구분하며 INVALID·버전 편차·미수집 화면·비인증 0x200 경보의 제한을 적용한다. 아래 요구/계약 목표를 실험 결과에 맞춰 낮추지 않는다.
+
 > **버전**: v2.4 | **작성일**: 2026-03-15 | **최종 수정**: 2026-10-03 | **작성자**: 팀원B
 > **참조**: ICD v1.6, SRS v1.6 (FR-IVI-*), ADR-010, IVI Plan B 전환 계획
 

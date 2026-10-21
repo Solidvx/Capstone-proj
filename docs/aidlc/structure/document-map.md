@@ -134,3 +134,17 @@ ICD v1.6에서 RollingCounter를 인증 CAN ID별 독립으로 명시하고 ECU�
 ## 실시간 보안 시험 준비 — 2026-10-03
 
 [CHG-014](../changes/CHG-014/aidlc-state.md)에 정상 캡처·IF 평가·실시간 하네스·MAC fixture·Fail-safe 프로파일·ADC 원시 측정과 검증을 기록한다. 반복 실행은 [플레이북](../../development/playbooks/live-security-validation.md), IVI 담당자 경계는 [인계 명세](../../development/security/IVI_실험_인계.md)를 따른다. 물리 시험은 사용자 실행 로그를 받은 뒤 판정한다.
+
+## ECU–IVI 실장비 시험 증거 보존
+
+[시험 결과 보존 기록](../../development/experiments/ecu-ivi-integration-2026-10-03_04/README.md)은 시험별 보고서·분석·재현 도구와 로컬 원본의 위치를 안내한다. 원본 파일 목록과 해시는 해당 디렉터리의 inventory.json에서 관리한다.
+
+[공식 물리 Ablation 기록](../../development/experiments/physical-ablation-formal-2026-10-04/README.md)은 사용자 요청에 따라 pilot과 분리한 본 실험 증거 디렉토리다. 시행별 원본과 해시는 inventory.json에서 관리한다.
+
+## 실험 감사 후 재현·제출 자료
+
+[감사/보완](../../development/reviews/experiment-evidence-audit-2026-10-04/REMEDIATION.md), [논문 재현](../../development/experiments/physical-ablation-formal-2026-10-04/REPRODUCE.md), [TC 추적·편차](../../development/experiments/physical-ablation-formal-2026-10-04/METHODS-AND-TRACEABILITY.md), [백업](../../development/experiments/physical-ablation-formal-2026-10-04/BACKUP.md)을 연결한다. 케이스별 생성물은 publication/cases와 publication/runs, 과거 분석기는 tools/legacy-analysis에 있다. 현재 상태 원본은 CHG-014를 유지한다.
+
+## 최종 실험 결과 보고서
+
+[종합 보고서](../../development/experiments/최종실험_결과_보고서.md)는 두 실험 보존 디렉토리의 공통 상위에 둔다. 계약·현재 상태 원본을 대체하지 않고 원본 집계에 연결한 논문용 결과 스냅샷이다. [표·참조 검증기](../../development/reviews/experiment-evidence-audit-2026-10-04/verify_final_report.py)와 [검증 결과](../../development/reviews/experiment-evidence-audit-2026-10-04/final-report-validation.json)를 함께 연결한다.

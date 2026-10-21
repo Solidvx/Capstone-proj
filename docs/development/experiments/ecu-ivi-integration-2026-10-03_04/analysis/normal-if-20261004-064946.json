@@ -1,0 +1,59 @@
+{
+  "environment": "physical",
+  "capture_sha256": "95bee40f60626a0c7cc7cb850869a6380412eaf210bfb5ee52b0857cb98c684d",
+  "training_sha256": "ea1a6e43a5a7b37f5237079f9ea4b82161759de6dcf4997c856a71695611e39f",
+  "calibration_sha256": "3705e668eae9bcbc776b8782cc96cecb209a818fcea670128169464ef5f109dd",
+  "if_calibration": {
+    "windows": 299,
+    "alpha": 0.01,
+    "rank": 297,
+    "threshold": 0.16895086896792122
+  },
+  "secoc_observation": true,
+  "results": [
+    {
+      "mode": "rules-only",
+      "config": {
+        "missing_s": 0.3,
+        "pending_s": 0.1,
+        "min_period_s": 0.05,
+        "max_frames_per_second": 100,
+        "failure_repeat_count": 3,
+        "max_soc_step": 20.0,
+        "max_temperature_step": 20.0,
+        "max_current_step": 100.0
+      },
+      "warmup_s": 2,
+      "complete_windows": 298,
+      "empty_windows": 0,
+      "false_positive_windows": 0,
+      "fpr": 0.0,
+      "reasons": {},
+      "status": "PASS"
+    },
+    {
+      "mode": "rules+if",
+      "config": {
+        "missing_s": 0.3,
+        "pending_s": 0.1,
+        "min_period_s": 0.05,
+        "max_frames_per_second": 100,
+        "failure_repeat_count": 3,
+        "max_soc_step": 20.0,
+        "max_temperature_step": 20.0,
+        "max_current_step": 100.0
+      },
+      "warmup_s": 2,
+      "complete_windows": 298,
+      "empty_windows": 0,
+      "false_positive_windows": 1,
+      "fpr": 0.003355704697986577,
+      "reasons": {
+        "IF_ANOMALY": 1
+      },
+      "status": "PASS"
+    }
+  ],
+  "ecu_tx_delta": 23980,
+  "verification": "capture hashes, counts, timestamp order, report references and window totals checked; secret-key replay not performed locally"
+}

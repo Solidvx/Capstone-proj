@@ -1,0 +1,588 @@
+{
+  "method": "Exact sequence aligned first/last injected own frames; interior one-second canbusload samples only, not full-window mean",
+  "trials": [
+    {
+      "trial": 4,
+      "interior_load_percent": [
+        59,
+        52
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 5,
+      "interior_load_percent": [
+        58,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 6,
+      "interior_load_percent": [
+        59,
+        55
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 7,
+      "interior_load_percent": [
+        59,
+        36
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 8,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 9,
+      "interior_load_percent": [
+        59,
+        33
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 10,
+      "interior_load_percent": [
+        59,
+        38
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 11,
+      "interior_load_percent": [
+        59,
+        53
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 12,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 13,
+      "interior_load_percent": [
+        59,
+        48
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 14,
+      "interior_load_percent": [
+        60,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 15,
+      "interior_load_percent": [
+        58,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 16,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 17,
+      "interior_load_percent": [
+        58,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 18,
+      "interior_load_percent": [
+        59,
+        29
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 19,
+      "interior_load_percent": [
+        59,
+        45
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 20,
+      "interior_load_percent": [
+        59,
+        58
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 21,
+      "interior_load_percent": [
+        59,
+        44
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 22,
+      "interior_load_percent": [
+        60,
+        37
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 23,
+      "interior_load_percent": [
+        59,
+        29
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 24,
+      "interior_load_percent": [
+        59,
+        58
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 25,
+      "interior_load_percent": [
+        59,
+        33
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 26,
+      "interior_load_percent": [
+        59,
+        39
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 27,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 28,
+      "interior_load_percent": [
+        59,
+        35
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 29,
+      "interior_load_percent": [
+        59,
+        60
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 30,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 31,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 32,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 33,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 34,
+      "interior_load_percent": [
+        59,
+        37
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 35,
+      "interior_load_percent": [
+        51,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 36,
+      "interior_load_percent": [
+        59,
+        39
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 37,
+      "interior_load_percent": [
+        59,
+        23
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 38,
+      "interior_load_percent": [
+        59,
+        60
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 39,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 40,
+      "interior_load_percent": [
+        59,
+        33
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 41,
+      "interior_load_percent": [
+        58,
+        51
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 42,
+      "interior_load_percent": [
+        59,
+        20
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 43,
+      "interior_load_percent": [
+        59,
+        56
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 44,
+      "interior_load_percent": [
+        59,
+        45
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 45,
+      "interior_load_percent": [
+        59,
+        32
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 46,
+      "interior_load_percent": [
+        59,
+        36
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 47,
+      "interior_load_percent": [
+        58,
+        42
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 48,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 49,
+      "interior_load_percent": [
+        59,
+        37
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 50,
+      "interior_load_percent": [
+        60,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 51,
+      "interior_load_percent": [
+        58,
+        44
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 52,
+      "interior_load_percent": [
+        60,
+        37
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 53,
+      "interior_load_percent": [
+        59,
+        39
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 54,
+      "interior_load_percent": [
+        59,
+        50
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 55,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 56,
+      "interior_load_percent": [
+        59,
+        30
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 57,
+      "interior_load_percent": [
+        51,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 58,
+      "interior_load_percent": [
+        60,
+        38
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 59,
+      "interior_load_percent": [
+        59,
+        24
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 60,
+      "interior_load_percent": [
+        59,
+        24
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 61,
+      "interior_load_percent": [
+        59,
+        26
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 62,
+      "interior_load_percent": [
+        59,
+        46
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 63,
+      "interior_load_percent": [
+        59,
+        7
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 64,
+      "interior_load_percent": [
+        59,
+        29
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 65,
+      "interior_load_percent": [
+        59,
+        7
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 66,
+      "interior_load_percent": [
+        59,
+        4
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 67,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 68,
+      "interior_load_percent": [
+        59,
+        5
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 69,
+      "interior_load_percent": [
+        60,
+        22
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 70,
+      "interior_load_percent": [
+        59,
+        42
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 71,
+      "interior_load_percent": [
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 72,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 73,
+      "interior_load_percent": [
+        58,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 74,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 75,
+      "interior_load_percent": [
+        58,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 76,
+      "interior_load_percent": [
+        59,
+        58
+      ],
+      "any_interior_ge50": true
+    }
+  ]
+}

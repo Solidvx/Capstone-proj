@@ -1,0 +1,10 @@
+{
+  "ids_sent_received_exact": 3041,
+  "counter_backward": 143202,
+  "qt_warning_count": 25,
+  "stderr_bytes": {
+    "canbusload.stderr": 0,
+    "candump.stderr": 0,
+    "dashboard.stderr": 1450
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "source_sha256": {
+    "docs\\development\\experiments\\ecu-ivi-integration-2026-10-03_04\\raw\\SPI-CHECK-001\\ivi\\diag-spi1m-001\\candump.log": "ac6c65fb67e0087d89b807855d3f1d6941dd3890634efc7dda23826f5c6aaea1",
+    "docs\\development\\experiments\\ecu-ivi-integration-2026-10-03_04\\raw\\SPI-CHECK-001\\ivi\\diag-spi1m-001\\receiver.jsonl": "a5bed93661e1c139063b5a69c48aca9964cccd28743fc696eb7bfe8d601ac44d"
+  },
+  "can_frames": 2398,
+  "receiver_frames": 2398,
+  "other_receiver_records": 0,
+  "exact_sequence_match": true,
+  "first_difference_index": null,
+  "can_counts": {
+    "0x100": 1199,
+    "0x102": 1199
+  },
+  "authenticated_bms_log_count": 1199,
+  "soc_decode_mismatches": 0,
+  "receiver_messages": {
+    "BMS payload pending authentication": 1199,
+    "Authenticated BMS data published": 1199
+  },
+  "secoc_on_all_frames": true,
+  "counter_discontinuities": [],
+  "can_span_s": 119.907637,
+  "bms_period_ms": {
+    "count": 1198,
+    "mean": 100.0893614357262,
+    "min": 99.927,
+    "max": 100.236,
+    "outside_90_110": 0
+  },
+  "formal_verdict": "NOT_ASSESSED",
+  "limits": "Strict classical-CAN parser: unsupported/error/FD rows stop analysis, never silently dropped. No inferred capture alignment or loss rate. Different node clocks never subtracted. Counter discontinuities may indicate restart or capture gaps, not necessarily bus loss.",
+  "ecu_run_id": "SPI-CHECK-001",
+  "ivi_run_id": "DIAG-SPI1M-001",
+  "ecu_frames": 2398,
+  "two_node_id_payload_exact_match": true,
+  "two_node_difference_count": 0,
+  "all_record_result_counts": {
+    "FRAME": 2398
+  },
+  "messages": {
+    "BMS payload pending authentication": 1199,
+    "Authenticated BMS data published": 1199
+  }
+}

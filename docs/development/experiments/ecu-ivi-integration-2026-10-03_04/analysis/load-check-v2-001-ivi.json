@@ -1,0 +1,48 @@
+{
+  "can_frames": 5535,
+  "can_counts": {
+    "0x100": 74,
+    "0x102": 68,
+    "0x0": 5393
+  },
+  "receiver_frames": 142,
+  "filtered_exact_match": true,
+  "messages": {
+    "BMS payload pending authentication": 74,
+    "Authenticated BMS data published": 62,
+    "WARNING: reason=AUTH_ORPHAN channel=BMS auth without pending original": 1,
+    "WARNING: reason=AUTH_TIMEOUT channel=BMS": 1,
+    "CRITICAL: reason=AUTH_ORPHAN channel=BMS auth without pending original": 3,
+    "CRITICAL: reason=AUTH_TIMEOUT channel=BMS": 1
+  },
+  "non_frame": {
+    "TIMEOUT": 10
+  },
+  "secoc_on_all": true,
+  "rx_delta": 5535,
+  "load_max_display_percent": 45,
+  "nonzero_load": [
+    {
+      "time": "canbusload 2026-10-04 07:24:37 (exact bitstuffing)",
+      "line": " can0@500000   901  114315  57664      0  22%",
+      "percent": 22
+    },
+    {
+      "time": "canbusload 2026-10-04 07:24:38 (exact bitstuffing)",
+      "line": " can0@500000  1804  229060 115456      0  45%",
+      "percent": 45
+    },
+    {
+      "time": "canbusload 2026-10-04 07:24:39 (exact bitstuffing)",
+      "line": " can0@500000  1804  229049 115456      0  45%",
+      "percent": 45
+    },
+    {
+      "time": "canbusload 2026-10-04 07:24:40 (exact bitstuffing)",
+      "line": " can0@500000   924  117240  59136      0  23%",
+      "percent": 23
+    }
+  ],
+  "attack_span_s": 3.004649,
+  "ecu_crosscheck": "PENDING"
+}

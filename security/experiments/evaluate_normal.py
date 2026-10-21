@@ -85,6 +85,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("capture", help="evaluation capture directory")
     parser.add_argument("--train", help="different normal capture directory for IF")
+    parser.add_argument('--calibrate', help='third independent normal capture for threshold calibration')
     parser.add_argument("--key", help="optional key file; content never written")
     parser.add_argument("--warmup", type=float, default=2)
     parser.add_argument("--out", required=True)
@@ -94,15 +95,31 @@ def main(argv=None):
         key = Path(args.key).read_bytes() if args.key else None
         results = [evaluate(frames, manifest["duration_s"], args.warmup, key=key)]
         train_hash = None
+        calibration_hash = None
+        calibration_path = None
+        if args.calibrate and not args.train:
+            raise ValueError('--calibrate requires --train')
         if args.train:
             _, train_manifest, train_path = load_capture(args.train)
+            if train_manifest['environment'] != manifest['environment']:
+                raise ValueError('training and evaluation environments must match')
             if path.resolve() == train_path.resolve() or manifest["sha256"] == train_manifest["sha256"]:
                 raise ValueError("training and evaluation captures must be independent")
             train_hash = train_manifest["sha256"]
+            if args.calibrate:
+                _, calibration_manifest, calibration_path = load_capture(args.calibrate)
+                if calibration_manifest['environment'] != manifest['environment']:
+                    raise ValueError('calibration and evaluation environments must match')
+                calibration_hash = calibration_manifest['sha256']
+                if calibration_hash in (train_hash, manifest['sha256']):
+                    raise ValueError('fit, calibration and evaluation must be independent')
+            model = train_model(train_path, calibration_path)
             results.append(evaluate(frames, manifest["duration_s"], args.warmup,
-                                    train_model(train_path), key))
+                                    model, key))
         report = {"environment": manifest["environment"], "capture_sha256": manifest["sha256"],
-                  "training_sha256": train_hash, "secoc_observation": key is not None, "results": results}
+                  "training_sha256": train_hash, 'calibration_sha256': calibration_hash,
+                  'if_calibration': model.calibration if args.train else None,
+                  "secoc_observation": key is not None, "results": results}
         with Path(args.out).open("x", encoding="utf-8") as stream:
             json.dump(report, stream, indent=2)
         for row in results:

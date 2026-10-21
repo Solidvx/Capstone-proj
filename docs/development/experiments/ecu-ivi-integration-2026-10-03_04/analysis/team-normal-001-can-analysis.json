@@ -1,0 +1,17 @@
+{
+  "can_path": "IVI\uce21\uc5d0\uc11c\ubc1b\uc544\uc628\ud30c\uc77c\ub4e4/23H10M/00H12M/11can.log",
+  "receiver_path": "IVI\uce21\uc5d0\uc11c\ubc1b\uc544\uc628\ud30c\uc77c\ub4e4/23H10M/receiver.jsonl",
+  "can_sha256": "58d383a180a1d4ffb6b9f9624695e794a9f1ab0130aad990a00a1d3edc97da82",
+  "rows": 450,
+  "all_frames_match_receiver_in_order": true,
+  "time_interpretation": "assumed consecutive-frame delta seconds; capture command not supplied",
+  "sum_delta_seconds": 22.42284,
+  "bms_gap_ms": {
+    "count": 224,
+    "min": 99.796,
+    "mean": 100.09416517857143,
+    "max": 100.37,
+    "outside_90_110": 0
+  },
+  "older_can_file_identical": true
+}

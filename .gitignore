@@ -222,3 +222,6 @@ temp/
 *.candump
 *.pcap
 *.pcapng
+
+# Local evidence recovery archives (not an off-device backup)
+evidence-backups/

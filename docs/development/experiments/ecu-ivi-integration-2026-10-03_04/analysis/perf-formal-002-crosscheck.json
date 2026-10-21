@@ -1,0 +1,37 @@
+{
+  "source_sha256": {
+    "docs\\development\\experiments\\ecu-ivi-integration-2026-10-03_04\\raw\\PERF-FORMAL-002\\ivi\\perf-formal-002\\candump.log": "f9c72be9b75150d74cf693036065c2152821f24425f91cd8b7978d4897344e3f",
+    "docs\\development\\experiments\\ecu-ivi-integration-2026-10-03_04\\raw\\PERF-FORMAL-002\\ivi\\perf-formal-002\\receiver.jsonl": "41ffd834b00769b2860ab18e789b20a91cc7f2cf46bdceb6f938630ebc03aa5d"
+  },
+  "can_frames": 2998,
+  "receiver_frames": 2000,
+  "other_receiver_records": 0,
+  "exact_sequence_match": false,
+  "first_difference_index": 2000,
+  "can_counts": {
+    "0x100": 1499,
+    "0x102": 1499
+  },
+  "authenticated_bms_log_count": 1000,
+  "soc_decode_mismatches": 0,
+  "receiver_messages": {
+    "BMS payload pending authentication": 1000,
+    "Authenticated BMS data published": 1000
+  },
+  "secoc_on_all_frames": true,
+  "counter_discontinuities": [],
+  "can_span_s": 149.924904,
+  "bms_period_ms": {
+    "count": 1498,
+    "mean": 100.08297997329772,
+    "min": 99.917,
+    "max": 100.267,
+    "outside_90_110": 0
+  },
+  "formal_verdict": "NOT_ASSESSED",
+  "limits": "Strict classical-CAN parser: unsupported/error/FD rows stop analysis, never silently dropped. No inferred capture alignment or loss rate. Different node clocks never subtracted. Counter discontinuities may indicate restart or capture gaps, not necessarily bus loss.",
+  "two_node_exact_match": true,
+  "ecu_frames": 2998,
+  "receiver_matches_can_prefix": true,
+  "can_tail_after_receiver": 998
+}

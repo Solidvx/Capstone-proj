@@ -1,0 +1,708 @@
+[
+  {
+    "trial": 1,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 2,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 3,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 4,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 5,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 29,
+      "Authenticated BMS data published": 27,
+      "reason=AUTH_ORPHAN channel=BMS auth without pending original": 1
+    }
+  },
+  {
+    "trial": 6,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 7,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 8,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 9,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 10,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 11,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 12,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 13,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 14,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 15,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 16,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 17,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 18,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 19,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 20,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 21,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 22,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 29
+    }
+  },
+  {
+    "trial": 23,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 24,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 25,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 27
+    }
+  },
+  {
+    "trial": 26,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 27,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 27
+    }
+  },
+  {
+    "trial": 28,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 29,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 28
+    }
+  },
+  {
+    "trial": 30,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 31,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 32,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 33,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 34,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 35,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 36,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 37,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 29
+    }
+  },
+  {
+    "trial": 38,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 29
+    }
+  },
+  {
+    "trial": 39,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 40,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 41,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 42,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 43,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 44,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 45,
+    "ivi_messages_in_ecu_attack_window": {
+      "Authenticated BMS data published": 28,
+      "BMS payload pending authentication": 29
+    }
+  },
+  {
+    "trial": 46,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 47,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 48,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 49,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 50,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 51,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 52,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 29,
+      "Authenticated BMS data published": 29,
+      "reason=AUTH_ORPHAN channel=BMS auth without pending original": 1
+    }
+  },
+  {
+    "trial": 53,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 54,
+    "ivi_messages_in_ecu_attack_window": {
+      "reason=AUTH_ORPHAN channel=BMS auth without pending original": 1,
+      "BMS payload pending authentication": 29,
+      "Authenticated BMS data published": 29
+    }
+  },
+  {
+    "trial": 55,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 56,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 57,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 29
+    }
+  },
+  {
+    "trial": 58,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 59,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 60,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 61,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 28
+    }
+  },
+  {
+    "trial": 62,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 63,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 64,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 65,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 66,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 29
+    }
+  },
+  {
+    "trial": 67,
+    "ivi_messages_in_ecu_attack_window": {
+      "reason=AUTH_ORPHAN channel=BMS auth without pending original": 1,
+      "BMS payload pending authentication": 29,
+      "Authenticated BMS data published": 29
+    }
+  },
+  {
+    "trial": 68,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 69,
+    "ivi_messages_in_ecu_attack_window": {
+      "reason=AUTH_ORPHAN channel=BMS auth without pending original": 1,
+      "BMS payload pending authentication": 29,
+      "Authenticated BMS data published": 28
+    }
+  },
+  {
+    "trial": 70,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 71,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 72,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 73,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 74,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 75,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 76,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 77,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 29
+    }
+  },
+  {
+    "trial": 78,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 29
+    }
+  },
+  {
+    "trial": 79,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 29
+    }
+  },
+  {
+    "trial": 80,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 29
+    }
+  },
+  {
+    "trial": 81,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 82,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 83,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 84,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 85,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 29
+    }
+  },
+  {
+    "trial": 86,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 87,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 88,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 89,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 90,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 91,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 92,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 93,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 94,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 95,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 96,
+    "ivi_messages_in_ecu_attack_window": {
+      "reason=AUTH_ORPHAN channel=BMS auth without pending original": 1,
+      "BMS payload pending authentication": 29,
+      "Authenticated BMS data published": 29
+    }
+  },
+  {
+    "trial": 97,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 98,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  },
+  {
+    "trial": 99,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 29
+    }
+  },
+  {
+    "trial": 100,
+    "ivi_messages_in_ecu_attack_window": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    }
+  }
+]

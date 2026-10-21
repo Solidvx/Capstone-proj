@@ -1,0 +1,60 @@
+{
+  "attempts": 79,
+  "valid": 79,
+  "invalid": [],
+  "sums": {
+    "attack_sent": 557981,
+    "attack_seen": 557981,
+    "attack_tx_errors": 0,
+    "tx_syscall_errors": 17,
+    "tx_recovered_frames": 17,
+    "tx_deadline_skipped": 1,
+    "normal_expected": 2370,
+    "normal_seen": 2363,
+    "normal_delivered": 2363
+  },
+  "normal_delivery_below_expected": [
+    {
+      "trial": 26,
+      "normal_expected": 30,
+      "normal_seen": 29,
+      "normal_delivered": 29
+    },
+    {
+      "trial": 34,
+      "normal_expected": 30,
+      "normal_seen": 29,
+      "normal_delivered": 29
+    },
+    {
+      "trial": 38,
+      "normal_expected": 30,
+      "normal_seen": 29,
+      "normal_delivered": 29
+    },
+    {
+      "trial": 42,
+      "normal_expected": 30,
+      "normal_seen": 29,
+      "normal_delivered": 29
+    },
+    {
+      "trial": 65,
+      "normal_expected": 30,
+      "normal_seen": 29,
+      "normal_delivered": 29
+    },
+    {
+      "trial": 75,
+      "normal_expected": 30,
+      "normal_seen": 29,
+      "normal_delivered": 29
+    },
+    {
+      "trial": 95,
+      "normal_expected": 30,
+      "normal_seen": 29,
+      "normal_delivered": 29
+    }
+  ]
+}

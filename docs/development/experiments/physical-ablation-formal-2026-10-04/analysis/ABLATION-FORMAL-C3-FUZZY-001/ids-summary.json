@@ -1,0 +1,28 @@
+{
+  "ids_results": {
+    "START": 1,
+    "CLOCK": 1,
+    "NORMAL": 12455,
+    "ANOMALY": 276946,
+    "ALERT_SENT": 3001
+  },
+  "sent_alert_types": {
+    "1": 2994,
+    "3": 5,
+    "4": 2
+  },
+  "reasons": {
+    "UNKNOWN_ID": 276015,
+    "PERIOD_TOO_SHORT": 254,
+    "AUTH_ORPHAN": 261,
+    "FRAME_RATE": 105,
+    "FAILSAFE_RANGE": 144,
+    "SECOC_FAILURE_BURST": 36,
+    "BMS_RANGE": 130,
+    "IF_ANOMALY": 1
+  },
+  "detected_trials": 100,
+  "rule_events": 276845,
+  "if_events": 0,
+  "process_log": ""
+}

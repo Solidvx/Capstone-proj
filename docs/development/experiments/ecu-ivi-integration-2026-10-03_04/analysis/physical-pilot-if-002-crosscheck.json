@@ -1,0 +1,110 @@
+{
+  "ecu_frames": 11790,
+  "ivi_frames": 11808,
+  "prefix_match": true,
+  "receiver_frames": 6391,
+  "filtered_match": true,
+  "messages": {
+    "BMS payload pending authentication": 4507,
+    "Authenticated BMS data published": 312,
+    "IDS event published": 121,
+    "reason=AUTH_ORPHAN channel=BMS auth without pending original": 4,
+    "Rejected invalid Fail-safe payload": 4,
+    "reason=AUTH_ORPHAN channel=Fail-safe auth without pending original": 1,
+    "Rejected invalid BMS payload": 1,
+    "Rejected invalid IDS payload": 1,
+    "reason=COUNTER_BACKWARD can_id=256 counter=181": 93,
+    "WARNING: reason=COUNTER_BACKWARD can_id=256 counter=181": 186,
+    "CRITICAL: reason=COUNTER_BACKWARD can_id=256 counter=181": 1159,
+    "reason=MAC_FAIL can_id=256 counter=270": 1,
+    "reason=MAC_FAIL can_id=256 counter=278": 1
+  },
+  "exit_codes": {
+    "canbusload-exit-code.txt": "0",
+    "candump-exit-code.txt": "0",
+    "dashboard-exit-code.txt": "130"
+  },
+  "max_load_display_percent": 24,
+  "spoof_auth_failures": [
+    {
+      "ecu": {
+        "t": 43572.784432535,
+        "can_id": 258,
+        "data": "aa49d0e50000010e",
+        "own": false,
+        "outcomes": [
+          {
+            "kind": "REJECTED",
+            "can_id": 256,
+            "reason": "MAC_FAIL",
+            "own": true,
+            "auth_own": false,
+            "payload": "c8be1068ffec4100",
+            "original_t": null
+          }
+        ],
+        "frame": {
+          "t": 43572.784432535,
+          "can_id": 258,
+          "data": "aa49d0e50000010e",
+          "dlc": 8,
+          "extended": false,
+          "remote": false,
+          "error": false
+        }
+      },
+      "ivi": {
+        "can_id": 258,
+        "data": "aa49d0e50000010e",
+        "message": "reason=MAC_FAIL can_id=256 counter=270",
+        "process_result": 3,
+        "result": "FRAME",
+        "run_id": "SECURITY-PILOT-IF-002",
+        "secoc_on": true,
+        "soc": 100,
+        "source_data": "c8be1068ffec4100",
+        "timestamp_ns": "12645285193623"
+      }
+    },
+    {
+      "ecu": {
+        "t": 43573.585014829,
+        "can_id": 258,
+        "data": "bfded96400000116",
+        "own": false,
+        "outcomes": [
+          {
+            "kind": "REJECTED",
+            "can_id": 256,
+            "reason": "MAC_FAIL",
+            "own": true,
+            "auth_own": false,
+            "payload": "c8be1068ffec4100",
+            "original_t": null
+          }
+        ],
+        "frame": {
+          "t": 43573.585014829,
+          "can_id": 258,
+          "data": "bfded96400000116",
+          "dlc": 8,
+          "extended": false,
+          "remote": false,
+          "error": false
+        }
+      },
+      "ivi": {
+        "can_id": 258,
+        "data": "bfded96400000116",
+        "message": "reason=MAC_FAIL can_id=256 counter=278",
+        "process_result": 3,
+        "result": "FRAME",
+        "run_id": "SECURITY-PILOT-IF-002",
+        "secoc_on": true,
+        "soc": 100,
+        "source_data": "c8be1068ffec4100",
+        "timestamp_ns": "12646085775500"
+      }
+    }
+  ]
+}

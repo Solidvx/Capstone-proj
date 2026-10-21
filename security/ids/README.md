@@ -48,10 +48,12 @@ IF는 최근 1초의 최대 4096개 프레임에서 7개 특징을 계산해 1�
 python -m security.ids.runtime --interface vcan0 --train-normal normal.jsonl --secoc-key /path/to/key.bin --log live.jsonl --duration 30 --send-alerts
 ```
 
-`--send-alerts` 없이 수신·로그만 수행한다. 송신은 기존 ICD 0x200 8바이트 BE이며 epoch 초의 하위32비트를 사용한다. 전체 경보 송신은 100ms 간격으로 제한한다. 로그에는 모든 탐지와 실제 ALERT_SENT를 구분한다. 키/페이로드를 로그에 복사하지 않는다. 송신/수신 오류는 종료하고 소켓을 닫는다.
+`--send-alerts` 없이 수신·로그만 수행한다. 송신은 기존 ICD 0x200 8바이트 BE이며 epoch 초의 하위32비트를 사용한다. 전체 경보 송신은 100ms 간격으로 제한한다. 로그에는 모든 탐지와 실제 ALERT_SENT를 구분한다. 키/페이로드를 로그에 복사하지 않는다. 경보 송신은 nonblocking이며 ENOBUFS/EAGAIN은 ALERT_TX_FAILED(errno, timestamp, data)로 기록하고 수신·탐지를 계속한다. 실패에도 100ms 시도 간격을 적용하며 과거 경보를 재전송하거나 큐에 쌓지 않는다. ALERT_SENT는 소켓 수락이며 IVI 도달 증거는 아니다. 그 밖의 송신 오류와 수신 오류는 종료하고 소켓을 닫는다.
 
 ## 완료 범위
 
 2026-10-03 후속: EXQ-11의 규칙 기본 임계는 SDD-ECU §3.9.5에 확정 기록됐고 합성 정상 오탐은 CHG-013에 보존했다. 위 "시험용 초기 정책"은 최초 구현 당시 설명이며 실물 보정이 완료됐다는 뜻은 아니다. 정상 실측 수집·IF 독립 평가와 실시간 실험은 [CHG-014 실행 절차](../../docs/development/playbooks/live-security-validation.md)를 따른다.
 
 [CHG-007](../../docs/aidlc/changes/CHG-007/audit.md)의 소프트웨어 시험 범위만 완료로 판단한다. 물리 CAN·vcan 실제 송수신, Node B 화면까지의 통합, 탐지율/오탐률·CPU/RAM 목표 달성, 인증 이벤트 채널, 새 세션은 후속 검증이다. 이번 작업은 발표의 1차 IDS 소프트웨어 구현이며 ECU M4/M5 전체 완료 선언이 아니다.
+
+실험 실행기가 지정하는 `--parent-pid`는 실제 부모 PID와 일치해야 하며, 이 모드에서는 duration 대신 부모 수명과 cleanup으로 종료한다. 독립 실행의 duration은 유지한다.

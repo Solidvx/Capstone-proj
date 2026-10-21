@@ -1,0 +1,772 @@
+[
+  {
+    "raw_file": "fuzzy-001.jsonl",
+    "t": 9013.748773839,
+    "data": "e429935ca80f489d"
+  },
+  {
+    "raw_file": "fuzzy-002.jsonl",
+    "t": 9020.010555034,
+    "data": "f7714d3b5bbcd997"
+  },
+  {
+    "raw_file": "fuzzy-002.jsonl",
+    "t": 9020.770827633,
+    "data": "bb7fc8255662b510"
+  },
+  {
+    "raw_file": "fuzzy-002.jsonl",
+    "t": 9020.963553069,
+    "data": "cb8899b33edbc340"
+  },
+  {
+    "raw_file": "fuzzy-004.jsonl",
+    "t": 9031.963999336,
+    "data": "eb70fb387f439b7b"
+  },
+  {
+    "raw_file": "fuzzy-004.jsonl",
+    "t": 9033.224308937,
+    "data": "edd76ddfb7bcbfc3"
+  },
+  {
+    "raw_file": "fuzzy-004.jsonl",
+    "t": 9033.510570582,
+    "data": "962b10403a04c7a7"
+  },
+  {
+    "raw_file": "fuzzy-005.jsonl",
+    "t": 9037.97874419,
+    "data": "1f0c01855594ae52"
+  },
+  {
+    "raw_file": "fuzzy-006.jsonl",
+    "t": 9043.661468063,
+    "data": "4babf8bc34817699"
+  },
+  {
+    "raw_file": "fuzzy-006.jsonl",
+    "t": 9044.116615202,
+    "data": "77fb3672c61304d0"
+  },
+  {
+    "raw_file": "fuzzy-007.jsonl",
+    "t": 9050.530372142,
+    "data": "51958fd506e38097"
+  },
+  {
+    "raw_file": "fuzzy-007.jsonl",
+    "t": 9051.095371458,
+    "data": "25f2c5c18371c73c"
+  },
+  {
+    "raw_file": "fuzzy-007.jsonl",
+    "t": 9051.451582504,
+    "data": "2334859901e0e47e"
+  },
+  {
+    "raw_file": "fuzzy-008.jsonl",
+    "t": 9057.635237747,
+    "data": "12a60b4f2ffa38f6"
+  },
+  {
+    "raw_file": "fuzzy-009.jsonl",
+    "t": 9064.07383661,
+    "data": "8c50dc12cbac5b0c"
+  },
+  {
+    "raw_file": "fuzzy-010.jsonl",
+    "t": 9068.057775058,
+    "data": "833d8c20b3064da7"
+  },
+  {
+    "raw_file": "fuzzy-010.jsonl",
+    "t": 9069.696070592,
+    "data": "0410dd8488fefa46"
+  },
+  {
+    "raw_file": "fuzzy-012.jsonl",
+    "t": 9080.96156155,
+    "data": "2c15ceb7db6b46f1"
+  },
+  {
+    "raw_file": "fuzzy-012.jsonl",
+    "t": 9081.129462905,
+    "data": "d6be8e2c739e128c"
+  },
+  {
+    "raw_file": "fuzzy-012.jsonl",
+    "t": 9081.694434397,
+    "data": "bc950c1bb5c92503"
+  },
+  {
+    "raw_file": "fuzzy-013.jsonl",
+    "t": 9088.263746722,
+    "data": "34c82abf0c2259f6"
+  },
+  {
+    "raw_file": "fuzzy-016.jsonl",
+    "t": 9104.606948458,
+    "data": "94410b132d643a18"
+  },
+  {
+    "raw_file": "fuzzy-016.jsonl",
+    "t": 9105.940467541,
+    "data": "fd7716d575be2b5d"
+  },
+  {
+    "raw_file": "fuzzy-017.jsonl",
+    "t": 9111.106396131,
+    "data": "54cd2ec3f3b7544b"
+  },
+  {
+    "raw_file": "fuzzy-018.jsonl",
+    "t": 9117.053733877,
+    "data": "5f62961d02ef44ff"
+  },
+  {
+    "raw_file": "fuzzy-021.jsonl",
+    "t": 9136.274603489,
+    "data": "fe8da28c38392159"
+  },
+  {
+    "raw_file": "fuzzy-021.jsonl",
+    "t": 9136.427520671,
+    "data": "5c6943b5cb2356d6"
+  },
+  {
+    "raw_file": "fuzzy-021.jsonl",
+    "t": 9137.773546598,
+    "data": "20918a2267dd1eff"
+  },
+  {
+    "raw_file": "fuzzy-022.jsonl",
+    "t": 9141.937545698,
+    "data": "5193a6c5b82de518"
+  },
+  {
+    "raw_file": "fuzzy-022.jsonl",
+    "t": 9143.408773264,
+    "data": "822d9cc2e1ec4875"
+  },
+  {
+    "raw_file": "fuzzy-023.jsonl",
+    "t": 9147.823016705,
+    "data": "ecabf9354278b7a2"
+  },
+  {
+    "raw_file": "fuzzy-023.jsonl",
+    "t": 9149.185520593,
+    "data": "7ff83d1944b87ed8"
+  },
+  {
+    "raw_file": "fuzzy-025.jsonl",
+    "t": 9161.991933885,
+    "data": "dbabc4df7fe8cc9e"
+  },
+  {
+    "raw_file": "fuzzy-025.jsonl",
+    "t": 9162.214758575,
+    "data": "119d720bb5ae3377"
+  },
+  {
+    "raw_file": "fuzzy-026.jsonl",
+    "t": 9166.454768972,
+    "data": "a3157b7ad530007f"
+  },
+  {
+    "raw_file": "fuzzy-027.jsonl",
+    "t": 9172.521827875,
+    "data": "1d55e7db7e832535"
+  },
+  {
+    "raw_file": "fuzzy-027.jsonl",
+    "t": 9173.410747108,
+    "data": "4983f19aa1801bb9"
+  },
+  {
+    "raw_file": "fuzzy-027.jsonl",
+    "t": 9173.985374855,
+    "data": "f5902715e41c46da"
+  },
+  {
+    "raw_file": "fuzzy-027.jsonl",
+    "t": 9175.10273131,
+    "data": "838cd8bbd0f7b17f"
+  },
+  {
+    "raw_file": "fuzzy-028.jsonl",
+    "t": 9179.743617056,
+    "data": "172aff3a8c10a3e1"
+  },
+  {
+    "raw_file": "fuzzy-029.jsonl",
+    "t": 9186.759765985,
+    "data": "849e00967ac6abb1"
+  },
+  {
+    "raw_file": "fuzzy-029.jsonl",
+    "t": 9186.903955536,
+    "data": "c727249d2b23d7e3"
+  },
+  {
+    "raw_file": "fuzzy-031.jsonl",
+    "t": 9197.164365932,
+    "data": "9425b5170ffc1013"
+  },
+  {
+    "raw_file": "fuzzy-031.jsonl",
+    "t": 9199.492455826,
+    "data": "608d77581ad1b9fd"
+  },
+  {
+    "raw_file": "fuzzy-032.jsonl",
+    "t": 9204.226998307,
+    "data": "5f3e3870078fe9cc"
+  },
+  {
+    "raw_file": "fuzzy-032.jsonl",
+    "t": 9204.957675162,
+    "data": "1f3dead4a1791567"
+  },
+  {
+    "raw_file": "fuzzy-032.jsonl",
+    "t": 9204.972742561,
+    "data": "bba680436f635a09"
+  },
+  {
+    "raw_file": "fuzzy-032.jsonl",
+    "t": 9205.458093801,
+    "data": "fa051f3d512aef7b"
+  },
+  {
+    "raw_file": "fuzzy-033.jsonl",
+    "t": 9212.211925325,
+    "data": "a147b3ddbb97f578"
+  },
+  {
+    "raw_file": "fuzzy-034.jsonl",
+    "t": 9215.570617874,
+    "data": "fde693d33a3a2d8c"
+  },
+  {
+    "raw_file": "fuzzy-034.jsonl",
+    "t": 9216.044224273,
+    "data": "4209ee038efd1ea9"
+  },
+  {
+    "raw_file": "fuzzy-034.jsonl",
+    "t": 9216.965542287,
+    "data": "ddddc34a766d4baf"
+  },
+  {
+    "raw_file": "fuzzy-035.jsonl",
+    "t": 9222.298148403,
+    "data": "6cc0aed19d4ec380"
+  },
+  {
+    "raw_file": "fuzzy-035.jsonl",
+    "t": 9224.187457347,
+    "data": "6bff9d8d21012d12"
+  },
+  {
+    "raw_file": "fuzzy-036.jsonl",
+    "t": 9227.836897796,
+    "data": "3eaaf65533f77367"
+  },
+  {
+    "raw_file": "fuzzy-037.jsonl",
+    "t": 9234.325722472,
+    "data": "ff416906266b85f4"
+  },
+  {
+    "raw_file": "fuzzy-038.jsonl",
+    "t": 9241.411541406,
+    "data": "208688e6a471feb0"
+  },
+  {
+    "raw_file": "fuzzy-038.jsonl",
+    "t": 9241.528854852,
+    "data": "c950f5e8b1d993ed"
+  },
+  {
+    "raw_file": "fuzzy-038.jsonl",
+    "t": 9242.044365315,
+    "data": "a99d65320595b66e"
+  },
+  {
+    "raw_file": "fuzzy-038.jsonl",
+    "t": 9242.894966343,
+    "data": "1b69e15ef2119473"
+  },
+  {
+    "raw_file": "fuzzy-039.jsonl",
+    "t": 9246.941915809,
+    "data": "29d83b3de7c64cfb"
+  },
+  {
+    "raw_file": "fuzzy-039.jsonl",
+    "t": 9247.953393561,
+    "data": "e4fcc7fa00196058"
+  },
+  {
+    "raw_file": "fuzzy-040.jsonl",
+    "t": 9252.374407436,
+    "data": "6f3e23b5089e19de"
+  },
+  {
+    "raw_file": "fuzzy-040.jsonl",
+    "t": 9253.41870278,
+    "data": "eb71dcc2559cde3f"
+  },
+  {
+    "raw_file": "fuzzy-040.jsonl",
+    "t": 9254.240903919,
+    "data": "80add1ac531529dd"
+  },
+  {
+    "raw_file": "fuzzy-041.jsonl",
+    "t": 9259.144435244,
+    "data": "3422e485eef8d258"
+  },
+  {
+    "raw_file": "fuzzy-041.jsonl",
+    "t": 9259.519075812,
+    "data": "c0b274d8ff4a5b22"
+  },
+  {
+    "raw_file": "fuzzy-041.jsonl",
+    "t": 9260.310084364,
+    "data": "682eccea7ada1687"
+  },
+  {
+    "raw_file": "fuzzy-041.jsonl",
+    "t": 9260.859907863,
+    "data": "e299991389dffe62"
+  },
+  {
+    "raw_file": "fuzzy-041.jsonl",
+    "t": 9261.314079818,
+    "data": "1fda3d1a76ab4555"
+  },
+  {
+    "raw_file": "fuzzy-042.jsonl",
+    "t": 9266.344072781,
+    "data": "3e9145a725997d3d"
+  },
+  {
+    "raw_file": "fuzzy-042.jsonl",
+    "t": 9266.60554188,
+    "data": "0369b3c5eaa5db70"
+  },
+  {
+    "raw_file": "fuzzy-043.jsonl",
+    "t": 9271.345015264,
+    "data": "e99d6f7473ed3894"
+  },
+  {
+    "raw_file": "fuzzy-043.jsonl",
+    "t": 9272.517280118,
+    "data": "1eab5baeddc7f4dc"
+  },
+  {
+    "raw_file": "fuzzy-044.jsonl",
+    "t": 9277.11093121,
+    "data": "09441e63484cbafb"
+  },
+  {
+    "raw_file": "fuzzy-044.jsonl",
+    "t": 9277.167969356,
+    "data": "61aba3dbb377c6b1"
+  },
+  {
+    "raw_file": "fuzzy-044.jsonl",
+    "t": 9279.346074971,
+    "data": "86972277073c7cc9"
+  },
+  {
+    "raw_file": "fuzzy-044.jsonl",
+    "t": 9279.549448264,
+    "data": "2c82a7e868aec4da"
+  },
+  {
+    "raw_file": "fuzzy-045.jsonl",
+    "t": 9284.619226473,
+    "data": "c683eaf0a1fd86f5"
+  },
+  {
+    "raw_file": "fuzzy-045.jsonl",
+    "t": 9284.682707999,
+    "data": "8b80c3804b0238c0"
+  },
+  {
+    "raw_file": "fuzzy-046.jsonl",
+    "t": 9291.45728361,
+    "data": "9ed69450173a255d"
+  },
+  {
+    "raw_file": "fuzzy-046.jsonl",
+    "t": 9292.253946063,
+    "data": "f6a851448d7ef8c8"
+  },
+  {
+    "raw_file": "fuzzy-048.jsonl",
+    "t": 9301.836429603,
+    "data": "96aa29e035728f5c"
+  },
+  {
+    "raw_file": "fuzzy-048.jsonl",
+    "t": 9302.571315344,
+    "data": "804d12be16bd8806"
+  },
+  {
+    "raw_file": "fuzzy-050.jsonl",
+    "t": 9314.311384402,
+    "data": "a6254617282245a1"
+  },
+  {
+    "raw_file": "fuzzy-050.jsonl",
+    "t": 9315.870810729,
+    "data": "bdc3dcfeb7893672"
+  },
+  {
+    "raw_file": "fuzzy-051.jsonl",
+    "t": 9320.307906416,
+    "data": "70befe5debf63371"
+  },
+  {
+    "raw_file": "fuzzy-052.jsonl",
+    "t": 9327.766125015,
+    "data": "0d260f54d26d15d7"
+  },
+  {
+    "raw_file": "fuzzy-053.jsonl",
+    "t": 9332.81721887,
+    "data": "43775ee4bf106a6e"
+  },
+  {
+    "raw_file": "fuzzy-053.jsonl",
+    "t": 9333.938572616,
+    "data": "8be8f52bca41ce11"
+  },
+  {
+    "raw_file": "fuzzy-053.jsonl",
+    "t": 9334.181840142,
+    "data": "ef4b924b00346fc6"
+  },
+  {
+    "raw_file": "fuzzy-054.jsonl",
+    "t": 9338.848133787,
+    "data": "7fd04da6cec46897"
+  },
+  {
+    "raw_file": "fuzzy-055.jsonl",
+    "t": 9346.95182576,
+    "data": "8fbd8c0642398e3e"
+  },
+  {
+    "raw_file": "fuzzy-055.jsonl",
+    "t": 9347.175659674,
+    "data": "c2d92de2ad7e8b6a"
+  },
+  {
+    "raw_file": "fuzzy-055.jsonl",
+    "t": 9347.723366774,
+    "data": "b29daeb03f183ac3"
+  },
+  {
+    "raw_file": "fuzzy-056.jsonl",
+    "t": 9351.465665189,
+    "data": "6ccd24b6de97bf38"
+  },
+  {
+    "raw_file": "fuzzy-057.jsonl",
+    "t": 9359.987922495,
+    "data": "95ecaac7235dcac3"
+  },
+  {
+    "raw_file": "fuzzy-058.jsonl",
+    "t": 9364.186641691,
+    "data": "b481dc3288fbf326"
+  },
+  {
+    "raw_file": "fuzzy-059.jsonl",
+    "t": 9369.395232195,
+    "data": "093088d73ef6ca68"
+  },
+  {
+    "raw_file": "fuzzy-060.jsonl",
+    "t": 9377.891835227,
+    "data": "6c5c985ad3591108"
+  },
+  {
+    "raw_file": "fuzzy-060.jsonl",
+    "t": 9378.163771159,
+    "data": "07234d9f27f65e72"
+  },
+  {
+    "raw_file": "fuzzy-061.jsonl",
+    "t": 9381.961781349,
+    "data": "144bec5dfb1702fc"
+  },
+  {
+    "raw_file": "fuzzy-061.jsonl",
+    "t": 9383.072305768,
+    "data": "6ddb7779ecad597f"
+  },
+  {
+    "raw_file": "fuzzy-061.jsonl",
+    "t": 9383.97204376,
+    "data": "e899dcaf6b3bfbba"
+  },
+  {
+    "raw_file": "fuzzy-061.jsonl",
+    "t": 9384.649079065,
+    "data": "ed5830e778f4b247"
+  },
+  {
+    "raw_file": "fuzzy-062.jsonl",
+    "t": 9390.207531648,
+    "data": "dd005c59f65071c3"
+  },
+  {
+    "raw_file": "fuzzy-064.jsonl",
+    "t": 9402.101538157,
+    "data": "6bf827849bb47286"
+  },
+  {
+    "raw_file": "fuzzy-064.jsonl",
+    "t": 9402.289873826,
+    "data": "39b46ccb832b5f0b"
+  },
+  {
+    "raw_file": "fuzzy-064.jsonl",
+    "t": 9402.72670467,
+    "data": "f94069357ff096c4"
+  },
+  {
+    "raw_file": "fuzzy-065.jsonl",
+    "t": 9408.774358522,
+    "data": "de1908b052ca532f"
+  },
+  {
+    "raw_file": "fuzzy-065.jsonl",
+    "t": 9408.995003719,
+    "data": "6f5ba93c4ff5a979"
+  },
+  {
+    "raw_file": "fuzzy-068.jsonl",
+    "t": 9425.503298584,
+    "data": "4315349c9067a460"
+  },
+  {
+    "raw_file": "fuzzy-068.jsonl",
+    "t": 9426.352803435,
+    "data": "f206d2058c952cab"
+  },
+  {
+    "raw_file": "fuzzy-068.jsonl",
+    "t": 9427.722696366,
+    "data": "1a7e03f10b450e6d"
+  },
+  {
+    "raw_file": "fuzzy-069.jsonl",
+    "t": 9431.09888423,
+    "data": "8265c27c3dcab5ca"
+  },
+  {
+    "raw_file": "fuzzy-069.jsonl",
+    "t": 9431.565958082,
+    "data": "977f02b9437a91e0"
+  },
+  {
+    "raw_file": "fuzzy-069.jsonl",
+    "t": 9432.14869704,
+    "data": "c91ec988fb32553e"
+  },
+  {
+    "raw_file": "fuzzy-070.jsonl",
+    "t": 9439.372139381,
+    "data": "9058a29086de45e4"
+  },
+  {
+    "raw_file": "fuzzy-072.jsonl",
+    "t": 9450.343499706,
+    "data": "b418610b20b86f5a"
+  },
+  {
+    "raw_file": "fuzzy-073.jsonl",
+    "t": 9458.191318509,
+    "data": "7fd96a0b799a2ba4"
+  },
+  {
+    "raw_file": "fuzzy-075.jsonl",
+    "t": 9468.583476374,
+    "data": "8ba305383ed42d01"
+  },
+  {
+    "raw_file": "fuzzy-075.jsonl",
+    "t": 9469.429513669,
+    "data": "50a976fccc98008e"
+  },
+  {
+    "raw_file": "fuzzy-075.jsonl",
+    "t": 9470.543299971,
+    "data": "451eedf8daefa452"
+  },
+  {
+    "raw_file": "fuzzy-076.jsonl",
+    "t": 9475.122769049,
+    "data": "bbeff01c24f2eea6"
+  },
+  {
+    "raw_file": "fuzzy-076.jsonl",
+    "t": 9476.146851395,
+    "data": "de68f52e5dde464d"
+  },
+  {
+    "raw_file": "fuzzy-076.jsonl",
+    "t": 9476.606290379,
+    "data": "b0ff293f85b0dfac"
+  },
+  {
+    "raw_file": "fuzzy-077.jsonl",
+    "t": 9481.476546869,
+    "data": "efda23d894f5d873"
+  },
+  {
+    "raw_file": "fuzzy-077.jsonl",
+    "t": 9482.435532098,
+    "data": "e664bc6851ad48d9"
+  },
+  {
+    "raw_file": "fuzzy-079.jsonl",
+    "t": 9493.433976884,
+    "data": "6298e7e628ed9142"
+  },
+  {
+    "raw_file": "fuzzy-079.jsonl",
+    "t": 9495.360425972,
+    "data": "d55a3c94006405e0"
+  },
+  {
+    "raw_file": "fuzzy-080.jsonl",
+    "t": 9498.818414153,
+    "data": "bad99f13977644f1"
+  },
+  {
+    "raw_file": "fuzzy-081.jsonl",
+    "t": 9506.365209971,
+    "data": "f52b9bc3272946e8"
+  },
+  {
+    "raw_file": "fuzzy-082.jsonl",
+    "t": 9513.262871457,
+    "data": "677c76b6a8c68b9a"
+  },
+  {
+    "raw_file": "fuzzy-082.jsonl",
+    "t": 9513.724298276,
+    "data": "f7c9551458ed782c"
+  },
+  {
+    "raw_file": "fuzzy-085.jsonl",
+    "t": 9531.724976529,
+    "data": "55554b2327a454f0"
+  },
+  {
+    "raw_file": "fuzzy-086.jsonl",
+    "t": 9538.081224226,
+    "data": "32d021f5b74c4e11"
+  },
+  {
+    "raw_file": "fuzzy-086.jsonl",
+    "t": 9538.702026237,
+    "data": "13a0b4126accda05"
+  },
+  {
+    "raw_file": "fuzzy-087.jsonl",
+    "t": 9542.380315155,
+    "data": "8d0ff19c0fe40744"
+  },
+  {
+    "raw_file": "fuzzy-087.jsonl",
+    "t": 9544.817073499,
+    "data": "7cb42c6638ebc8cb"
+  },
+  {
+    "raw_file": "fuzzy-087.jsonl",
+    "t": 9544.845083462,
+    "data": "4e495b52ace20483"
+  },
+  {
+    "raw_file": "fuzzy-088.jsonl",
+    "t": 9548.204678002,
+    "data": "685635c75ba5f88d"
+  },
+  {
+    "raw_file": "fuzzy-090.jsonl",
+    "t": 9562.906665108,
+    "data": "c5527bedd5b7536e"
+  },
+  {
+    "raw_file": "fuzzy-090.jsonl",
+    "t": 9563.135842354,
+    "data": "e8d28365bc44c53e"
+  },
+  {
+    "raw_file": "fuzzy-091.jsonl",
+    "t": 9568.07039106,
+    "data": "14fb53e69cb201b9"
+  },
+  {
+    "raw_file": "fuzzy-093.jsonl",
+    "t": 9581.759375328,
+    "data": "1f662193eca9f2bc"
+  },
+  {
+    "raw_file": "fuzzy-094.jsonl",
+    "t": 9586.688914328,
+    "data": "1fa349c8c805b686"
+  },
+  {
+    "raw_file": "fuzzy-096.jsonl",
+    "t": 9597.831020599,
+    "data": "cde2d8cc3fe4b6d8"
+  },
+  {
+    "raw_file": "fuzzy-096.jsonl",
+    "t": 9598.312916895,
+    "data": "f3a6ecc4c3e3af75"
+  },
+  {
+    "raw_file": "fuzzy-096.jsonl",
+    "t": 9598.43671663,
+    "data": "a692613ba5e9134c"
+  },
+  {
+    "raw_file": "fuzzy-096.jsonl",
+    "t": 9600.075846043,
+    "data": "d2f80250efe23981"
+  },
+  {
+    "raw_file": "fuzzy-098.jsonl",
+    "t": 9610.831363192,
+    "data": "a26adca12cf6c874"
+  },
+  {
+    "raw_file": "fuzzy-098.jsonl",
+    "t": 9612.053101966,
+    "data": "0887bc393eb5367d"
+  },
+  {
+    "raw_file": "fuzzy-099.jsonl",
+    "t": 9616.088549658,
+    "data": "e8a66debbd832006"
+  },
+  {
+    "raw_file": "fuzzy-100.jsonl",
+    "t": 9622.814923154,
+    "data": "71cd31c04742d758"
+  }
+]

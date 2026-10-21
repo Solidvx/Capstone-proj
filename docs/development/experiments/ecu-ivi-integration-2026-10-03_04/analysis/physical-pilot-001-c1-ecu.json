@@ -1,0 +1,60 @@
+{
+  "manifest_status": "COMPLETE",
+  "ivi_run_id": "SECURITY-PILOT-OFF-001",
+  "hashes_verified": 7,
+  "tx_delta": 6417,
+  "trials": [
+    {
+      "attack_type": "flooding",
+      "status": "VALID",
+      "attack_sent": 1527,
+      "attack_seen": 1527,
+      "attack_tx_errors": 0,
+      "rx_dropped": 0,
+      "attack_success": null,
+      "attack_published": 0,
+      "normal_delivered": 30,
+      "normal_expected": 30,
+      "achieved_fps": 508.8292584420564
+    },
+    {
+      "attack_type": "fuzzy",
+      "status": "VALID",
+      "attack_sent": 1535,
+      "attack_seen": 1535,
+      "attack_tx_errors": 0,
+      "rx_dropped": 0,
+      "attack_success": false,
+      "attack_published": 0,
+      "normal_delivered": 30,
+      "normal_expected": 30,
+      "achieved_fps": 511.35964991333833
+    },
+    {
+      "attack_type": "replay",
+      "status": "VALID",
+      "attack_sent": 1545,
+      "attack_seen": 1545,
+      "attack_tx_errors": 0,
+      "rx_dropped": 0,
+      "attack_success": true,
+      "attack_published": 1545,
+      "normal_delivered": 30,
+      "normal_expected": 30,
+      "achieved_fps": 514.6371384456232
+    },
+    {
+      "attack_type": "spoofing",
+      "status": "VALID",
+      "attack_sent": 1539,
+      "attack_seen": 1539,
+      "attack_tx_errors": 0,
+      "rx_dropped": 0,
+      "attack_success": true,
+      "attack_published": 1539,
+      "normal_delivered": 30,
+      "normal_expected": 30,
+      "achieved_fps": 512.7115059516586
+    }
+  ]
+}

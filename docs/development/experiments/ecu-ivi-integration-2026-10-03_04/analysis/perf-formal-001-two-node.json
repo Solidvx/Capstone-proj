@@ -1,0 +1,35 @@
+{
+  "ecu_frames": 2998,
+  "ivi_frames": 2998,
+  "payload_differences": [
+    {
+      "index": 83,
+      "ecu": "07aab03b00000029",
+      "ivi": "0755607600000052",
+      "id_ecu": 258,
+      "id_ivi": 258
+    },
+    {
+      "index": 803,
+      "ecu": "523d082600000191",
+      "ivi": "523d082600000122",
+      "id_ecu": 258,
+      "id_ivi": 258
+    },
+    {
+      "index": 805,
+      "ecu": "e0e5341b00000192",
+      "ivi": "e0e5341b00000124",
+      "id_ecu": 258,
+      "id_ivi": 258
+    },
+    {
+      "index": 1857,
+      "ecu": "4f567faa000003a0",
+      "ivi": "4f567faa00000340",
+      "id_ecu": 258,
+      "id_ivi": 258
+    }
+  ],
+  "ecu_counters_sequential": true
+}

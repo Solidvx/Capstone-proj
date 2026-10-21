@@ -1,0 +1,190 @@
+{
+  "method": "Exact sequence aligned first/last injected own frames; interior one-second canbusload samples only, not full-window mean",
+  "trials": [
+    {
+      "trial": 78,
+      "interior_load_percent": [
+        59,
+        52
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 79,
+      "interior_load_percent": [
+        59,
+        60
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 80,
+      "interior_load_percent": [
+        59,
+        59,
+        50
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 81,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 82,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 83,
+      "interior_load_percent": [
+        59,
+        60
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 84,
+      "interior_load_percent": [
+        58,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 85,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 86,
+      "interior_load_percent": [
+        60,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 87,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 88,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 89,
+      "interior_load_percent": [
+        59,
+        60
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 90,
+      "interior_load_percent": [
+        59,
+        60
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 91,
+      "interior_load_percent": [
+        59,
+        57
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 92,
+      "interior_load_percent": [
+        57,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 93,
+      "interior_load_percent": [
+        59,
+        47
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 94,
+      "interior_load_percent": [
+        60,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 95,
+      "interior_load_percent": [
+        60,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 96,
+      "interior_load_percent": [
+        59,
+        60
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 97,
+      "interior_load_percent": [
+        59,
+        60
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 98,
+      "interior_load_percent": [
+        59,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 99,
+      "interior_load_percent": [
+        60,
+        59
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 100,
+      "interior_load_percent": [
+        60,
+        59
+      ],
+      "any_interior_ge50": true
+    }
+  ]
+}

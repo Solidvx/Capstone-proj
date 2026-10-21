@@ -80,13 +80,13 @@ vcan 지원 Linux/RPi에서 기존 `vcan0` 상태를 먼저 확인한다. 없을
 
 1000fps는 pilot 시작 설정이지 TC-SEC-005-d 부하 충족값이 아니다. 아래 버스 부하 측정으로 강도를 확인·사전 고정한다. rate·duration·입력·센서 모드·IF 학습 자료는 본 평가에서 고정하고 평가 결과를 보고 임계를 재조정하지 않는다. 5000fps/120초 상한은 입력 오류 방지 상한이며 물리 달성 보증이 아니다.
 
-본 실험은 pilot 인수 후 `--trials 100`으로 실행한다. 세 구성의 `--run-id`는 같게, 출력 디렉터리와 IVI 대응 ID는 다르게 한다. 각 명령이 실제로 해당 구성의 ECU·IDS를 시작한다. Config 1/2에는 `--train`을 넣지 않는다. 동일 시행 번호의 재시도는 새 run-id로 보존하고 원본을 덮어쓰지 않는다. 공식 기본 매트릭스는 4종×3구성×100개의 **유효 시행**이다. `--attack flooding` 등 일부 선택은 pilot용이며 전체 완료가 아니다.
+본 실험은 케이스(구성×공격)별 독립 run ID/출력 경로로 실행한다. `--attack` 하나씩 순차 수집해도 전체 12조건을 연결하면 본 실험이다. 사용자 결정 DEV-EXP-001에 따라 `--trials 100 --continue-invalid`로 계획 번호를 수집하며 INVALID는 보존하고 자동 보충하지 않는다. 기존 TEST_PLAN의 100유효 목표와 차이는 [방법·편차](../experiments/physical-ablation-formal-2026-10-04/METHODS-AND-TRACEABILITY.md)에 명시한다. 재개는 새 run ID, `--start-trial`, `--previous-run-id`로 연결한다. C1/C2에는 학습 옵션을 넣지 않고 C3는 독립 fit/calibration을 지정한다.
 
 ```sh
 .venv/bin/python -m security.experiments.summarize_live tmp/full-c1-01 tmp/full-c2-01 tmp/full-c3-01 --out tmp/full-summary-01.json
 ```
 
-실행마다 manifest.json, attempts.jsonl, warmup.jsonl, 공격별 원시 JSONL, ECU 로그, Config 3의 IDS 로그를 보존한다. 정상 준비 실패·캡처 손실·자기 echo 누락은 INVALID로 남기고 중단한다. 미탐지는 유효한 실패 결과이며 지연 0으로 바꾸지 않는다. SIGINT/SIGTERM 시 소유 프로세스를 종료·회수한다. IVI는 외부 프로세스이므로 하네스가 종료하지 않는다.
+실행마다 manifest.json, attempts.jsonl, warmup.jsonl, 공격별 원시 JSONL, ECU 로그, Config 3의 IDS 로그를 보존한다. 판정된 INVALID는 `--continue-invalid` 사용 시 원장에 남기고 다음 번호로 진행한다. 소유 프로세스 종료·버스/시각 오류처럼 실행 자체가 불가능한 예외는 기록 후 중단한다. 옵션이 없으면 INVALID 시 중단한다. 미탐지는 유효한 실패 결과이며 지연 0으로 바꾸지 않는다. SIGINT/SIGTERM 시 소유 프로세스를 종료·회수한다. IVI는 외부 프로세스이므로 하네스가 종료하지 않는다.
 
 ## 5. 물리 버스 점유율 (TC-SEC-005-d)
 
@@ -138,6 +138,10 @@ set -C
 
 ## 8. 제출 표
 
-합성 표는 `summarize_ablation.py`의 environment 열을 사용한다. `analyze_roc.py`가 만드는 `detector_reference.csv`는 masquerade **참고 표**이며 공식 4종·3구성 표에 합산하지 않는다. 실시간 표는 `summarize_live`를 사용한다. 탐지율의 시행 분모와 ROC/오탐의 윈도우 분모를 혼합하지 않는다. 물리 미측정 칸은 미측정, 공식 유효 100회 미충족은 NOT_RUN으로 남긴다.
+합성 표는 `summarize_ablation.py`의 environment 열을 사용한다. `analyze_roc.py`가 만드는 `detector_reference.csv`는 masquerade **참고 표**이며 공식 4종·3구성 표에 합산하지 않는다. 단일 run 진단은 `summarize_live`, 실제 재개·버전별 논문 집계는 [publication 재현 절차](../experiments/physical-ablation-formal-2026-10-04/REPRODUCE.md)를 사용한다. 탐지율의 시행 분모와 ROC/오탐의 윈도우 분모를 혼합하지 않는다. 물리 미측정 칸은 미측정으로 남긴다. 계획 번호 수집 완료와 원래 유효100회 기준 충족을 분리하며 미충족 조건을 PASS로 바꾸지 않는다.
 
 IVI 인계: [시험 모드·관측 계약](../security/IVI_실험_인계.md).
+
+## 2026-10-04 v8 장기 실행 보완
+
+현재 실행기는 소유 IDS 수명을 부모 프로세스에 연결하고 누적 IDS 로그를 증분 처리한다. 공격 관측 프레임 시각은 커널 SO_TIMESTAMPNS_NEW의 고정 monotonic 매핑이며 기존 dequeue 시각과 버전을 구분한다. `--continue-invalid`는 판정된 INVALID를 보존하고 다음 계획 시행으로 진행한다. 실제 프로세스 종료·버스 오류·시각 오류는 중단한다. 이전 C3 delivery_ratio 이상은 원본 보존 후 양측 CAN 로그로 재분석한다. [002 보고서](../experiments/physical-ablation-formal-2026-10-04/reports/ABLATION-FORMAL-C3-FLOOD-002.md).

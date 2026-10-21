@@ -44,6 +44,8 @@
 
 ## 환경·실험·결정
 
+- [ECU–IVI 실장비 시험 결과 보존 기록](experiments/ecu-ivi-integration-2026-10-03_04/README.md): 정상 인증·성능·노브·보안 pilot·IF 평가·고부하 조정의 원본 위치와 시행착오·분석·판정
+
 - [Android 환경설정](environment/안드로이드_환경설정.md): superseded된 과거 포팅 조사·인계 자료
 - [SOC 합성실험 결과](experiments/SOC_합성실험_결과.md): 특정 실험의 조건·수치·제품 반영 근거
 - [의사결정 기록](governance/의사결정_기록.md): 사용자 답변과 결정 원본
@@ -75,3 +77,10 @@
 - [IVI Qt 현행 안내 정정 기록](../aidlc/changes/CHG-004/aidlc-state.md)
 
 - [ECU–IVI 하드웨어 연결 가이드](environment/ECU_IVI_하드웨어_연결가이드.html): 기존 배치·사진 기반 전원/ADC/CAN 조립과 점검
+
+- [공식 물리 Ablation 본 실험 기록](experiments/physical-ablation-formal-2026-10-04/README.md): pilot과 분리한 원본·분석·판정 보존.
+
+- [실험 증거 감사와 보완](reviews/experiment-evidence-audit-2026-10-04/REMEDIATION.md)
+- [논문용 재현 절차](experiments/physical-ablation-formal-2026-10-04/REPRODUCE.md)
+
+- [최종 실험 결과 보고서](experiments/최종실험_결과_보고서.md): 실험 설계·과정·12조건 결과·비교 분석·한계와 논문 절별 활용 안내.

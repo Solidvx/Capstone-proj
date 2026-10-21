@@ -1,0 +1,92 @@
+{
+  "environment": "synthetic",
+  "seeds": {
+    "fit": 9001,
+    "calibration": 9002,
+    "evaluations": [
+      9003,
+      9004,
+      9005
+    ]
+  },
+  "duration_each_s": 300,
+  "calibration": {
+    "windows": 297,
+    "alpha": 0.01,
+    "rank": 296,
+    "threshold": 0.10238147831723865
+  },
+  "results": {
+    "eval1": {
+      "mode": "rules+if",
+      "config": {
+        "missing_s": 0.3,
+        "pending_s": 0.1,
+        "min_period_s": 0.05,
+        "max_frames_per_second": 100,
+        "failure_repeat_count": 3,
+        "max_soc_step": 20.0,
+        "max_temperature_step": 20.0,
+        "max_current_step": 100.0
+      },
+      "warmup_s": 2,
+      "complete_windows": 298,
+      "empty_windows": 0,
+      "false_positive_windows": 4,
+      "fpr": 0.013422818791946308,
+      "reasons": {
+        "IF_ANOMALY": 4
+      },
+      "status": "PASS"
+    },
+    "eval2": {
+      "mode": "rules+if",
+      "config": {
+        "missing_s": 0.3,
+        "pending_s": 0.1,
+        "min_period_s": 0.05,
+        "max_frames_per_second": 100,
+        "failure_repeat_count": 3,
+        "max_soc_step": 20.0,
+        "max_temperature_step": 20.0,
+        "max_current_step": 100.0
+      },
+      "warmup_s": 2,
+      "complete_windows": 298,
+      "empty_windows": 0,
+      "false_positive_windows": 0,
+      "fpr": 0.0,
+      "reasons": {},
+      "status": "PASS"
+    },
+    "eval3": {
+      "mode": "rules+if",
+      "config": {
+        "missing_s": 0.3,
+        "pending_s": 0.1,
+        "min_period_s": 0.05,
+        "max_frames_per_second": 100,
+        "failure_repeat_count": 3,
+        "max_soc_step": 20.0,
+        "max_temperature_step": 20.0,
+        "max_current_step": 100.0
+      },
+      "warmup_s": 2,
+      "complete_windows": 298,
+      "empty_windows": 0,
+      "false_positive_windows": 1,
+      "fpr": 0.003355704697986577,
+      "reasons": {
+        "IF_ANOMALY": 1
+      },
+      "status": "PASS"
+    }
+  },
+  "input_sha256": {
+    "fit": "ffc2ae65bdd924efaa7352103ce0f1994c7a90c37b1889d62c7e32284ccf19df",
+    "calibration": "d0e485bdd5ffba1658b5aed11ba0bee44030565a4dafd684d3f69c82d0a07264",
+    "eval1": "f493085a3d8652848968a83bada1b73a72d42b25161b6389b38b2e71f824410d",
+    "eval2": "bb2ba434c13201bc77c99dfe1c06978c46546cd3014b115e67f32bd89149232a",
+    "eval3": "ca9624807473092e3763146c72cdb082fb3aa90b21c08fea73e67b91cc5c0cb0"
+  }
+}

@@ -1,5 +1,8 @@
 # IVI 실행 계획 — Node B Plan B
 
+> 2026-10-04 실장비 증거 연결: [실행 상태·시험 추적](../docs/aidlc/changes/CHG-014/aidlc-state.md). 계획/설계의 존재와 시험 인수를 구분하며 INVALID·버전 편차·미수집 화면·비인증 0x200 경보의 제한을 적용한다. 아래 요구/계약 목표를 실험 결과에 맞춰 낮추지 않는다.
+
+
 > **담당**: IVI / SocketCAN / Service / Qt Dashboard / CI·CD
 > **플랫폼 결정**: Debian 13 ARM64 + C++17 + SocketCAN + Qt 6.8 Quick/QML
 > **결정일**: 2026-09-22

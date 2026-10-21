@@ -1,0 +1,37 @@
+{
+  "run_id": "ABLATION-FORMAL-C1-FLOOD-003",
+  "ecu_frames": 562966,
+  "ivi_can_frames": 562968,
+  "ivi_receiver_frames": 4987,
+  "receiver_matches_filtered_can": true,
+  "ecu_missing_count": 0,
+  "missing_examples": [],
+  "repeated_payload_identity": "counts verified; exact repeated-frame identities may be ambiguous",
+  "ivi_tail_frames": 2,
+  "can_error_frames": [],
+  "authenticated_publish_origins": {},
+  "mac_fail_origins": {},
+  "ids_log_results": {},
+  "ids_sent": 0,
+  "ids_sent_matches_non_injected_ecu_and_ivi": true,
+  "injected_id200_frames": 0,
+  "stderr": {
+    "canbusload.stderr": {
+      "bytes": 0,
+      "qt_animation_warnings": 0
+    },
+    "candump.stderr": {
+      "bytes": 0,
+      "qt_animation_warnings": 0
+    }
+  },
+  "ids_wire_type_counts": {},
+  "origin_method": "ordered CAN alignment plus most recent BMS pending; descriptive association, not cryptographic re-verification",
+  "ivi_exit_files": {
+    "canbusload-exit-code.txt": "0",
+    "candump-exit-code.txt": "0",
+    "dashboard-exit-code.txt": "0"
+  },
+  "display_verdict": "NOT_MEASURED",
+  "physical_pixel_latency": null
+}

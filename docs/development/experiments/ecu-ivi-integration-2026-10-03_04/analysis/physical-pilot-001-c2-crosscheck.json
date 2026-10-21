@@ -1,0 +1,130 @@
+{
+  "can_frames": 7485,
+  "ecu_observed_frames": 7483,
+  "ecu_exact_prefix": true,
+  "ivi_tail_frames": [
+    {
+      "time": "2026-10-04T06:05:23.682587+09:00",
+      "can_id": 256,
+      "data": "c8c81068ffec4100"
+    },
+    {
+      "time": "2026-10-04T06:05:23.683195+09:00",
+      "can_id": 258,
+      "data": "dad260050000010f"
+    }
+  ],
+  "receiver_frames": 4427,
+  "allowlisted_receiver_exact_sequence": true,
+  "secoc_all_on": true,
+  "messages": {
+    "BMS payload pending authentication": 2968,
+    "Authenticated BMS data published": 271,
+    "reason=AUTH_ORPHAN channel=BMS auth without pending original": 4,
+    "Rejected invalid Fail-safe payload": 3,
+    "reason=AUTH_ORPHAN channel=Fail-safe auth without pending original": 1,
+    "Rejected invalid BMS payload": 1,
+    "Rejected invalid IDS payload": 1,
+    "reason=COUNTER_BACKWARD can_id=256 counter=151": 92,
+    "WARNING: reason=COUNTER_BACKWARD can_id=256 counter=151": 186,
+    "CRITICAL: reason=COUNTER_BACKWARD can_id=256 counter=151": 899,
+    "reason=MAC_FAIL can_id=256 counter=253": 1
+  },
+  "by_raw_segment": {
+    "warmup": {
+      "BMS payload pending authentication": 30,
+      "Authenticated BMS data published": 30
+    },
+    "flooding-001": {
+      "BMS payload pending authentication": 60,
+      "Authenticated BMS data published": 60
+    },
+    "fuzzy-001": {
+      "BMS payload pending authentication": 61,
+      "Authenticated BMS data published": 61,
+      "reason=AUTH_ORPHAN channel=BMS auth without pending original": 3,
+      "Rejected invalid Fail-safe payload": 3,
+      "reason=AUTH_ORPHAN channel=Fail-safe auth without pending original": 1,
+      "Rejected invalid BMS payload": 1,
+      "Rejected invalid IDS payload": 1
+    },
+    "replay-001": {
+      "BMS payload pending authentication": 1238,
+      "Authenticated BMS data published": 60,
+      "reason=COUNTER_BACKWARD can_id=256 counter=151": 92,
+      "WARNING: reason=COUNTER_BACKWARD can_id=256 counter=151": 186,
+      "CRITICAL: reason=COUNTER_BACKWARD can_id=256 counter=151": 899,
+      "reason=AUTH_ORPHAN channel=BMS auth without pending original": 1
+    },
+    "spoofing-001": {
+      "BMS payload pending authentication": 1578,
+      "Authenticated BMS data published": 59,
+      "reason=MAC_FAIL can_id=256 counter=253": 1
+    }
+  },
+  "replay_origin_event": [
+    {
+      "can_index": 3617,
+      "ecu": {
+        "t": 36320.357930193,
+        "can_id": 258,
+        "data": "756eb804000000ad",
+        "own": false,
+        "outcomes": [
+          {
+            "kind": "PUBLISHED",
+            "can_id": 256,
+            "reason": "AUTHENTICATED",
+            "own": true,
+            "auth_own": false,
+            "payload": "c8c81068ffec4100",
+            "original_t": 36320.357371443
+          }
+        ],
+        "frame": {
+          "t": 36320.357930193,
+          "can_id": 258,
+          "data": "756eb804000000ad",
+          "dlc": 8,
+          "extended": false,
+          "remote": false,
+          "error": false
+        }
+      },
+      "ivi": {
+        "can_id": 258,
+        "data": "756eb804000000ad",
+        "message": "Authenticated BMS data published",
+        "process_result": 2,
+        "result": "FRAME",
+        "run_id": "SECURITY-PILOT-ON-001",
+        "secoc_on": true,
+        "soc": 100,
+        "source_data": "c8c81068ffec4100",
+        "timestamp_ns": "5392862710482"
+      }
+    }
+  ],
+  "attack_first_last_ivi_time": {
+    "flooding-001": [
+      "2026-10-04T06:05:01.557020+09:00",
+      "2026-10-04T06:05:04.556161+09:00"
+    ],
+    "fuzzy-001": [
+      "2026-10-04T06:05:07.581240+09:00",
+      "2026-10-04T06:05:10.580699+09:00"
+    ],
+    "replay-001": [
+      "2026-10-04T06:05:13.608079+09:00",
+      "2026-10-04T06:05:16.605878+09:00"
+    ],
+    "spoofing-001": [
+      "2026-10-04T06:05:19.655428+09:00",
+      "2026-10-04T06:05:22.654689+09:00"
+    ]
+  },
+  "ivi_rx_delta": 7485,
+  "busload_display_max_percent": 19,
+  "busload_samples": 28,
+  "other_receiver_results": {}
+}

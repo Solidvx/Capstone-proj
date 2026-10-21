@@ -1,0 +1,61 @@
+{
+  "counts": {
+    "published_common": 5952,
+    "auth_own": 0,
+    "pending_own": 0,
+    "payload_match": 5952,
+    "mac_fail": 238,
+    "mac_fail_pending_own": 238,
+    "mac_fail_auth_own": 0
+  },
+  "ivi_tail": [
+    {
+      "can_id": 256,
+      "data": "c8c81068ffec4100",
+      "message": "BMS payload pending authentication",
+      "process_result": 1,
+      "result": "FRAME",
+      "run_id": "ABLATION-FORMAL-C2-SPOOF-001",
+      "secoc_on": true,
+      "soc": 100,
+      "source_data": "c8c81068ffec4100",
+      "timestamp_ns": "13066809678953"
+    },
+    {
+      "can_id": 258,
+      "data": "a37cb31c0000182e",
+      "message": "Authenticated BMS data published",
+      "process_result": 2,
+      "result": "FRAME",
+      "run_id": "ABLATION-FORMAL-C2-SPOOF-001",
+      "secoc_on": true,
+      "soc": 100,
+      "source_data": "c8c81068ffec4100",
+      "timestamp_ns": "13066810157448"
+    },
+    {
+      "can_id": 256,
+      "data": "c8c81068ffec4100",
+      "message": "BMS payload pending authentication",
+      "process_result": 1,
+      "result": "FRAME",
+      "run_id": "ABLATION-FORMAL-C2-SPOOF-001",
+      "secoc_on": true,
+      "soc": 100,
+      "source_data": "c8c81068ffec4100",
+      "timestamp_ns": "13066909930805"
+    },
+    {
+      "can_id": 258,
+      "data": "e7503a5a0000182f",
+      "message": "Authenticated BMS data published",
+      "process_result": 2,
+      "result": "FRAME",
+      "run_id": "ABLATION-FORMAL-C2-SPOOF-001",
+      "secoc_on": true,
+      "soc": 100,
+      "source_data": "c8c81068ffec4100",
+      "timestamp_ns": "13066910460893"
+    }
+  ]
+}

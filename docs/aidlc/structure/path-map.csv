@@ -342,3 +342,16 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,docs/aidlc/changes/CHG-014/spec.md,add,CHG-014 scope and user decisions
 ,docs/aidlc/changes/CHG-014/aidlc-state.md,add,CHG-014 canonical work state
 ,docs/aidlc/changes/CHG-014/evidence.md,add,CHG-014 verification evidence
+
+,docs/development/experiments/ecu-ivi-integration-2026-10-03_04/README.md,add,Durable physical integration evidence index; per-file provenance in inventory.json
+,docs/development/experiments/physical-ablation-formal-2026-10-04/README.md,add,Separate formal ablation evidence from pilot records; per-file provenance in inventory.json
+,docs/development/experiments/physical-ablation-formal-2026-10-04/REPRODUCE.md,add,Reproducible offline publication pipeline
+,docs/development/experiments/physical-ablation-formal-2026-10-04/METHODS-AND-TRACEABILITY.md,add,Denominator deviation and TC evidence limits
+,docs/development/experiments/physical-ablation-formal-2026-10-04/BACKUP.md,add,Verified local recovery and external backup boundary
+,docs/development/experiments/physical-ablation-formal-2026-10-04/publication/,add,Generated twelve case and sixteen run outputs
+,docs/development/experiments/physical-ablation-formal-2026-10-04/tools/legacy-analysis/,add,Preserved historical analysis scripts
+,docs/development/reviews/experiment-evidence-audit-2026-10-04/REMEDIATION.md,add,Audit resolution and validation
+,docs/aidlc/changes/CHG-014/state-history.md,add,Preserved historical state
+,docs/development/experiments/최종실험_결과_보고서.md,add,Thesis report linked to preserved experiment evidence and publication tables
+,docs/development/reviews/experiment-evidence-audit-2026-10-04/verify_final_report.py,add,Final report numeric and reference verification
+,docs/development/reviews/experiment-evidence-audit-2026-10-04/final-report-validation.json,add,Final report validation receipt

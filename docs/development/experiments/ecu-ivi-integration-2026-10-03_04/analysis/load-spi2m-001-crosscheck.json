@@ -1,0 +1,20 @@
+{
+  "ecu_frames": 7455,
+  "ivi_frames": 7457,
+  "prefix_match": true,
+  "receiver_frames": 158,
+  "filtered_match": true,
+  "messages": {
+    "BMS payload pending authentication": 84,
+    "Authenticated BMS data published": 71,
+    "reason=AUTH_TIMEOUT channel=BMS": 10,
+    "reason=AUTH_ORPHAN channel=BMS auth without pending original": 1,
+    "WARNING: reason=AUTH_TIMEOUT channel=BMS": 1
+  },
+  "max_load_display_percent": 62,
+  "exit_codes": {
+    "canbusload-exit-code.txt": "0",
+    "candump-exit-code.txt": "0",
+    "dashboard-exit-code.txt": "0"
+  }
+}

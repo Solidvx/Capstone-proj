@@ -1,5 +1,8 @@
 # ECU 실행 계획 — Node A
 
+> 2026-10-04 실장비 증거 연결: [실행 상태·시험 추적](../docs/aidlc/changes/CHG-014/aidlc-state.md). 계획/설계의 존재와 시험 인수를 구분하며 INVALID·버전 편차·미수집 화면·비인증 0x200 경보의 제한을 적용한다. 아래 요구/계약 목표를 실험 결과에 맞춰 낮추지 않는다.
+
+
 > **2026-09-09 보안 후속 계획:** [공동 적용 규약](detail/common/00_협업_규약.md#security-adoption)에 따라 기존 과제에 [M3 입력·보안 시작](detail/ecu/M3_EKF_Failsafe_SecOC.md#security-adoption), [M4 IDS·공격·이벤트](detail/ecu/M4_IDS_공격_물리통합.md#security-adoption), [M5 평가](detail/ecu/M5_Ablation.md#security-adoption), [M6 추적성](detail/ecu/M6_문서_품질.md#security-adoption)의 추가 조건을 적용한다. 단계 순서·공식 계약은 유지하며 구현 완료를 뜻하지 않는다.
 
 > **담당**: ECU / BSW / BMS / SecOC / IDS · **플랫폼**: RPi4 Ubuntu 22.04, C++17, Python

@@ -1,0 +1,846 @@
+{
+  "ids_results": {
+    "START": 1,
+    "CLOCK": 1,
+    "NORMAL": 6487,
+    "ANOMALY": 435971,
+    "ALERT_SENT": 3041,
+    "DIAGNOSTIC": 143265
+  },
+  "published_own": 137,
+  "published_own_auth_own": 0,
+  "same_latest_normal": 137,
+  "detected_trials": 100,
+  "non30_expected": [
+    {
+      "trial": 10,
+      "normal_expected": 31,
+      "t_attack_start": 20063.682790345,
+      "t_attack_end": 20066.737816477
+    }
+  ],
+  "cases": [
+    {
+      "raw": "replay-002.jsonl",
+      "t": 20013.691427131,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-002.jsonl",
+      "t": 20013.791896727,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-002.jsonl",
+      "t": 20013.891965293,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-003.jsonl",
+      "t": 20019.996492378,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-003.jsonl",
+      "t": 20020.09655361,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-005.jsonl",
+      "t": 20033.00607678,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-005.jsonl",
+      "t": 20033.606475657,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-006.jsonl",
+      "t": 20040.611494987,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-008.jsonl",
+      "t": 20051.218965172,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-008.jsonl",
+      "t": 20051.319070533,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-008.jsonl",
+      "t": 20051.419120118,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-008.jsonl",
+      "t": 20051.519175314,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-008.jsonl",
+      "t": 20051.619237491,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-008.jsonl",
+      "t": 20053.020310189,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-008.jsonl",
+      "t": 20053.120379015,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-008.jsonl",
+      "t": 20053.220422914,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-008.jsonl",
+      "t": 20053.32050948,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-009.jsonl",
+      "t": 20058.123889364,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-009.jsonl",
+      "t": 20058.223949319,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-009.jsonl",
+      "t": 20058.323617318,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-017.jsonl",
+      "t": 20108.060870736,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-017.jsonl",
+      "t": 20108.761156701,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-017.jsonl",
+      "t": 20108.961275852,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-017.jsonl",
+      "t": 20109.061342455,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-020.jsonl",
+      "t": 20127.374361317,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-024.jsonl",
+      "t": 20152.992607572,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-024.jsonl",
+      "t": 20153.693066665,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-025.jsonl",
+      "t": 20159.797313876,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-025.jsonl",
+      "t": 20159.89738559,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-027.jsonl",
+      "t": 20170.204970419,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-029.jsonl",
+      "t": 20183.814917927,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-032.jsonl",
+      "t": 20201.927606656,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-033.jsonl",
+      "t": 20208.832574655,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-033.jsonl",
+      "t": 20208.933038029,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-033.jsonl",
+      "t": 20209.032691176,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-033.jsonl",
+      "t": 20209.132759909,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-033.jsonl",
+      "t": 20209.232842827,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-033.jsonl",
+      "t": 20209.333309552,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-033.jsonl",
+      "t": 20209.433367915,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-033.jsonl",
+      "t": 20209.533038229,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-033.jsonl",
+      "t": 20209.633112795,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-033.jsonl",
+      "t": 20209.733192453,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-036.jsonl",
+      "t": 20226.846068695,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-036.jsonl",
+      "t": 20226.946183298,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-036.jsonl",
+      "t": 20227.847209015,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-036.jsonl",
+      "t": 20227.947307969,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-036.jsonl",
+      "t": 20228.347568586,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-036.jsonl",
+      "t": 20228.447634948,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-036.jsonl",
+      "t": 20228.547724717,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-036.jsonl",
+      "t": 20228.64778795,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-036.jsonl",
+      "t": 20228.747457876,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-038.jsonl",
+      "t": 20239.855872605,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-038.jsonl",
+      "t": 20239.955954097,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-038.jsonl",
+      "t": 20240.056116347,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-038.jsonl",
+      "t": 20240.156196079,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-040.jsonl",
+      "t": 20251.764230709,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-045.jsonl",
+      "t": 20286.089723651,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-046.jsonl",
+      "t": 20289.992394137,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-046.jsonl",
+      "t": 20290.09207034,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-046.jsonl",
+      "t": 20290.192121925,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-049.jsonl",
+      "t": 20309.906606105,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-049.jsonl",
+      "t": 20310.006788058,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-050.jsonl",
+      "t": 20315.911712242,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-051.jsonl",
+      "t": 20320.916202864,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-051.jsonl",
+      "t": 20321.016284207,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-051.jsonl",
+      "t": 20321.116355033,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-051.jsonl",
+      "t": 20321.216412803,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-051.jsonl",
+      "t": 20321.316072302,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-051.jsonl",
+      "t": 20321.416132758,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-051.jsonl",
+      "t": 20321.516203157,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-051.jsonl",
+      "t": 20321.616281834,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-052.jsonl",
+      "t": 20328.021203856,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-053.jsonl",
+      "t": 20335.927432698,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-054.jsonl",
+      "t": 20340.93023563,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-054.jsonl",
+      "t": 20341.731213577,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-054.jsonl",
+      "t": 20341.831296162,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-055.jsonl",
+      "t": 20348.035295029,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-055.jsonl",
+      "t": 20348.135376706,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-055.jsonl",
+      "t": 20348.335535486,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-055.jsonl",
+      "t": 20348.736233762,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-055.jsonl",
+      "t": 20348.836328216,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-056.jsonl",
+      "t": 20352.939195596,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-056.jsonl",
+      "t": 20354.940230555,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-056.jsonl",
+      "t": 20355.040318936,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-059.jsonl",
+      "t": 20372.954110147,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-059.jsonl",
+      "t": 20373.25430529,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-062.jsonl",
+      "t": 20390.167206363,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-062.jsonl",
+      "t": 20390.267462944,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-064.jsonl",
+      "t": 20403.777390038,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-064.jsonl",
+      "t": 20403.877060093,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-067.jsonl",
+      "t": 20422.992274445,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-067.jsonl",
+      "t": 20423.091920612,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-067.jsonl",
+      "t": 20423.191977938,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-067.jsonl",
+      "t": 20423.292068541,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-067.jsonl",
+      "t": 20423.392561543,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-067.jsonl",
+      "t": 20423.492620832,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-067.jsonl",
+      "t": 20423.592679991,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-069.jsonl",
+      "t": 20436.601455364,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-071.jsonl",
+      "t": 20446.509081685,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-071.jsonl",
+      "t": 20446.609140733,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-072.jsonl",
+      "t": 20452.613111508,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-077.jsonl",
+      "t": 20485.33744053,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-080.jsonl",
+      "t": 20505.053799992,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-081.jsonl",
+      "t": 20511.558893624,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-081.jsonl",
+      "t": 20511.759022752,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-081.jsonl",
+      "t": 20511.859083675,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-082.jsonl",
+      "t": 20517.162398433,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-082.jsonl",
+      "t": 20517.262463515,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-082.jsonl",
+      "t": 20517.362519542,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-082.jsonl",
+      "t": 20517.462595032,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-083.jsonl",
+      "t": 20523.066541356,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-083.jsonl",
+      "t": 20523.167006647,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-083.jsonl",
+      "t": 20523.266915962,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-084.jsonl",
+      "t": 20528.770575741,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-084.jsonl",
+      "t": 20528.87063249,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-085.jsonl",
+      "t": 20534.875385121,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-085.jsonl",
+      "t": 20534.975495804,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-085.jsonl",
+      "t": 20535.976225772,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-087.jsonl",
+      "t": 20548.185147061,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-087.jsonl",
+      "t": 20548.285246781,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-087.jsonl",
+      "t": 20548.385697182,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-087.jsonl",
+      "t": 20548.485766866,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-087.jsonl",
+      "t": 20548.585449053,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-087.jsonl",
+      "t": 20548.685539625,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-089.jsonl",
+      "t": 20560.395585415,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-089.jsonl",
+      "t": 20560.49565408,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-089.jsonl",
+      "t": 20560.595713265,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-089.jsonl",
+      "t": 20560.695792912,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-089.jsonl",
+      "t": 20560.795482507,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-091.jsonl",
+      "t": 20572.104470985,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-091.jsonl",
+      "t": 20572.204529578,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-093.jsonl",
+      "t": 20585.414226121,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-093.jsonl",
+      "t": 20585.513922756,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-093.jsonl",
+      "t": 20585.81411824,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-095.jsonl",
+      "t": 20596.722397633,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-095.jsonl",
+      "t": 20596.822086696,
+      "auth_own": false,
+      "matches_latest_normal": true
+    },
+    {
+      "raw": "replay-095.jsonl",
+      "t": 20596.922548787,
+      "auth_own": false,
+      "matches_latest_normal": true
+    }
+  ]
+}

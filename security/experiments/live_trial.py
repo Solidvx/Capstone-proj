@@ -96,6 +96,8 @@ def judge_trial(config: int, attack: str, records: list[Record], w: TrialWindows
 
     # Validity: the run must actually inject, see its own frames, and have a live ECU.
     reasons = []
+    if attack_tx_errors:
+        reasons.append("TX_ERRORS")
     if attack_sent <= 0:
         reasons.append("NO_INJECTION")
     elif attack_seen != attack_sent:
