@@ -94,3 +94,5 @@
 - [공격 Pi3 소스 설치](playbooks/attack-pi3-install.md): PR 브랜치 다운로드·필요 파일·Python 환경·원격 실행 준비
 
 - [PC가 진행하는 CAN 실험과 Pi3 SSH 권한 정리](playbooks/pc-campaign.md): PC 단일 명령, 키 없는 공격 모듈, 결과 수집·재개·선별 정리
+
+- [3노드 실험 과정·결과 보고서](experiments/three-node-validation-20261022.md): 360회·화면 확인·정상 오탐률 진행 및 차단율 후속 계획.

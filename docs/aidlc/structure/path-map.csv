@@ -368,3 +368,4 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 
 ,docs/development/playbooks/pc-campaign.md,add,CHG-022 PC orchestration and obsolete Pi3 SSH cleanup
 ,하드웨어 정보/PC_3노드_실험_실행가이드.html,add,CHG-022 PC campaign step guide
+,docs/development/experiments/three-node-validation-20261022.md,add,CHG-022 physical results and pending validation report
