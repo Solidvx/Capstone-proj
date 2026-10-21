@@ -33,3 +33,5 @@ python -X utf8 docs/development/reviews/experiment-evidence-audit-2026-10-04/ver
 초기 병합 시험에서 GitHub의 READY 모의 socket에 새 시각 필드가 없어 1개 실패했다. 실제 SocketCan의 `start_time/clock_offset_ns/idle_time` 계약을 모의 객체에 반영했다. 추가 회귀는 양쪽 manifest 경계·변조 입력 거부·FIFO/송신 압력 오류의 결합을 검사한다. 기존 시험 삭제나 합격 기준 완화는 하지 않았다.
 
 증거 자료의 일부 줄 끝 공백·마지막 빈 줄은 원본 SHA256 보존 대상이다. 해당 경로만 Git whitespace 검사에서 제외하며 코드/새 문서는 일반 `git diff --check`를 적용한다. 원본 raw는 Git 제외이고 원격 저장소에 존재한다고 표시하지 않는다.
+
+원격 게시: 통합 커밋 `50e2e5f`를 `chore/team-sync-20261021`에 push하고 [PR #26](https://github.com/Solidvx/Capstone-proj/pull/26)을 생성했다. 로컬 `develop`은 원격과 동일한 `644eb99`로 fast-forward했다. 통합 작업의 `develop` 병합과 상대방 Approve는 대기 중이다. `main`은 기존 릴리즈 기준을 유지했다.

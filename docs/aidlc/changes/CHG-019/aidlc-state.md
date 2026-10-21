@@ -2,6 +2,6 @@
 
 - 기준일: 2026-10-21.
 - 범위: [요구·충돌 해결](spec.md), [검증 증거](evidence.md), [팀원 인계](../../../development/governance/팀원_인계_20261021.md).
-- 상태: 양쪽 코드·실험 근거 통합 및 로컬 회귀 완료, 문서·원격 반영 최종 확인 중.
+- 상태: 양쪽 코드·실험 근거 통합 및 로컬 회귀 완료. `chore/team-sync-20261021` 원격 게시 및 [PR #26](https://github.com/Solidvx/Capstone-proj/pull/26) 생성 완료. `develop` 병합은 상대방 리뷰 대기.
 - 과거 실장비 결과: [CHG-014](../CHG-014/aidlc-state.md). CHG-015~018의 10월 3일 기록과 함께 보존하며, 과거의 “공식 물리 실험 대기” 문구를 현재 미수집으로 해석하지 않는다.
-- 잔여: Qt 6.8 이상 화면·실험 앱 빌드, 실제 SocketCAN 및 통합 소스의 RPi 물리 인수. 팀원 Approve 및 develop 반영 여부는 최종 원격 확인 후 기록한다.
+- 잔여: 팀원 Approve 후 Squash Merge. GitHub Actions는 미구현으로 CI 통과 증거가 없으며 로컬 회귀와 구분한다. Qt 6.8 이상 화면·실험 앱 빌드, 실제 SocketCAN 및 통합 소스의 RPi 물리 인수도 남아 있다.
