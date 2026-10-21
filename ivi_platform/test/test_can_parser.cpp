@@ -35,6 +35,9 @@ void run() {
     const ivi::CanPayload watchdog{0x00, 0x01, 0x07, 0x96, 0x41, 0, 0, 0};
     EXPECT_TRUE(ivi::parseFailSafeEvent(watchdog).has_value());
     EXPECT_EQ(std::string(ivi::failSafeReasonName(0x07)), "WATCHDOG_RESTART_FAILED");
+    auto undefined_reason = watchdog;
+    undefined_reason[2] = 0;
+    EXPECT_FALSE(ivi::parseFailSafeEvent(undefined_reason).has_value());
 
     const ivi::CanPayload auth{0xD0, 0xDD, 0xFC, 0x05, 0, 0, 0, 42};
     const auto parsed_auth = ivi::parseSecOcAuth(auth);
@@ -48,6 +51,16 @@ void run() {
     EXPECT_NEAR(alert->anomaly_score, 1.5, 0.001);
     EXPECT_EQ(alert->suspect_can_id, 0x0100U);
     EXPECT_EQ(alert->source_timestamp, 1U);
+
+    const char* attack_names[] = {"None", "Fuzzy", "Replay", "Spoofing", "Flooding"};
+    for (std::uint8_t code = 1; code <= 4; ++code) {
+        auto vector = ids;
+        vector[0] = code;
+        const auto parsed = ivi::parseIdsAlert(vector);
+        EXPECT_TRUE(parsed.has_value());
+        EXPECT_EQ(parsed->attack_type, code);
+        EXPECT_EQ(std::string(ivi::attackTypeName(parsed->attack_type)), attack_names[code]);
+    }
 
     auto invalid_ids = ids;
     invalid_ids[0] = 5;

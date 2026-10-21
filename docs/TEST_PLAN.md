@@ -302,6 +302,8 @@ TC-{모듈}-{번호}
 
 ### TC-SEC-007: IDS 경보 CAN 0x200 전송 확인
 
+2026-10-21 유형 정합 보완: [CHG-022](aidlc/changes/CHG-022/aidlc-state.md)의 `security/tests/test_three_node.py`, `security/tests/test_live_three_node.py`, IVI `test_can_parser`로 공격 생성→기대 코드와 4종 코드→이름, 미정의 Fail-safe 사유 0 거부를 확인한다. [3노드 절차](development/playbooks/three-node-hardware-experiment.md)는 아무 경보 탐지·기대 유형 탐지·IVI 서비스 게시를 별도 기록한다. 로컬 시험은 아래 실제 CAN 전송 및 IT-005 화면 인수를 대신하지 않는다.
+
 | 항목 | 내용 |
 |------|------|
 | **요구사항** | FR-SEC-007 |

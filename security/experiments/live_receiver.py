@@ -37,7 +37,7 @@ def parse_bms_ok(data: bytes) -> bool:
 
 
 def parse_failsafe_ok(data: bytes) -> bool:
-    return (len(data) == 8 and data[0] <= 3 and data[1] <= 3 and data[2] <= 7 and data[3] <= 200
+    return (len(data) == 8 and data[0] <= 3 and data[1] <= 3 and 1 <= data[2] <= 7 and data[3] <= 200
             and data[4] <= 165 and data[5] == 0 and data[6] == 0 and data[7] == 0)
 
 

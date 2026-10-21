@@ -66,6 +66,18 @@ def summarize(root):
               'deadline_exceeded':sum(v>3 for v in latencies),
               'avg_detected_latency_s':statistics.mean(latencies) if latencies else None,
               'max_detected_latency_s':max(latencies) if latencies else None}
+        classified=[r for r in valid if type(r.get('expected_type_detected')) is bool] if config==3 else []
+        item['type_evaluated_trials']=len(classified)
+        item['expected_type_detected_count']=sum(r['expected_type_detected'] for r in classified)
+        item['expected_type_detected_rate']=(item['expected_type_detected_count']/len(classified)
+                                             if classified else None)
+        published=[r for r in valid if type(r.get('ivi_expected_type_published')) is bool] if config==3 else []
+        item['ivi_type_evaluated_trials']=len(published)
+        item['ivi_expected_type_published_count']=sum(r['ivi_expected_type_published'] for r in published)
+        item['ivi_expected_type_published_rate']=(item['ivi_expected_type_published_count']/len(published)
+                                                  if published else None)
+        item['first_alert_type_counts']={str(code):sum(r.get('first_alert_attack_code')==code for r in classified)
+                                         for code in (None,1,2,3,4)}
         for name in ('attack_success','blocked','detected'):
             count=sum(r[name] for r in valid)
             item[name+'_count']=count
