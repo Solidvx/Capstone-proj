@@ -63,7 +63,7 @@ def observe(channel, duration, run_id, control_fd=0):
                     else:
                         raise RuntimeError("observer backlog did not drain")
                     phase = next_phase
-                    emit({'result': 'PHASE', 'run_id': run_id, 'phase': phase,
+                    emit({'result': 'PHASE', 'run_id': run_id, 'phase': phase, 't': time.monotonic(),
                           'drained_at_boundary': discarded, 'rx_dropped': bus.dropped})
             received = bus.receive(.01)
             if received:
