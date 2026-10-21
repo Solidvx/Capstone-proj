@@ -22,7 +22,7 @@ class RuntimeCliTests(unittest.TestCase):
             manifest.write_text(json.dumps({'schema':'ids-normal-v2','status':'COMPLETE',
                 'rejected_frames':0,'duration_s':4,'allowed_ids':[0x100,0x102],
                 'accepted_frames':80,'capture_sha256':hashlib.sha256(normal.read_bytes()).hexdigest()}))
-            model=train_model(normal,manifest)
+            model=train_model(normal,manifest_path=manifest)
             self.assertIsNotNone(model.model)
             replay=root/'attack.jsonl'
             replay.write_text(json.dumps({'t':0.0,'can_id':0x555,'data':'00'*8})+'\n'+
@@ -39,7 +39,8 @@ class RuntimeCliTests(unittest.TestCase):
 
     def test_socketcan_codec_timeout_and_cleanup(self):
         fake=Mock()
-        fake.recv.return_value=struct.pack('=IB3x8s',0x100,8,bytes(8))
+        fake.recvmsg.return_value=(struct.pack('=IB3x8s',0x100,8,bytes(8)),
+            [(socket.SOL_SOCKET,64,struct.pack('=qq',1000,0))],0,None)
         fake.send.return_value=16
         with patch('security.ids.runtime.socket.socket',return_value=fake), \
              patch('security.ids.runtime.socket.AF_CAN',29,create=True), \
@@ -50,8 +51,8 @@ class RuntimeCliTests(unittest.TestCase):
             self.assertEqual(frame.dlc,8)
             payload=bytes.fromhex('0296010000000001')
             transport.send(payload)
-            self.assertEqual(fake.send.call_args.args[0],struct.pack('=IB3x8s',0x200,8,payload))
-            fake.recv.side_effect=socket.timeout()
+            self.assertEqual(fake.send.call_args.args,(struct.pack('=IB3x8s',0x200,8,payload), socket.MSG_DONTWAIT))
+            fake.recvmsg.side_effect=socket.timeout()
             self.assertIsNone(transport.receive())
             fake.send.return_value=1
             with self.assertRaises(OSError):transport.send(payload)

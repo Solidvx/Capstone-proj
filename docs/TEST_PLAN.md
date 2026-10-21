@@ -445,6 +445,9 @@ Service snapshot 발행(T2)부터 DashboardViewModel property 변경(T3)까지 1
 
 **집계 해석(2026-09-09 보완):** 4종×3구성×100개의 유효 공격 시행과 전체 시도 원장을 보존한다. TC-EXP-001~004의 IDS 탐지율은 각 공격의 고정 평가 구간에서 탐지가 있었던 유효 시행 수/해당 공격의 유효 시행 수로 보고한다. 여러 경보가 발생해도 같은 시행은 한 번만 센다. 전체 공격을 합친 TPR이나 보조 윈도우 ROC로 공격별 ≥90%를 대신하지 않는다. 시행의 인증 거부 발생 여부와 공격 프레임 전량 차단은 다른 지표이며, NFR-SEC-001/002의 100%는 대응 TC-SEC-002/003에서 별도로 확인한다. 미탐지·기한 초과는 결과에 포함하고, 계측 불능·INVALID·재시도는 원장에서 구분하며 조용히 제거하지 않는다. 물리 CAN 최종 평가와 합성/vcan 사전 결과는 별도 표다.
 
+> **2026-10-04 실행 편차 DEV-EXP-001:** 사용자 지시로 이번 물리 캠페인은 INVALID 포함 계획 100회 수집으로 운영했다. 원래 유효100회 요구를 소급 충족 처리하지 않는다. C1 flooding은 재시도 포함101시도이며 C3 flooding은98유효/2무효다. 최초 시도·전체 시도·버전별 계측 분모와 제품 판정 제한은 [방법·추적표](development/experiments/physical-ablation-formal-2026-10-04/METHODS-AND-TRACEABILITY.md), 재현 결과는 [논문 표](development/experiments/physical-ablation-formal-2026-10-04/publication/TABLES.md)를 따른다. 이 편차는 SRS 성능/보안 목표 및 ICD 계약을 변경하지 않는다.
+
+
 ### TC-EXP-001: Spoofing 공격 실험 (3가지 방어 구성)
 
 연결 요구: NFR-SEC-003. 4종 각각의 탐지율을 실제 CAN Config-3에서 판정하며 합성 탐지기 비교로 대체하지 않는다.

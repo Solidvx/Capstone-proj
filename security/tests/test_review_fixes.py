@@ -85,7 +85,8 @@ class ReviewFixTests(unittest.TestCase):
     def test_live_ready_is_written_only_after_socket_opens(self):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory);ready=root/'ready.json';log=root/'ids.jsonl'
-            socket=Mock();socket.receive.return_value=None
+            socket=Mock(start_time=0.0, clock_offset_ns=0, idle_time=0.0)
+            socket.receive.return_value=None
             with patch('security.ids.runtime.SocketCan',return_value=socket):
                 self.assertEqual(ids_main(['--interface','vcan0','--rules-only','--duration','.001',
                     '--log',str(log),'--run-id','pilot','--ready-file',str(ready)]),0)
