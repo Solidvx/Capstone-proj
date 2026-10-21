@@ -1,4 +1,4 @@
-"""Evidence and bounded recovery helpers for the independent-trial test campaign."""
+"""Evidence and bounded recovery helpers for the continuous-trial test campaign."""
 import json
 import subprocess
 import time
@@ -16,6 +16,7 @@ def recoverable(error):
 
 
 def phase_barrier(observers, phase, actors):
+    offsets = [len(child.snapshot()) for child in observers]
     for child in observers:
         child.process.stdin.write(json.dumps({'phase': phase}) + '\n')
         child.process.stdin.flush()
@@ -23,7 +24,7 @@ def phase_barrier(observers, phase, actors):
     while time.monotonic() < deadline:
         actors.check()
         if all(any(r.get('result') == 'PHASE' and r.get('phase') == phase
-                   for r in child.snapshot()) for child in observers):
+                   for r in child.snapshot()[offset:]) for child, offset in zip(observers, offsets)):
             return
         time.sleep(.01)
     raise TimeoutError('observer phase timeout')
@@ -36,11 +37,12 @@ def classification(codes, expected):
     return 'MATCH' if codes == {expected} else 'COMPOUND'
 
 
-def add_evidence(row, injection, observers):
+def add_evidence(row, injection, observers, offsets=None):
     signatures = {(r.can_id, r.data.hex()) for r in injection if r.own}
     arrivals = {}
-    for name, child in zip(('ecu', 'ivi'), observers):
-        records = child.snapshot()
+    for name, child, offset in zip(('ecu', 'ivi'), observers, offsets or [0, 0]):
+        records = child.snapshot()[offset:]
+        baseline_drop = next((r.get('rx_dropped', 0) for r in records if r.get('result') == 'PHASE' and r.get('phase') == 'baseline'), 0)
         baseline = {(r.get('can_id'), r.get('data')) for r in records
                     if r.get('result') == 'OBS_FRAME' and r.get('phase') == 'baseline'}
         candidates = [r for r in records if r.get('result') == 'OBS_FRAME'
@@ -49,7 +51,7 @@ def add_evidence(row, injection, observers):
         arrivals[name] = {
             'matching_frames': len(candidates),
             'distinct_from_baseline_frames': sum((r['can_id'], r['data']) not in baseline for r in candidates),
-            'rx_dropped': max((r.get('rx_dropped', 0) for r in records), default=0),
+            'rx_dropped': max((r.get('rx_dropped', 0) for r in records), default=baseline_drop) - baseline_drop,
             'error_frames': sum(bool(r.get('error')) for r in records),
         }
     row['remote_arrival'] = arrivals

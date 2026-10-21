@@ -74,7 +74,8 @@ class Actors:
 def run_case(settings, args, config, attack, root):
     root.mkdir()
     run_id = f'{args.run_id}-C{config}-{attack}'
-    lifetime = math.ceil(120 + args.trials * (args.baseline + args.duration + args.post))
+    lifetime = math.ceil(120 + args.trials * (args.baseline + args.duration + args.post
+                                             + (20 if getattr(args, 'resilient', False) else 0)))
     values = {'run_id':run_id,'lifetime_s':str(lifetime),'lifetime_ms':str(lifetime*1000),
               'secoc':'off' if config == 1 else 'on','sensor_mode':args.sensor_mode}
     manifest = {'run_id':run_id,'environment':'physical','config':config,'ids_mode':'rules+if' if config==3 else 'off',
@@ -87,7 +88,7 @@ def run_case(settings, args, config, attack, root):
     actors, bus, active, status = Actors(), None, None, 'COMPLETE'
     resilient = getattr(args, 'resilient', False)
     observers = []
-    pending_row = None
+    pending_rows = []
     with (root/'attempts.jsonl').open('x') as ledger:
         try:
             key = Path(args.key).read_bytes()
@@ -120,6 +121,8 @@ def run_case(settings, args, config, attack, root):
                         'attack_type':attack,'trial':trial,'seed':trial_seed(attack,trial)}
                 raw=root/f'{attack}-{trial:03d}.jsonl'
                 before=len(receiver.snapshot())
+                observer_offsets=[len(child.snapshot()) for child in observers]
+                dropped_before=bus.dropped
                 with raw.open('x') as stream:
                     if resilient:
                         from security.experiments.test360_support import phase_barrier
@@ -135,7 +138,7 @@ def run_case(settings, args, config, attack, root):
                     post=collect(bus,reference,args.post,stream,actors)
                 if resilient:phase_barrier(observers, 'idle', actors)
                 window=TrialWindows(baseline[4],injection[4],post[4],post[5],injection[3])
-                row=judge_trial(config,attack,baseline[0]+injection[0]+post[0],window,injection[1],injection[2],bus.dropped)
+                row=judge_trial(config,attack,baseline[0]+injection[0]+post[0],window,injection[1],injection[2],bus.dropped-dropped_before if resilient else bus.dropped)
                 alerts={r.data.hex() for r in injection[0]+post[0] if r.can_id==0x200 and not r.own
                         and injection[3] is not None and r.t>=injection[3]}
                 published={bytes.fromhex(r['data'])[0] for r in receiver.snapshot()[before:]
@@ -147,14 +150,17 @@ def run_case(settings, args, config, attack, root):
                 if resilient:
                     from security.experiments.test360_support import add_evidence
                     row.update(active)
-                    add_evidence(row, injection[0], observers)
+                    add_evidence(row, injection[0], observers, observer_offsets)
                 row.update(active,raw_file=raw.name,raw_sha256=sha256(raw))
                 if resilient:
-                    pending_row = row
+                    row['trial_completed'] = True
+                    pending_rows.append((row, before, alerts))
                 else:
                     ledger.write(json.dumps(row)+'\n');ledger.flush()
                 print(json.dumps({k:row[k] for k in ('config','attack_type','trial','status')}),flush=True)
                 active=None
+                if resilient and 'ALERT_WITH_IDS_OFF' in row.get('invalid_reason', ''):
+                    raise ValueError('IDS OFF configuration emitted alerts')
         except KeyboardInterrupt:
             status='INTERRUPTED'
         except (OSError,ValueError,RuntimeError,TimeoutError) as error:
@@ -173,18 +179,18 @@ def run_case(settings, args, config, attack, root):
                 if not manifest['cleanup_confirmed']:errors.append('remote cleanup acknowledgement missing')
             if errors:status='ERROR';manifest['cleanup_errors']=errors
             if bus:bus.close()
-            if pending_row is not None:
+            for pending_row, row_before, row_alerts in pending_rows:
                 # Read the complete IVI log after SSH/log threads have drained.
                 from security.experiments.test360_support import classification
-                published={bytes.fromhex(r['data'])[0] for r in receiver.snapshot()[before:]
+                published={bytes.fromhex(r['data'])[0] for r in receiver.snapshot()[row_before:]
                            if r.get('result')=='FRAME' and r.get('can_id')==0x200
-                           and r.get('process_result')==2 and r.get('data') in alerts}
+                           and r.get('process_result')==2 and r.get('data') in row_alerts}
                 pending_row['ivi_published_attack_codes']=sorted(published)
                 pending_row['ivi_expected_type_published']=pending_row['expected_attack_code'] in published if config==3 else None
                 pending_row['ivi_type_result']=(classification(published,pending_row['expected_attack_code']) if config==3
                     else 'NOT_EVALUATED') if pending_row['status']=='VALID' else 'INVALID'
                 ledger.write(json.dumps(pending_row)+'\n');ledger.flush()
-            if active:ledger.write(json.dumps({**active,'status':'INVALID','invalid_reason':status})+'\n')
+            if active:ledger.write(json.dumps({**active,'status':'INVALID','invalid_reason':status,'trial_completed':False})+'\n')
     manifest['status']=status
     manifest['files_sha256']={p.name:sha256(p) for p in root.iterdir() if p.is_file()}
     (root/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')

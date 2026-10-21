@@ -80,14 +80,14 @@ def test_official_campaign_invokes_twelve_cases_of_100(tmp_path,monkeypatch):
     assert sum(count for _,_,count in cases)==1200
 
 
-@pytest.mark.parametrize('resilient', [False, True])
-def test_successful_remote_case_links_ivi_and_seals_summary(tmp_path,monkeypatch,resilient):
+@pytest.mark.parametrize('resilient,count', [(False,1), (True,1), (True,3)])
+def test_successful_remote_case_links_ivi_and_seals_summary(tmp_path,monkeypatch,resilient,count):
     key=tmp_path/'dummy.key';key.write_bytes(bytes(32))
     cfg=tmp_path/'settings.json';cfg.write_text(json.dumps(settings()))
     root=tmp_path/'campaign';root.mkdir()
     (root/'settings.json').write_bytes(cfg.read_bytes())
-    (root/'campaign.json').write_text(json.dumps({'trials':1,'settings_sha256':live.sha256(cfg)}))
-    args=SimpleNamespace(run_id='test',trials=1,rate=1000,baseline=2,duration=3,post=1,
+    (root/'campaign.json').write_text(json.dumps({'trials':count,'settings_sha256':live.sha256(cfg)}))
+    args=SimpleNamespace(run_id='test',trials=count,rate=1000,baseline=2,duration=3,post=1,
                          sensor_mode='constant',settings=str(cfg),key=str(key),interface='can0')
     bus=Mock();bus.receive.return_value=None;bus.dropped=0
     monkeypatch.setattr(live,'CaptureSocket',lambda *a,**k:bus)
@@ -97,26 +97,30 @@ def test_successful_remote_case_links_ivi_and_seals_summary(tmp_path,monkeypatch
     actors=Mock();actors.start.side_effect=[ivi,Mock(),ids];actors.close.return_value=[]
     if resilient:
         from security.experiments import test360_support
-        observer=Mock();observer.snapshot.return_value=[{'result':'OBS_FRAME','phase':'attack','can_id':0,'data':bytes(8).hex()}]
+        observer_rows=[]
+        observer=Mock();observer.snapshot.side_effect=lambda:list(observer_rows)
         actors.start.side_effect=[observer,observer,ivi,Mock(),ids]
         actors.children=[]
         args.resilient=True
         monkeypatch.setattr(test360_support,'phase_barrier',lambda *a:None)
     monkeypatch.setattr(live,'Actors',lambda:actors)
     calls=[]
+    publications=[]
     raw=bytes.fromhex('96be1068ffec4100');alert=bytes.fromhex('0464000000000001')
     def collect(bus,receiver,duration,stream,actors,*attack_args):
         calls.append(duration)
         stream.write('{}\n')
         if len(calls)==1:return [],0,0,None,0,3
-        if len(calls)==2:
+        if (len(calls)-2)%3==0:
             frames=[Record(3+i*.1,0x100,raw,False,[Outcome('PUBLISHED',0x100,payload=raw)]) for i in range(20)]
             return frames,0,0,None,3,5
-        if len(calls)==3:
+        if (len(calls)-3)%3==0:
             publication={'result':'FRAME','can_id':0x200,'process_result':2,'data':alert.hex()}
             if resilient:
+                observer_rows.append({'result':'OBS_FRAME','phase':'attack','can_id':0,'data':bytes(8).hex()})
+                publications.append(publication)
                 def close():
-                    ivi_rows.append(publication)
+                    ivi_rows.extend(publications)
                     return []
                 actors.close.side_effect=close
             else:
@@ -129,14 +133,18 @@ def test_successful_remote_case_links_ivi_and_seals_summary(tmp_path,monkeypatch
         config_settings.update(observer_a=['dummy'],observer_b=['dummy'])
     assert live.run_case(config_settings,args,3,'flooding',root/'C3-flooding')=='COMPLETE'
     manifest,rows=live.read_run(root/'C3-flooding')
-    assert rows[0]['status']=='VALID'
+    assert len(rows)==count
+    assert [r['trial'] for r in rows]==list(range(1,count+1))
+    assert all(r['status']=='VALID' for r in rows)
+    assert actors.start.call_count==(5 if resilient else 3)
+    actors.close.assert_called_once()
     if resilient:
         assert rows[0]['ivi_type_result']=='MATCH'
         assert rows[0]['remote_arrival']['ivi']['matching_frames']==1
     assert rows[0]['expected_type_detected'] is True
     assert rows[0]['ivi_expected_type_published'] is True
     summary=live.summarize_campaign(root)
-    assert summary['attempted_trials']==summary['valid_trials']==1
+    assert summary['attempted_trials']==summary['valid_trials']==count
     group=next(r for r in summary['summary'] if r['config']==3 and r['attack']=='flooding')
     assert group['detection_rate']==1
     assert group['mean_detected_latency_s']==pytest.approx(.1)

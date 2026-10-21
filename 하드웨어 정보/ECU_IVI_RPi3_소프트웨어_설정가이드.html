@@ -223,7 +223,7 @@ nano tmp/live-three-node-test360-settings.json</code></pre>
 <h4>③ 중단 후 이어서 실행하기</h4><p>문제를 해결한 뒤 <b>②의 같은 명령 끝에 --resume</b>을 붙입니다. 완료된 번호는 다시 실행하지 않습니다. 소스·설정을 바꿨거나 종료 확인이 불가능하면 새 캠페인으로 시작하세요.</p>
 <h4>④ 결과 보기</h4><p><code>checkpoint.json</code>: 최근 번호. <code>summary.json</code>: 종료 후 완료·유효·무효·남은 수와 유형 집계.</p>
 <p><b>MATCH</b> 일치 · <b>COMPOUND</b> 기대 유형 포함 복합 · <b>MISMATCH</b> 다른 유형 · <b>MISSED</b> 미탐. C1·C2는 IDS OFF라 유형 평가를 하지 않습니다.</p>
-<p>360개 번호와 재시도 횟수는 따로 기록합니다. 매 번호마다 프로세스를 새로 시작하므로 정식 연속 실험과 조건이 다릅니다. <a href="../docs/development/playbooks/three-node-hardware-experiment.md">복구 조건·권한 준비·결과 해석 상세 안내</a></p></section><div class="group" id="trouble"><h2>문제가 생기면 여기에서 멈추기</h2><p>에러를 없애기 위해 설정을 계속 추가하지 말고, 해당 노드의 출력부터 확인합니다.</p></div>
+<p>360개 번호와 재시도 횟수는 따로 기록합니다. 각 구성·공격 조합에서 프로그램을 한 번 켜고 30회를 연속 실행합니다. 정상일 때는 유지하고 실행 오류 복구 때만 재시작합니다. 총12조합은 한 명령으로 자동 진행합니다. <a href="../docs/development/playbooks/three-node-hardware-experiment.md">복구 조건·권한 준비·결과 해석 상세 안내</a></p></section><div class="group" id="trouble"><h2>문제가 생기면 여기에서 멈추기</h2><p>에러를 없애기 위해 설정을 계속 추가하지 말고, 해당 노드의 출력부터 확인합니다.</p></div>
 <section class="step" id="step-22"><div class="num">STEP 22</div><span class="where">문제가 있는 Pi</span><h3>can0가 없거나 BUS-OFF일 때</h3><p>아래 읽기 명령으로 원인을 확인합니다.</p>
 <div class="cmd"><div class="cmdhead"><span>터미널에 입력</span><button class="copy" data-copy="cmd-39" type="button">복사</button></div><pre><code id="cmd-39">sudo dmesg | grep -Ei &#x27;mcp251|spi|can|i2c&#x27; | tail -60
 ip -details -statistics link show can0</code></pre></div>

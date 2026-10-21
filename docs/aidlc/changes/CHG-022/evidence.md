@@ -131,3 +131,6 @@ E3P 구매 페이지 자동 접근은 실패했다. 실물 헤더 방향·동일
 - 검증: macOS/Python3.9.6에서 `python -m pytest security/tests/test_live_three_node.py security/tests/test_live_three_node_test360.py security/tests/test_test360_observers.py security/tests/test_three_node.py security/tests/test_live_experiments.py security/tests/test_ablation_lifecycle.py security/tests/test_ablation_resume.py -q` → 70 passed, 2 skipped (Linux 조건).
 - 시험 범위: 360개 고유 번호, INVALID 계속, 재시도 예산/실패 보존, 재개 중복 방지, 종료 불명 차단, 잘못된 설정·저장 오류 차단, 원격 수신 없는 echo 거부, 늦게 도착한 IVI 로그 반영, 관찰기 phase 경계/EOF, 실패 CAN만 reset, 정식1,200회 유지. CLI help와 diff 공백 검사 통과.
 - 실장비 SSH·sudo·SocketCAN·관찰기 부하 및 360회는 미실행. payload 일치는 송신자 인증이 아니며 baseline과 동일한 replay의 고유 도착을 보장하지 않는다. 독립 trial 시작/IDS 재학습 비용 때문에 정식 연속시험과 합산하지 않는다.
+# 연속 실행 전환 후속 — 2026-10-22
+
+사용자 요청에 따라 구성·공격 조합별 30회 연속 실행으로 전환했다. 정상 360회는 12세션으로 실행하며 오류 시 완료 번호를 보존하고 실패 번호부터 제한 복구한다. 회차별 관찰기 ACK·수신·드롭 증거를 분리하고 모든 완료 행의 IVI 로그를 종료 후 확정한다. schema=test360-v3-continuous로 이전 독립 실행 결과와 재개를 혼합하지 않는다. 관련 pytest 74통과/2Linux생략. 실제 장비 실행은 미실행이다.

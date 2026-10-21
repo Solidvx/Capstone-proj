@@ -1,6 +1,6 @@
-"""Resumable test: 3 configurations x 4 attacks x 30 independent trials.
+"""Resumable test: 3 configurations x 4 attacks x 30 continuous trials per case.
 
-Each attempt owns fresh ECU/IDS/IVI processes. Official campaigns are unchanged.
+Processes stay alive within a case; only execution errors restart them. Official campaigns are unchanged.
 """
 import argparse
 from collections import Counter
@@ -40,18 +40,29 @@ def attempts(directory):
     return found
 
 
+def completed_rows(history):
+    completed = {}
+    for _, manifest, rows in history:
+        for row in rows:
+            if row.get('trial_completed'):
+                trial = row['trial']
+                if trial in completed or not 1 <= trial <= 30:
+                    raise ValueError('duplicate or invalid completed trial')
+                completed[trial] = row
+    if sorted(completed) != list(range(1, len(completed)+1)):
+        raise ValueError('completed trial sequence has gaps')
+    return completed
+
+
 def summarize(root):
-    rows, total_attempts, completed = [], 0, 0
+    rows, sessions, attempted = [], 0, 0
     groups = []
     for config in (1, 2, 3):
         for attack in live.ATTACK_TYPES:
-            group_rows = []
-            for trial in range(1, 31):
-                history = attempts(root / f'C{config}-{attack}' / f'trial-{trial:03d}')
-                total_attempts += len(history)
-                if history and history[-1][1]['status'] == 'COMPLETE':
-                    completed += 1
-                    group_rows.extend(history[-1][2])
+            history = attempts(root / f'C{config}-{attack}')
+            sessions += len(history)
+            attempted += sum(len(records) for _, _, records in history)
+            group_rows = list(completed_rows(history).values())
             rows.extend(group_rows)
             groups.append({'config': config, 'attack': attack, 'completed': len(group_rows),
                            'valid': sum(r['status'] == 'VALID' for r in group_rows),
@@ -59,47 +70,50 @@ def summarize(root):
                            'bus_type_results': dict(Counter(r.get('bus_type_result', 'INVALID') for r in group_rows)),
                            'remote_matching_trials': {node: sum(r.get('remote_arrival', {}).get(node, {}).get('matching_frames', 0) > 0
                                 for r in group_rows) for node in ('ecu', 'ivi')}})
-    return {'stage': 'test360', 'planned_trials': 360, 'attempts_including_retries': total_attempts,
-            'completed_trials': completed, 'remaining_trials': 360-completed,
+    return {'stage': 'test360', 'planned_trials': 360, 'attempts_including_retries': attempted,
+            'process_sessions': sessions, 'completed_trials': len(rows), 'remaining_trials': 360-len(rows),
             'valid_trials': sum(r['status'] == 'VALID' for r in rows),
             'invalid_trials': sum(r['status'] != 'VALID' for r in rows), 'groups': groups,
-            'note': 'Completed includes INVALID. MATCH/COMPOUND/MISMATCH/MISSED are measurements, not runner exit status. All failed attempts remain on disk.'}
+            'note': 'Completed includes INVALID; execution failures are separate. Process sessions include startup failures. Type results are measurements, not runner exit status.'}
 
 
 def execute(settings, args, root):
     for config in (1, 2, 3):
         for attack in live.ATTACK_TYPES:
-            for trial in range(1, 31):
-                directory = root / f'C{config}-{attack}' / f'trial-{trial:03d}'
-                directory.mkdir(parents=True, exist_ok=True)
+            directory = root / f'C{config}-{attack}'
+            directory.mkdir(parents=True, exist_ok=True)
+            history = attempts(directory)
+            retries = 0
+            while True:
+                completed = completed_rows(history)
+                if any('ALERT_WITH_IDS_OFF' in r.get('invalid_reason', '') for r in completed.values()):
+                    return 'ERROR'
+                if len(completed) == 30:break
+                trial = len(completed) + 1
+                number = len(history) + 1
+                segment = directory / f'attempt-{number:03d}'
+                local = copy(args)
+                local.trials, local.start_trial, local.resilient = 31-trial, trial, True
+                local.run_id = f'{args.run_id}-a{number:03d}'
+                status = live.run_case(settings, local, config, attack, segment)
                 history = attempts(directory)
-                if history and history[-1][1]['status'] == 'COMPLETE':
-                    if any('ALERT_WITH_IDS_OFF' in r.get('invalid_reason', '') for r in history[-1][2]):
-                        return 'ERROR'
+                manifest, rows = history[-1][1:]
+                completed = completed_rows(history)
+                save(root / 'checkpoint.json', {'config': config, 'attack': attack,
+                     'completed_trials_in_case': len(completed), 'next_trial': len(completed)+1,
+                     'attempt': number, 'status': status, 'max_recoveries': args.max_recoveries})
+                if status == 'COMPLETE':
+                    if len(completed) != 30:raise ValueError('completed case must contain all 30 trials')
                     continue
-                for recovery in range(args.max_recoveries + 1):
-                    number = len(history) + 1
-                    segment = directory / f'attempt-{number:03d}'
-                    local = copy(args)
-                    local.trials, local.start_trial, local.resilient = 1, trial, True
-                    local.run_id = f'{args.run_id}-t{trial:03d}-a{number:03d}'
-                    status = live.run_case(settings, local, config, attack, segment)
-                    # Verify sealed files before considering any automatic recovery.
-                    history = attempts(directory)
-                    manifest, rows = history[-1][1:]
-                    save(root / 'checkpoint.json', {'config': config, 'attack': attack, 'trial': trial,
-                         'attempt': number, 'status': status, 'max_recoveries': args.max_recoveries})
-                    if status == 'COMPLETE':
-                        if len(rows) != 1:raise ValueError('completed attempt must contain exactly one trial')
-                        if 'ALERT_WITH_IDS_OFF' in rows[0].get('invalid_reason', ''):
-                            return 'ERROR'  # Defence configuration drift is not a trial result.
-                        break
-                    if status == 'INTERRUPTED':return status
-                    if not manifest.get('recoverable') or recovery == args.max_recoveries:
-                        return 'ERROR'
-                    check_health(settings, segment, recover=True)
-                    print(json.dumps({'result': 'RETRY', 'config': config, 'attack': attack,
-                                      'trial': trial, 'next_attempt': number+1}), flush=True)
+                if status == 'INTERRUPTED':return status
+                # Progress to a new failing number gives that number its own retry budget.
+                if len(completed) >= trial:retries = 0
+                if not manifest.get('recoverable') or retries >= args.max_recoveries:
+                    return 'ERROR'
+                check_health(settings, segment, recover=True)
+                retries += 1
+                print(json.dumps({'result': 'RETRY', 'config': config, 'attack': attack,
+                                  'trial': len(completed)+1, 'next_session': number+1}), flush=True)
     return 'COMPLETE'
 
 
@@ -123,7 +137,7 @@ def main(argv=None):
         validate_extra(settings, live.validate_settings(settings))
         if len(Path(args.key).read_bytes()) != 32:raise ValueError('key must have 32 bytes')
         phases = {k: getattr(args, k) for k in ('rate', 'duration', 'baseline', 'post', 'sensor_mode', 'interface')}
-        metadata = {'schema': 'test360-v2', 'stage': 'test360', 'trials': 30, 'run_id': args.run_id,
+        metadata = {'schema': 'test360-v3-continuous', 'stage': 'test360', 'trials': 30, 'run_id': args.run_id,
                     'settings_sha256': live.sha256(args.settings), 'phases': phases,
                     'source_sha256': {p.as_posix(): live.sha256(p) for p in sorted(Path('security').rglob('*.py'))}}
         root = Path(args.out)
