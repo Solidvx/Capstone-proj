@@ -82,7 +82,7 @@ class Child:
         if self.output.closed:return
         self.process.stdin.close()
         # The remote supervisor observes stdin EOF and reaps its process group.
-        if self.process.poll() is None and any(module in ' '.join(self.process.args) for module in ('security.experiments.remote_process', 'security.experiments.trial_observer')):
+        if self.process.poll() is None and any(module in ' '.join(self.process.args) for module in ('security.experiments.remote_process', 'security.experiments.trial_observer', 'security.experiments.can_attack_worker')):
             try:self.process.wait(timeout=4)
             except subprocess.TimeoutExpired:pass
         if self.process.poll() is None:

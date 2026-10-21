@@ -134,3 +134,13 @@ E3P 구매 페이지 자동 접근은 실패했다. 실물 헤더 방향·동일
 # 연속 실행 전환 후속 — 2026-10-22
 
 사용자 요청에 따라 구성·공격 조합별 30회 연속 실행으로 전환했다. 정상 360회는 12세션으로 실행하며 오류 시 완료 번호를 보존하고 실패 번호부터 제한 복구한다. 회차별 관찰기 ACK·수신·드롭 증거를 분리하고 모든 완료 행의 IVI 로그를 종료 후 확정한다. schema=test360-v3-continuous로 이전 독립 실행 결과와 재개를 혼합하지 않는다. 관련 pytest 74통과/2Linux생략. 실제 장비 실행은 미실행이다.
+
+## PC 진행 전환 검증 — 2026-10-22
+
+- 기준: origin/develop 0b99070, 별도 feat/pc-campaign 작업 트리. 기존 dirty 사용자 작업을 보존했다.
+- `python -m pytest security/tests/test_pc_campaign.py security/tests/test_live_three_node_test360.py security/tests/test_live_three_node.py security/tests/test_test360_observers.py security/tests/test_three_node.py security/tests/test_live_experiments.py security/tests/test_ablation_lifecycle.py security/tests/test_ablation_resume.py -q`: **91 passed, 2 skipped**(Linux 조건).
+- PC에 CAN/키 없이12·360·1200 스케줄, PC pilot 게이트, 세 원격 역할 분리, 키 없는 CAN 송신·replay·controller EOF, 실제 PC 세션 다중 회차/로그 봉인, ECU IDS 송신과 IVI 게시 연결, 같은 B 시계의 회차 경계, 원격 수신 없는 echo 거부, 정상 인증 baseline 부재, 마지막 로그수집 오류 재개 거부를 검사했다.
+- SSH 정리: preview 무변경, 동일 공개키 행만 제거/백업, 다른 키 보존, 심볼릭 링크/잘못된 이름 거부, PC가 삭제 대상 키를 사용하면 거부, 지정 개인/공개키 쌍만 삭제를 임시 더미 파일에서 검증했다. 실제 사용자 키는 읽거나 삭제하지 않았다.
+- 전체 Python 실행(추가4검증 전): **190 passed, 3 skipped, 1 failed**. 기존 test_publication의 hashlib.file_digest 사용이 macOS Python3.9.6에 없어 실패했다. 변경 전 feat/three-node-test360 트리의 같은 시험에서도 재현했고 해당 구현은 수정하지 않았다.
+- pc_campaign/can_attack_worker/retire_pi3_ssh의 CLI help, JSON 템플릿 파싱, diff 공백 검사 및 HTML 로컬 링크를 확인했다. PC HTML 첫 화면은 Quick Look으로 렌더링해 확인했다. 전체 페이지 브라우저 상호작용 검증은 미실행이다.
+- Linux SocketCAN/실물3노드·SSH/sudo·실제360/1200회·실제 SSH 키 삭제는 이 Mac에서 수행하지 않았다. 새 프로그램 소스와 모의 검증 통과를 실장비 인수 성공으로 간주하지 않는다. 기본 IVI offscreen은 서비스 게시 증거이며 화면 픽셀 검증이 아니다.

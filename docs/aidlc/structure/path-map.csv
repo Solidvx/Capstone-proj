@@ -365,3 +365,6 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,docs/aidlc/changes/CHG-022/spec.md,add,CHG-022 request and scope
 ,docs/aidlc/changes/CHG-022/evidence.md,add,CHG-022 source sync and regression evidence
 ,docs/development/playbooks/attack-pi3-install.md,add,CHG-022 attack Pi3 source deployment
+
+,docs/development/playbooks/pc-campaign.md,add,CHG-022 PC orchestration and obsolete Pi3 SSH cleanup
+,하드웨어 정보/PC_3노드_실험_실행가이드.html,add,CHG-022 PC campaign step guide
