@@ -353,3 +353,15 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,adaptive_ecu/data/failsafe_demo_fast.manifest.json,add,CHG-019 fast input manifest
 ,security/tests/test_runtime_integration.py,add,CHG-019 merged runtime regression
 ,docs/aidlc/changes/CHG-019/validation.json,add,CHG-019 machine validation receipt
+
+,하드웨어 정보/ECU_IVI_RPi3_소프트웨어_설정가이드.html,add,CHG-022 node software setup guide
+,하드웨어 정보/ECU_IVI_RPi3_3노드_배선가이드.html,add,CHG-022 user-requested three-node HTML wiring guide
+,docs/development/playbooks/three-node-hardware-experiment.md,add,CHG-022 three-node wiring and product ECU campaign
+,docs/development/playbooks/assets/three-node/01-overview.svg,add,CHG-022 wiring guide overview illustration
+,docs/development/playbooks/assets/three-node/02-ecu.svg,add,CHG-022 ECU header and ADC illustration
+,docs/development/playbooks/assets/three-node/03-attack-signals.svg,add,CHG-022 attack node signal wiring illustration
+,docs/development/playbooks/assets/three-node/04-attack-power.svg,add,CHG-022 attack node power wiring illustration
+,docs/aidlc/changes/CHG-022/aidlc-state.md,add,CHG-022 state and validation boundary
+,docs/aidlc/changes/CHG-022/spec.md,add,CHG-022 request and scope
+,docs/aidlc/changes/CHG-022/evidence.md,add,CHG-022 source sync and regression evidence
+,docs/development/playbooks/attack-pi3-install.md,add,CHG-022 attack Pi3 source deployment

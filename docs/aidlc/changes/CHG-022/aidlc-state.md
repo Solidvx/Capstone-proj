@@ -1,0 +1,15 @@
+# CHG-022 상태 — 2026-10-21
+
+소스 구현·로컬 검증 완료, 물리 조립·장비 파일럿 인수 대기. [요청](spec.md), [회로·실험 안내](../../../development/playbooks/three-node-hardware-experiment.md), [검증 증거](evidence.md).
+
+- 시작 브랜치 feat/ecu-recovery-quality, HEAD 5b7e7ed. 시작부터 있던 dirty·미추적 변경을 보존했다. 커밋·push·전체 브랜치 병합은 하지 않았다.
+- GitHub fetch 완료: origin/develop **76b56f4**(PR #26). 읽기용 스냅샷 `tmp/chg022-develop/`에 가져온 뒤 최신 ECU ADC capture·Fail-safe profile/시험과 보안 실험·IDS 관련 파일을 현재 작업본에 선별 반영했다. 기존 CMake 변경을 보존하고 대상만 추가했다.
+- 최신 runtime의 커널 수신 시각·backpressure 처리·독립 IF 보정을 사용한다. 이전 고정 fixture와 제품 ECU 기반 live 경로를 구분한다.
+- IDS·IVI 유형 번호/이름은 이미 일치했다. 미정의 Fail-safe reason=0 허용 차이를 IVI·Python 참조 수신기에서 수정했다. ICD 바이트·ID·API 변경 없음.
+- `live_three_node`가 공격 Pi3에서 A의 제품 ECU/IDS, B의 실험 수신기를 소유·종료하며 12조건×100번호를 실행한다. 기대 유형·첫 유형·다중 유형·IVI 서비스 게시를 구분한다. 참조 방어 판정과 실제 IVI 판정을 동일시하지 않는다.
+- 검증: ECU CTest 18/18, IVI core CTest 9/9. 최종 Python 전체 142 통과/3 Linux 조건 생략. 원격 성공·실패·로그 hash 검증·최종 게이트·신호 핸들러 복원을 포함한다. 상세 명령과 범위는 evidence 참조.
+- 남은 장비 작업: E3P 실물 방향/연속성, 새 ADC 끝점·CAN 통신·SSH/sudo/원격 종료·Linux SocketCAN echo·Qt 화면 확인, 새 물리 12회 pilot 및 1,200회. 이 macOS에는 장비 연결과 Linux CAN이 없어 미실행이다. 새 스크립트의 실제 장비 준비 완료나 물리 합격을 주장하지 않는다.
+
+## 2026-10-22 PR 준비 후속 상태
+
+사용자가 커밋·push·PR 생성을 요청했다. 원래 dirty 작업본을 보존하고 최신 origin/develop 76b56f4에서 feat/three-node-campaign을 분리해 이번 변경만 이관한다. 기존 develop에 이미 있는 ECU 동기화 파일을 중복 반입하지 않는다. 사용자 screenshot에서 세 노드 상호 단발 0x123 송수신과 오류0을 확인했다. Pi3 최초 소스 배포 및 원격 실험은 아직 미실행이며 [설치 안내](../../../development/playbooks/attack-pi3-install.md)를 추가했다.
