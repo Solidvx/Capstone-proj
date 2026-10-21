@@ -36,7 +36,7 @@ std::optional<BmsStatus> parseBmsStatus(const CanPayload& payload) {
 }
 
 std::optional<FailSafeEvent> parseFailSafeEvent(const CanPayload& payload) {
-    if (payload[0] > 3U || payload[1] > 3U || payload[2] > 7U || payload[3] > 200U ||
+    if (payload[0] > 3U || payload[1] > 3U || payload[2] < 1U || payload[2] > 7U || payload[3] > 200U ||
         payload[4] > 165U || payload[5] != 0U || payload[6] != 0U || payload[7] != 0U) {
         return std::nullopt;
     }

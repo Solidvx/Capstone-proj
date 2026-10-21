@@ -1,4 +1,5 @@
 import io
+import errno
 import json
 from pathlib import Path
 import random
@@ -153,7 +154,7 @@ def test_collection_schedules_and_retains_send_errors():
         def send(self, cid, data):
             self.attempts += 1
             if self.attempts == 1:
-                raise OSError(105, "queue full")
+                raise OSError(errno.ENOBUFS, "queue full")
             self.queue.append((Observation(now[0], cid, data), True))
         def receive(self, timeout):
             now[0] += min(.001, timeout)
@@ -166,7 +167,7 @@ def test_collection_schedules_and_retains_send_errors():
     assert sent == len(records) > 0
     assert first is not None
     assert '"tx_error"' in output.getvalue()
-    assert json.loads(output.getvalue().splitlines()[0])['errno'] == 105
+    assert json.loads(output.getvalue().splitlines()[0])['errno'] == errno.ENOBUFS
 
 
 def test_summary_refuses_duplicates_and_does_not_count_invalid(tmp_path):

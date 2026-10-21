@@ -93,6 +93,8 @@ def judge_trial(config: int, attack: str, records: list[Record], w: TrialWindows
     window_alerts = [r for r in alerts(judged) if w.first_injection is not None
                      and r.t >= w.first_injection]
     first_alert = window_alerts[0].t if window_alerts else None
+    expected_code = {'fuzzy': 1, 'replay': 2, 'spoofing': 3, 'flooding': 4}[attack]
+    matching = [r for r in window_alerts if r.data[0] == expected_code] if ids_on else []
 
     # Validity: the run must actually inject, see its own frames, and have a live ECU.
     reasons = []
@@ -144,6 +146,11 @@ def judge_trial(config: int, attack: str, records: list[Record], w: TrialWindows
         "attack_success": success,
         "blocked": attack_auth_rejected > 0,
         "detected": bool(window_alerts) if ids_on else False,
+        "expected_attack_code": expected_code,
+        "observed_attack_codes": sorted({r.data[0] for r in window_alerts}) if ids_on else [],
+        "first_alert_attack_code": window_alerts[0].data[0] if ids_on and window_alerts else None,
+        "expected_type_detected": bool(matching) if ids_on else None,
+        "expected_type_latency_s": matching[0].t - w.first_injection if matching else None,
         "detect_latency_s": None if latency is None else round(latency, 6),
         "attack_sent": attack_sent, "attack_tx_errors": attack_tx_errors,
         "attack_seen": attack_seen, "attack_published": len(attack_published),

@@ -1,0 +1,34 @@
+{
+  "schema": "live-three-node-v1",
+  "note": "Product ECU campaign; run live_three_node on Pi3. Use constant input for comparability, ADC mode separately. Latest sources on all nodes; keep A training and calibration independent.",
+  "receiver_on": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "REPLACE_NODE_B_USER@REPLACE_NODE_B_HOST",
+    "cd /REPLACE_NODE_B_PROJECT && exec sudo -n .venv-handoff/bin/python -m security.experiments.remote_process --duration {lifetime_s} -- env QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software ./ivi_platform/build-handoff/ivi_dashboard_experiment --interface can0 --secoc-key /REPLACE_NODE_B_KEY --run-id {run_id} --observation-jsonl - --demo-exit-ms {lifetime_ms}"
+  ],
+  "receiver_off": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "REPLACE_NODE_B_USER@REPLACE_NODE_B_HOST",
+    "cd /REPLACE_NODE_B_PROJECT && exec sudo -n .venv-handoff/bin/python -m security.experiments.remote_process --duration {lifetime_s} -- env QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software ./ivi_platform/build-handoff/ivi_dashboard_experiment --interface can0 --secoc-key /REPLACE_NODE_B_KEY --run-id {run_id} --observation-jsonl - --demo-exit-ms {lifetime_ms} --experiment-secoc-off --confirm-isolated-test-bus"
+  ],
+  "ids": [
+    "ssh",
+    "-T",
+    "-o",
+    "BatchMode=yes",
+    "REPLACE_NODE_A_USER@REPLACE_NODE_A_HOST",
+    "cd /REPLACE_NODE_A_PROJECT && exec .venv-handoff/bin/python -m security.experiments.remote_process --duration {lifetime_s} -- .venv-handoff/bin/python -m security.ids.runtime --interface can0 --train-normal /REPLACE_NODE_A_TRAIN_CAPTURE --calibrate-normal /REPLACE_NODE_A_CALIBRATION_CAPTURE --secoc-key /REPLACE_NODE_A_KEY --run-id {run_id} --log '/REPLACE_NODE_A_LOG_DIRECTORY/ids-{run_id}.jsonl' --duration {lifetime_s} --send-alerts"
+  ],
+  "ecu": [
+    "ssh",
+    "-T",
+    "-o",
+    "BatchMode=yes",
+    "REPLACE_NODE_A_USER@REPLACE_NODE_A_HOST",
+    "cd /REPLACE_NODE_A_PROJECT && exec .venv-handoff/bin/python -m security.experiments.remote_process --run-id {run_id} --duration {lifetime_s} -- ./adaptive_ecu/build/adaptive_ecu --interface can0 --sensor-mode {sensor_mode} --secoc {secoc} --key /REPLACE_NODE_A_KEY"
+  ]
+}

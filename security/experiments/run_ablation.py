@@ -23,6 +23,8 @@ from security.attack_simulator import ATTACKS, validate_safety
 from security.experiments.normal_sender import BMS
 from security.experiments.validate_m5_settings import validate as validate_settings
 
+ATTACK_CODES = {'fuzzy': 1, 'replay': 2, 'spoofing': 3, 'flooding': 4}
+
 
 def file_hash(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
@@ -39,7 +41,7 @@ class Child:
         self.output=(root/f'{name}.jsonl').open('x',encoding='utf-8')
         self.errors=(root/f'{name}.stderr').open('x',encoding='utf-8')
         try:
-            self.process=subprocess.Popen(command,stdout=subprocess.PIPE,stderr=self.errors,
+            self.process=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.errors,
                 text=True,bufsize=1,start_new_session=True)
         except (OSError,ValueError):
             self.output.close();self.errors.close()
@@ -70,6 +72,11 @@ class Child:
 
     def stop(self):
         if self.output.closed:return
+        self.process.stdin.close()
+        # The remote supervisor observes stdin EOF and reaps its process group.
+        if self.process.poll() is None and 'security.experiments.remote_process' in ' '.join(self.process.args):
+            try:self.process.wait(timeout=4)
+            except subprocess.TimeoutExpired:pass
         if self.process.poll() is None:
             os.killpg(self.process.pid,signal.SIGINT)
             try:self.process.wait(timeout=3)
@@ -160,6 +167,12 @@ def summarize_observations(config,attack,tx,bus,receiver,normal):
             bytes.fromhex(r['data'])[0] in (1,2,3,4)]
     detected=bool(alerts) if config==3 else False
     latency=(int(alerts[0]['timestamp_ns'])-start_ns)/1e9 if config==3 and alerts else None
+    observed_types=[bytes.fromhex(r['data'])[0] for r in alerts] if config==3 else []
+    expected_code=ATTACK_CODES[attack]
+    matching=[r for r in alerts if bytes.fromhex(r['data'])[0]==expected_code] if config==3 else []
+    published_codes=sorted({bytes.fromhex(r['data'])[0] for r in frames
+        if r.get('can_id')==0x200 and r.get('process_result')==2 and len(r.get('data',''))==16
+        and any(a['data']==r['data'] for a in alerts)}) if config==3 else []
     if attack=='flooding':
         success=normal_delivered<normal_expected
     elif attack=='fuzzy':
@@ -170,6 +183,13 @@ def summarize_observations(config,attack,tx,bus,receiver,normal):
     else:success=bool(accepted)
     return {'status':'VALID','attack_success':success,'blocked':bool(auth_rejected),
         'detected':detected,'latency_s':latency,'latency_reason':None if latency is not None else 'NO_ALERT_OR_IDS_OFF',
+        'expected_attack_code':expected_code,
+        'observed_attack_codes':sorted(set(observed_types)),
+        'first_alert_attack_code':observed_types[0] if observed_types else None,
+        'expected_type_detected':bool(matching) if config==3 else None,
+        'expected_type_latency_s':(int(matching[0]['timestamp_ns'])-start_ns)/1e9 if matching else None,
+        'ivi_published_attack_codes':published_codes,
+        'ivi_expected_type_published':expected_code in published_codes if config==3 else None,
         'attack_accepted':len(accepted),'attack_auth_rejected':len(auth_rejected),
         'attack_parser_rejected':sum(r['process_result']==3 for r in attack_records)-len(auth_rejected),
         'normal_expected':normal_expected,'normal_delivered':normal_delivered,
