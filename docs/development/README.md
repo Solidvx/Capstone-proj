@@ -101,3 +101,5 @@
 
 - [이번 세션 총정리](reviews/2026-10-22-session-summary.md)
 - [오늘 실험 총정리](experiments/2026-10-22-experiments-summary.md)
+
+- [팀원 전달 폴더: 문서·로그 포함](../../handoff/2026-10-22/README.md)
