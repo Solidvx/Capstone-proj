@@ -71,6 +71,11 @@ def test_late_detection_retained_and_capture_loss_invalid():
     assert result["detect_latency_s"] == 3.4
     assert result["blocked"] is False
     assert judge_trial(3, "flooding", records, window, 1, rx_dropped=1)["status"] == "INVALID"
+    failed = judge_trial(3, "flooding", records, window, 1, attack_tx_errors=2)
+    assert failed['status'] == 'INVALID'
+    assert 'TX_ERRORS' in failed['invalid_reason']
+    assert failed['attack_sent'] == 1
+    assert failed['attack_tx_errors'] == 2
 
 
 def test_fuzzy_parse_valid_frame_is_not_abnormal_acceptance():
@@ -114,15 +119,18 @@ def test_replay_uses_observed_accepted_pair():
 
 
 @pytest.mark.skipif(not hasattr(socket, "MSG_CONFIRM"), reason="Linux MSG_CONFIRM")
-def test_rx_own_attribution_uses_kernel_confirmation_not_matching_payload():
+def test_rx_own_attribution_uses_kernel_confirmation_not_matching_payload(monkeypatch):
     class Sock:
         flags = socket.MSG_DONTROUTE
         def settimeout(self, _):
+            pass
+        def setblocking(self, _):
             pass
         def recvmsg(self, *_):
             return struct.pack("=IB3x8s", 0x100, 8, NORMAL), [(socket.SOL_SOCKET, 40, struct.pack("=I", 2))], self.flags, None
     bus = CaptureSocket.__new__(CaptureSocket)
     bus.socket = Sock()
+    monkeypatch.setattr(can_capture.select, 'select', lambda *args: ([bus.socket], [], []))
     bus.dropped = 0
     assert bus.receive()[1] is False
     bus.socket.flags |= socket.MSG_CONFIRM
@@ -145,7 +153,7 @@ def test_collection_schedules_and_retains_send_errors():
         def send(self, cid, data):
             self.attempts += 1
             if self.attempts == 1:
-                raise OSError("queue full")
+                raise OSError(105, "queue full")
             self.queue.append((Observation(now[0], cid, data), True))
         def receive(self, timeout):
             now[0] += min(.001, timeout)
@@ -154,10 +162,11 @@ def test_collection_schedules_and_retains_send_errors():
     records, sent, errors, first, _, _ = live_ablation.collect(
         Bus(), ReferenceReceiver(False), .1, output, live_ablation.Children(),
         "spoofing", 100, 1, clock=lambda: now[0])
-    assert errors == 1
+    assert errors == 0
     assert sent == len(records) > 0
-    assert first > 0
+    assert first is not None
     assert '"tx_error"' in output.getvalue()
+    assert json.loads(output.getvalue().splitlines()[0])['errno'] == 105
 
 
 def test_summary_refuses_duplicates_and_does_not_count_invalid(tmp_path):

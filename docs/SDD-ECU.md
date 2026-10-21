@@ -23,7 +23,7 @@ Node A(ECU) 소프트웨어의 모듈 구조, 클래스 설계, 알고리즘, �
 
 # 2. ECU SW 계층 구조
 
-2026-09-08: 아래 구조도·API 골격은 설계 설명이다. `BmsComponent` 독립 파일은 없고 현재 조립·주기 실행은 `adaptive_ecu/main.cpp`가 담당한다. 실제 API는 각 `include/*.h`가 근거이며 아래 축약 이름으로 호출 코드를 복사하지 않는다. Python 실시간 도구·모델·시험 경로는 §3.8의 예정 항목이다. AUTOSAR를 참고한 교육용 구조이며 표준 구현·인증을 주장하지 않는다.
+2026-09-08: 아래 구조도·API 골격은 설계 설명이다. `BmsComponent` 독립 파일은 없고 현재 조립·주기 실행은 `adaptive_ecu/main.cpp`가 담당한다. 실제 API는 각 `include/*.h`가 근거이며 아래 축약 이름으로 호출 코드를 복사하지 않는다. Python 실시간 도구의 현재 경로는 §3.8을 따른다. 실험 당시 버전과 인수 제한은 [실측 추적](development/experiments/physical-ablation-formal-2026-10-04/METHODS-AND-TRACEABILITY.md)에 연결한다. AUTOSAR를 참고한 교육용 구조이며 표준 구현·인증을 주장하지 않는다.
 
 ```
 ┌───────────────────────────────────┐
@@ -530,7 +530,7 @@ ADC-2=A의 첫 시험 설정(2026-09-08): 내부 128SPS, 요청 사이 최소 10
 
 ### 3.8.1. 디렉토리 구조
 
-아래 트리는 초기 목표 배치다. 실제 자산은 `secoc_module.py`, `attacks/traffic_gen.py`, `ids/{feature_extractor,rule_baseline,spec_detector,if_detector}.py`, `experiments/run_eval.py`, `tests/{test_secoc,test_ids_baseline}.py`다. 그 외 실시간 CLI·모델·수집/학습 파일은 미구현이다. 상세 파일 인수는 ECU M4/M5를 따른다.
+아래 트리는 초기 목표 배치로 현재 파일 목록이 아니다. 현재 공격 CLI는 `security/attacks/attack_simulator.py`, 실시간 IDS는 `security/ids/runtime.py`와 `runtime_detector.py`, 실험은 `security/experiments/{can_capture,evaluate_normal,live_ablation,summarize_live,publication}.py`다. 별도 pickle 저장 모델을 읽는 경로는 사용하지 않는다. 실제 파일과 테스트/실측 인수는 구분하며 [CHG-014](aidlc/changes/CHG-014/aidlc-state.md)를 따른다.
 
 ```
 security/
@@ -562,16 +562,19 @@ security/
 
 ### 3.8.2. CLI 인터페이스
 
-공통 `attack_simulator.py`의 `--type` 선택 CLI는 FR-SEC-005 구현 과제다. 개별 실 CAN 도구는 `--channel`, `--duration` 또는 `--count`를 사용하는 ECU M4/M5 예제를 따른다. 합성 생성기는 버스 송신 CLI가 아니며 4종을 선택 실행하는 실제 송신/실패 처리를 구현한 뒤 `--help`와 TC-SEC-005로 인수한다.
+현재 `python -m security.attacks.attack_simulator --help`의 `--type` 선택 CLI가 존재한다. 실제 캠페인은 `security.experiments.live_ablation`을 사용했으며 수신·송신 소유권, 유한 재시도, 결과 원장을 함께 기록한다. 구체적 옵션과 재현은 [실행 플레이북](development/playbooks/live-security-validation.md)을 따른다.
 
 ### 3.8.3. 공격별 핵심 로직
 
-| 공격 | 핵심 파라미터 | python-can 호출 |
+현재 시험 구현의 경로는 `security/attacks/attack_simulator.py`와 `security/experiments/live_ablation.py`다. 초기 제안의 무한 송신/고정 캡처 절차와 구분한다.
+
+| 공격 | 현재 프레임 생성/선택 | 실행 구분 |
 | --- | --- | --- |
-| Fuzzy | `random.randint(0,0x7FF)`, `os.urandom(8)` | `bus.send(Message(arbitration_id, data, is_extended_id=False))` |
-| Replay | 사전 캡처된 메시지 큐 (FIFO) | 캡처: `Listener` 10초, 재전송: 원본 그대로 `bus.send()` |
-| Spoofing | target_id=0x100, 가짜 SOC raw=200 (=100%) | `bus.send(Message(0x100, [200, 190, ...]))` |
-| Flooding | target_id=0x100, 최대 속도 전송 | `while True: bus.send(msg)` (종료 기한·송신 timeout·오류 집계를 구현; 실제 속도/부하는 측정) |
+| Fuzzy | seeded RNG의 11-bit ID와 8-byte payload | seed와 실제 송신·오류를 원장에 보존 |
+| Replay | 단독 도구는 고정 예시 BMS; 물리 Ablation은 관측·수용된 BMS/auth 쌍 선택 | SecOC ON은 실제 관측 쌍, OFF는 원본 BMS 사용 |
+| Spoofing | 0x100, SOC raw=200과 고정 변조 payload | 인증 없는 주입이며 정상 인증 프레임과 결합한 게시를 별도 해석 |
+| Flooding | 0x000, 8-byte zero payload | 기한·요청률·유한 송신 재시도와 실제 점유율 측정 |
+
 
 ## 3.9. Isolation Forest IDS 엔진 (Python)
 
@@ -599,7 +602,7 @@ security/
 
 ### 3.9.3. 실시간 탐지 흐름
 
-CAN 수집 → 1초 윈도우 확정 → §3.9.1 특징 → 학습된 IF 점수 → 사전 고정한 임계 판정 → ICD §1.5의 0x200 경보 순서다. 수집·저장/로드·경보 전송은 [ECU M4](../plan/detail/ecu/M4_IDS_공격_물리통합.md)에서 구현한다.
+CAN 수집 → 1초 윈도우 확정 → §3.9.1 특징 → 학습된 IF 점수 → 사전 고정한 임계 판정 → ICD §1.5의 0x200 경보 순서다. 수집·학습·경보 전송은 `security/ids/runtime.py`에 구현되어 있으며 실행 시 검증한 정상 입력에서 학습한다. 외부 직렬화 모델 역직렬화는 사용하지 않는다. 단위 시험과 실제 공격 인수는 [실측 추적](development/experiments/physical-ablation-formal-2026-10-04/METHODS-AND-TRACEABILITY.md)에서 구분한다.
 
 `decision_function`은 낮을수록 이상이고 기본 predict 경계는 0이다. 현재 `anomaly()`는 그 부호를 반전하여 높을수록 이상이다. `wire_score()`의 0~255 raw를 다시 물리 점수처럼 100배 인코딩하지 않는다. 전송 wrapper에는 raw/표현값 중 어느 입력을 받는지 명시한다. 임계 -0.5나 미검증 유형 추론 규칙을 운영 기본값으로 복사하지 않는다. Unknown/masquerade에 새 wire 유형 코드를 임의 할당하지 않으며 유형 미확정의 송신 정책은 ICD 변경 게이트 또는 기존 코드 의미를 보존하는 구현 판단으로 정리한다.
 

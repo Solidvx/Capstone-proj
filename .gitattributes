@@ -1,0 +1,6 @@
+# Historical experiment artifacts carry byte-level SHA256 manifests.
+# Preserve their original line endings and whitespace when staging/checking out.
+docs/development/experiments/ecu-ivi-integration-2026-10-03_04/** -text -whitespace
+docs/development/experiments/physical-ablation-formal-2026-10-04/** -text -whitespace
+docs/development/experiments/최종실험_결과_보고서.md -text -whitespace
+docs/development/reviews/experiment-evidence-audit-2026-10-04/** -text -whitespace

@@ -1,5 +1,8 @@
 # TARA — Threat Analysis and Risk Assessment
 
+> 2026-10-04 실장비 증거 연결: [실행 상태·시험 추적](development/experiments/physical-ablation-formal-2026-10-04/METHODS-AND-TRACEABILITY.md). 계획/설계의 존재와 시험 인수를 구분하며 INVALID·버전 편차·미수집 화면·비인증 0x200 경보의 제한을 적용한다. 아래 요구/계약 목표를 실험 결과에 맞춰 낮추지 않는다.
+
+
 > **2026-09-08 현재 효력**: 실제 가상 배터리 시험 범위·위협별 처리/증거는 §11~13을 따른다. 앞부분 차량 피해 가정과 위험 점수/잔여 등급은 역사적 평가 예시이며 현재 장비의 실측·표준 적합성·위험 수용 승인으로 사용하지 않는다.
 
 > **기준 표준**: ISO/SAE 21434:2021 (Road vehicles — Cybersecurity engineering)  

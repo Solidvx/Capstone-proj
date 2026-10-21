@@ -11,6 +11,7 @@ import json
 import math
 from pathlib import Path
 import socket
+import select
 import signal
 import struct
 import subprocess
@@ -54,6 +55,8 @@ class CaptureSocket:
         if not hasattr(socket, "AF_CAN"):
             raise RuntimeError("Linux SocketCAN is required")
         self.transmit = transmit
+        self.kernel_timestamps = transmit
+        self.clock_offset_ns = time.monotonic_ns() - time.time_ns()
         self.dropped = 0
         self.socket = socket.socket(socket.AF_CAN, socket.SOCK_RAW, socket.CAN_RAW)
         try:
@@ -61,6 +64,7 @@ class CaptureSocket:
             self.socket.setsockopt(socket.SOL_SOCKET, 40, 1)  # Linux SO_RXQ_OVFL
             self.socket.setsockopt(socket.SOL_CAN_RAW, 2, 0x1FFFFFFF)  # error filter
             if transmit:
+                self.socket.setsockopt(socket.SOL_SOCKET, 64, 1)  # SO_TIMESTAMPNS_NEW
                 self.socket.setsockopt(socket.SOL_CAN_RAW, 4, 1)  # RECV_OWN_MSGS
             self.socket.bind((channel,))
         except BaseException:
@@ -68,10 +72,14 @@ class CaptureSocket:
             raise
 
     def receive(self, timeout=0.01):
-        self.socket.settimeout(max(timeout, 0.000001))
+        # select accepts sub-millisecond waits; socket timeout polling can round
+        # these waits up to milliseconds on Linux and throttle the TX scheduler.
+        if not select.select([self.socket], [], [], max(timeout, 0.0))[0]:
+            return None
         try:
+            self.socket.setblocking(False)
             raw, ancillary, flags, _ = self.socket.recvmsg(72, 128)
-        except socket.timeout:
+        except (socket.timeout, BlockingIOError):
             return None
         if flags & (socket.MSG_TRUNC | socket.MSG_CTRUNC):
             raise ValueError("truncated capture")
@@ -81,7 +89,20 @@ class CaptureSocket:
         if len(raw) != 16:
             raise ValueError("expected Classical CAN, not CAN FD")
         cid, dlc, data = struct.unpack("=IB3x8s", raw)
-        frame = Observation(time.monotonic(), cid & 0x1FFFFFFF, data[:min(dlc, 8)], dlc,
+        timestamp = time.monotonic()
+        if getattr(self, "kernel_timestamps", False):
+            offset = time.monotonic_ns() - time.time_ns()
+            if abs(offset - self.clock_offset_ns) > 10_000_000:
+                raise RuntimeError("capture clock mapping changed by more than 10ms")
+            stamps = [value for level, kind, value in ancillary
+                      if level == socket.SOL_SOCKET and kind == 64]
+            if len(stamps) != 1 or len(stamps[0]) != 16:
+                raise ValueError("missing kernel capture timestamp")
+            seconds, nanos = struct.unpack("=qq", stamps[0])
+            if seconds < 0 or not 0 <= nanos < 1_000_000_000:
+                raise ValueError("invalid kernel capture timestamp")
+            timestamp = (seconds * 1_000_000_000 + nanos + self.clock_offset_ns) / 1e9
+        frame = Observation(timestamp, cid & 0x1FFFFFFF, data[:min(dlc, 8)], dlc,
                             bool(cid & 0x80000000), bool(cid & 0x40000000), bool(cid & 0x20000000))
         return frame, bool(flags & socket.MSG_CONFIRM)
 
@@ -90,7 +111,7 @@ class CaptureSocket:
             raise RuntimeError("receive-only socket")
         if not 0 <= can_id <= 0x7FF or len(data) != 8:
             raise ValueError("expected standard DLC8 frame")
-        self.socket.settimeout(0.05)
+        self.socket.setblocking(False)
         raw = struct.pack("=IB3x8s", can_id, 8, data)
         if self.socket.send(raw) != len(raw):
             raise OSError("short CAN write")
