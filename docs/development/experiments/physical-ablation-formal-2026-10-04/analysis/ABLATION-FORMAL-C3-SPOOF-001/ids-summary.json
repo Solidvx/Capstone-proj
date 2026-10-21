@@ -1,0 +1,19 @@
+{
+  "ids_results": {
+    "START": 1,
+    "CLOCK": 1,
+    "NORMAL": 9309,
+    "ANOMALY": 278694,
+    "ALERT_SENT": 3033,
+    "DIAGNOSTIC": 275573
+  },
+  "alert_types": {
+    "4": 3026,
+    "3": 7
+  },
+  "detected_trials": 100,
+  "rule_events": 278694,
+  "if_events": 0,
+  "ratios_over_one": [],
+  "ids_process_log": ""
+}

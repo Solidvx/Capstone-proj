@@ -39,7 +39,7 @@
 | 실행 계획 | `plan/ECU.md`, `plan/IVI.md`, `plan/detail/common/00_협업_규약.md` | 상위 2개 계획과 `plan/detail/ecu/`, `ivi/`, `common/`의 상세 절차를 사용한다. 원문 보관 위치는 `plan/_archive/`다. 과거 별도 `Plan/` 원문은 통합·보관했으며 현재 실행 디렉토리는 소문자 `plan/`이다. 현재 구현의 증거가 아니다. |
 | 임시 산출물 | `tmp/` | `.gitignore` 대상. 보존이 필요한 최종 문서는 두지 않는다. |
 
-**스냅샷 갱신일 2026-10-03.** 현재 저장소는 Git 원격과 `main`·`develop` 브랜치가 있으며 실제 작업 시작 때 branch와 dirty 상태를 다시 확인한다. ECU와 Python 보안·IDS 소스는 존재하지만 문서 정리가 동작 검증을 의미하지 않는다. ADR-010의 Debian 13/C++17/SocketCAN/Qt 6.8 Quick Plan B를 현 제출 기준으로 유지한다. IVI는 P1~P4를 완료했으며 CHG-003에 macOS Qt 시험과 Linux vcan·T1~T4 증거를 기록했다. CHG-004는 Qt 현행 안내와 Android 역사 자료의 읽기 경계를 정리한다. RPi4 배포 파일은 존재하지만 물리 `can0` 통합·CI는 후속 증거가 필요하며, 단계 완료는 실제 빌드·시험 증거로만 판정한다.
+**스냅샷 갱신일 2026-10-21.** 실제 작업 시작 때 branch와 dirty 상태를 다시 확인한다. ECU·보안/IDS·IVI와 물리/합성 실험 도구가 존재한다. ADR-010의 Debian 13/C++17/SocketCAN/Qt 6.8 Quick Plan B를 현 기준으로 유지한다. IVI P1~P4 완료·P5 부분 인수와 10월 3~4일 실장비 결과는 CHG-003·014를 따른다. CHG-014는 양쪽 브랜치의 같은 번호 기록을 통합했으며 원격 리뷰 이력을 별도 파일로 보존한다. 최신 통합 소스의 검증·팀원별 후속 과제는 [CHG-019](docs/aidlc/changes/CHG-019/aidlc-state.md)와 [팀원 인계](docs/development/governance/팀원_인계_20261021.md)를 따른다. 계획 번호 수집 완료와 전체 TC 인수, 과거 물리 시험과 현재 통합 버전 검증을 구분한다. Watchdog 작업 복구·최종 안정성/품질·CI/릴리즈는 후속 증거가 필요하다.
 
 현재 폴더에 없는 `CAR-ECU/`, `.github/` CI, `Dockerfile.arm64`, ARM64 toolchain, `.clang-format`, AOSP 소스는 존재한다고 가정하지 않는다. 초기 제안서는 `docs/archive/project-overview.md`에서 배경 자료로 보존한다.
 

@@ -1,0 +1,17 @@
+{
+  "ecu_frames": 5607,
+  "ivi_frames": 5609,
+  "prefix_match": true,
+  "receiver_frames": 164,
+  "filtered_match": true,
+  "messages": {
+    "BMS payload pending authentication": 84,
+    "Authenticated BMS data published": 80
+  },
+  "max_load_display_percent": 45,
+  "exit_codes": {
+    "canbusload-exit-code.txt": "0",
+    "candump-exit-code.txt": "0",
+    "dashboard-exit-code.txt": "0"
+  }
+}

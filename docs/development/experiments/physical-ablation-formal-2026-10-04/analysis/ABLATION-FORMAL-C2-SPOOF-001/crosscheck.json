@@ -1,0 +1,1061 @@
+{
+  "ivi_error_frames": [],
+  "ecu_frames": 289687,
+  "ivi_frames": 289691,
+  "prefix_match": true,
+  "receiver_frames": 289691,
+  "filtered_match": true,
+  "messages": {
+    "BMS payload pending authentication": 283499,
+    "Authenticated BMS data published": 5954,
+    "reason=MAC_FAIL can_id=256 counter=54": 1,
+    "reason=MAC_FAIL can_id=256 counter=67": 1,
+    "reason=MAC_FAIL can_id=256 counter=79": 1,
+    "reason=MAC_FAIL can_id=256 counter=127": 1,
+    "reason=MAC_FAIL can_id=256 counter=180": 1,
+    "reason=MAC_FAIL can_id=256 counter=182": 1,
+    "reason=MAC_FAIL can_id=256 counter=188": 1,
+    "reason=MAC_FAIL can_id=256 counter=190": 1,
+    "reason=MAC_FAIL can_id=256 counter=199": 1,
+    "reason=MAC_FAIL can_id=256 counter=240": 1,
+    "reason=MAC_FAIL can_id=256 counter=255": 1,
+    "reason=MAC_FAIL can_id=256 counter=256": 1,
+    "reason=MAC_FAIL can_id=256 counter=257": 1,
+    "reason=MAC_FAIL can_id=256 counter=321": 1,
+    "reason=MAC_FAIL can_id=256 counter=369": 1,
+    "reason=MAC_FAIL can_id=256 counter=427": 1,
+    "reason=MAC_FAIL can_id=256 counter=446": 1,
+    "reason=MAC_FAIL can_id=256 counter=485": 1,
+    "reason=MAC_FAIL can_id=256 counter=493": 1,
+    "reason=MAC_FAIL can_id=256 counter=494": 1,
+    "reason=MAC_FAIL can_id=256 counter=616": 1,
+    "reason=MAC_FAIL can_id=256 counter=679": 1,
+    "reason=MAC_FAIL can_id=256 counter=682": 1,
+    "reason=MAC_FAIL can_id=256 counter=740": 1,
+    "reason=MAC_FAIL can_id=256 counter=741": 1,
+    "reason=MAC_FAIL can_id=256 counter=752": 1,
+    "reason=MAC_FAIL can_id=256 counter=853": 1,
+    "reason=MAC_FAIL can_id=256 counter=858": 1,
+    "reason=MAC_FAIL can_id=256 counter=864": 1,
+    "reason=MAC_FAIL can_id=256 counter=878": 1,
+    "reason=MAC_FAIL can_id=256 counter=917": 1,
+    "reason=MAC_FAIL can_id=256 counter=924": 1,
+    "reason=MAC_FAIL can_id=256 counter=925": 1,
+    "reason=MAC_FAIL can_id=256 counter=933": 1,
+    "reason=MAC_FAIL can_id=256 counter=934": 1,
+    "reason=MAC_FAIL can_id=256 counter=935": 1,
+    "reason=MAC_FAIL can_id=256 counter=975": 1,
+    "reason=MAC_FAIL can_id=256 counter=993": 1,
+    "reason=MAC_FAIL can_id=256 counter=1003": 1,
+    "reason=MAC_FAIL can_id=256 counter=1049": 1,
+    "reason=MAC_FAIL can_id=256 counter=1062": 1,
+    "reason=MAC_FAIL can_id=256 counter=1113": 1,
+    "reason=MAC_FAIL can_id=256 counter=1114": 1,
+    "reason=MAC_FAIL can_id=256 counter=1125": 1,
+    "reason=MAC_FAIL can_id=256 counter=1126": 1,
+    "reason=MAC_FAIL can_id=256 counter=1127": 1,
+    "reason=MAC_FAIL can_id=256 counter=1167": 1,
+    "reason=MAC_FAIL can_id=256 counter=1176": 1,
+    "reason=MAC_FAIL can_id=256 counter=1177": 1,
+    "reason=MAC_FAIL can_id=256 counter=1222": 1,
+    "reason=MAC_FAIL can_id=256 counter=1230": 1,
+    "reason=MAC_FAIL can_id=256 counter=1309": 1,
+    "reason=MAC_FAIL can_id=256 counter=1310": 1,
+    "reason=MAC_FAIL can_id=256 counter=1350": 1,
+    "reason=MAC_FAIL can_id=256 counter=1409": 1,
+    "reason=MAC_FAIL can_id=256 counter=1426": 1,
+    "reason=MAC_FAIL can_id=256 counter=1491": 1,
+    "reason=MAC_FAIL can_id=256 counter=1529": 1,
+    "reason=MAC_FAIL can_id=256 counter=1534": 1,
+    "reason=MAC_FAIL can_id=256 counter=1545": 1,
+    "reason=MAC_FAIL can_id=256 counter=1611": 1,
+    "reason=MAC_FAIL can_id=256 counter=1670": 1,
+    "reason=MAC_FAIL can_id=256 counter=1671": 1,
+    "reason=MAC_FAIL can_id=256 counter=1672": 1,
+    "reason=MAC_FAIL can_id=256 counter=1724": 1,
+    "reason=MAC_FAIL can_id=256 counter=1740": 1,
+    "reason=MAC_FAIL can_id=256 counter=1780": 1,
+    "reason=MAC_FAIL can_id=256 counter=1787": 1,
+    "reason=MAC_FAIL can_id=256 counter=1799": 1,
+    "reason=MAC_FAIL can_id=256 counter=1805": 1,
+    "reason=MAC_FAIL can_id=256 counter=1837": 1,
+    "reason=MAC_FAIL can_id=256 counter=1844": 1,
+    "reason=MAC_FAIL can_id=256 counter=1907": 1,
+    "reason=MAC_FAIL can_id=256 counter=1909": 1,
+    "reason=MAC_FAIL can_id=256 counter=1917": 1,
+    "reason=MAC_FAIL can_id=256 counter=1925": 1,
+    "reason=MAC_FAIL can_id=256 counter=1961": 1,
+    "reason=MAC_FAIL can_id=256 counter=1971": 1,
+    "reason=MAC_FAIL can_id=256 counter=2022": 1,
+    "reason=MAC_FAIL can_id=256 counter=2033": 1,
+    "reason=MAC_FAIL can_id=256 counter=2034": 1,
+    "reason=MAC_FAIL can_id=256 counter=2047": 1,
+    "reason=MAC_FAIL can_id=256 counter=2083": 1,
+    "reason=MAC_FAIL can_id=256 counter=2092": 1,
+    "reason=MAC_FAIL can_id=256 counter=2103": 1,
+    "reason=MAC_FAIL can_id=256 counter=2159": 1,
+    "reason=MAC_FAIL can_id=256 counter=2160": 1,
+    "reason=MAC_FAIL can_id=256 counter=2161": 1,
+    "reason=MAC_FAIL can_id=256 counter=2208": 1,
+    "reason=MAC_FAIL can_id=256 counter=2209": 1,
+    "reason=MAC_FAIL can_id=256 counter=2216": 1,
+    "reason=MAC_FAIL can_id=256 counter=2284": 1,
+    "reason=MAC_FAIL can_id=256 counter=2333": 1,
+    "reason=MAC_FAIL can_id=256 counter=2340": 1,
+    "reason=MAC_FAIL can_id=256 counter=2348": 1,
+    "reason=MAC_FAIL can_id=256 counter=2409": 1,
+    "reason=MAC_FAIL can_id=256 counter=2470": 1,
+    "reason=MAC_FAIL can_id=256 counter=2472": 1,
+    "reason=MAC_FAIL can_id=256 counter=2473": 1,
+    "reason=MAC_FAIL can_id=256 counter=2474": 1,
+    "reason=MAC_FAIL can_id=256 counter=2520": 1,
+    "reason=MAC_FAIL can_id=256 counter=2587": 1,
+    "reason=MAC_FAIL can_id=256 counter=2588": 1,
+    "reason=MAC_FAIL can_id=256 counter=2589": 1,
+    "reason=MAC_FAIL can_id=256 counter=2601": 1,
+    "reason=MAC_FAIL can_id=256 counter=2602": 1,
+    "reason=MAC_FAIL can_id=256 counter=2722": 1,
+    "reason=MAC_FAIL can_id=256 counter=2727": 1,
+    "reason=MAC_FAIL can_id=256 counter=2763": 1,
+    "reason=MAC_FAIL can_id=256 counter=2764": 1,
+    "reason=MAC_FAIL can_id=256 counter=2775": 1,
+    "reason=MAC_FAIL can_id=256 counter=2787": 1,
+    "reason=MAC_FAIL can_id=256 counter=2790": 1,
+    "reason=MAC_FAIL can_id=256 counter=2837": 1,
+    "reason=MAC_FAIL can_id=256 counter=2848": 1,
+    "reason=MAC_FAIL can_id=256 counter=2896": 1,
+    "reason=MAC_FAIL can_id=256 counter=2947": 1,
+    "reason=MAC_FAIL can_id=256 counter=2949": 1,
+    "reason=MAC_FAIL can_id=256 counter=2956": 1,
+    "reason=MAC_FAIL can_id=256 counter=2965": 1,
+    "reason=MAC_FAIL can_id=256 counter=2976": 1,
+    "reason=MAC_FAIL can_id=256 counter=3014": 1,
+    "reason=MAC_FAIL can_id=256 counter=3025": 1,
+    "reason=MAC_FAIL can_id=256 counter=3026": 1,
+    "reason=MAC_FAIL can_id=256 counter=3027": 1,
+    "reason=MAC_FAIL can_id=256 counter=3139": 1,
+    "reason=MAC_FAIL can_id=256 counter=3150": 1,
+    "reason=MAC_FAIL can_id=256 counter=3197": 1,
+    "reason=MAC_FAIL can_id=256 counter=3202": 1,
+    "reason=MAC_FAIL can_id=256 counter=3217": 1,
+    "reason=MAC_FAIL can_id=256 counter=3328": 1,
+    "reason=MAC_FAIL can_id=256 counter=3391": 1,
+    "reason=MAC_FAIL can_id=256 counter=3392": 1,
+    "reason=MAC_FAIL can_id=256 counter=3402": 1,
+    "reason=MAC_FAIL can_id=256 counter=3403": 1,
+    "reason=MAC_FAIL can_id=256 counter=3404": 1,
+    "reason=MAC_FAIL can_id=256 counter=3444": 1,
+    "reason=MAC_FAIL can_id=256 counter=3458": 1,
+    "reason=MAC_FAIL can_id=256 counter=3466": 1,
+    "reason=MAC_FAIL can_id=256 counter=3502": 1,
+    "reason=MAC_FAIL can_id=256 counter=3511": 1,
+    "reason=MAC_FAIL can_id=256 counter=3520": 1,
+    "reason=MAC_FAIL can_id=256 counter=3521": 1,
+    "reason=MAC_FAIL can_id=256 counter=3641": 1,
+    "reason=MAC_FAIL can_id=256 counter=3686": 1,
+    "reason=MAC_FAIL can_id=256 counter=3752": 1,
+    "reason=AUTH_TIMEOUT channel=BMS": 1,
+    "reason=MAC_FAIL can_id=256 counter=3764": 1,
+    "reason=MAC_FAIL can_id=256 counter=3822": 1,
+    "reason=MAC_FAIL can_id=256 counter=3832": 1,
+    "reason=MAC_FAIL can_id=256 counter=3878": 1,
+    "reason=MAC_FAIL can_id=256 counter=3891": 1,
+    "reason=MAC_FAIL can_id=256 counter=4021": 1,
+    "reason=MAC_FAIL can_id=256 counter=4083": 1,
+    "reason=MAC_FAIL can_id=256 counter=4116": 1,
+    "reason=MAC_FAIL can_id=256 counter=4132": 1,
+    "reason=MAC_FAIL can_id=256 counter=4141": 1,
+    "reason=MAC_FAIL can_id=256 counter=4191": 1,
+    "reason=MAC_FAIL can_id=256 counter=4310": 1,
+    "reason=MAC_FAIL can_id=256 counter=4321": 1,
+    "reason=MAC_FAIL can_id=256 counter=4322": 1,
+    "reason=MAC_FAIL can_id=256 counter=4365": 1,
+    "reason=MAC_FAIL can_id=256 counter=4372": 1,
+    "reason=MAC_FAIL can_id=256 counter=4381": 1,
+    "reason=MAC_FAIL can_id=256 counter=4382": 1,
+    "reason=MAC_FAIL can_id=256 counter=4435": 1,
+    "reason=MAC_FAIL can_id=256 counter=4452": 1,
+    "reason=MAC_FAIL can_id=256 counter=4490": 1,
+    "reason=MAC_FAIL can_id=256 counter=4491": 1,
+    "reason=MAC_FAIL can_id=256 counter=4502": 1,
+    "reason=MAC_FAIL can_id=256 counter=4512": 1,
+    "reason=MAC_FAIL can_id=256 counter=4558": 1,
+    "reason=MAC_FAIL can_id=256 counter=4568": 1,
+    "reason=MAC_FAIL can_id=256 counter=4744": 1,
+    "reason=MAC_FAIL can_id=256 counter=4755": 1,
+    "reason=MAC_FAIL can_id=256 counter=4811": 1,
+    "reason=MAC_FAIL can_id=256 counter=4855": 1,
+    "reason=MAC_FAIL can_id=256 counter=4863": 1,
+    "reason=MAC_FAIL can_id=256 counter=4876": 1,
+    "reason=MAC_FAIL can_id=256 counter=4984": 1,
+    "reason=MAC_FAIL can_id=256 counter=4985": 1,
+    "reason=MAC_FAIL can_id=256 counter=4995": 1,
+    "reason=MAC_FAIL can_id=256 counter=4996": 1,
+    "reason=MAC_FAIL can_id=256 counter=5044": 1,
+    "reason=MAC_FAIL can_id=256 counter=5054": 1,
+    "reason=MAC_FAIL can_id=256 counter=5063": 1,
+    "reason=MAC_FAIL can_id=256 counter=5064": 1,
+    "reason=MAC_FAIL can_id=256 counter=5065": 1,
+    "reason=MAC_FAIL can_id=256 counter=5113": 1,
+    "reason=MAC_FAIL can_id=256 counter=5123": 1,
+    "reason=MAC_FAIL can_id=256 counter=5124": 1,
+    "reason=MAC_FAIL can_id=256 counter=5125": 1,
+    "reason=MAC_FAIL can_id=256 counter=5175": 1,
+    "reason=MAC_FAIL can_id=256 counter=5176": 1,
+    "reason=MAC_FAIL can_id=256 counter=5177": 1,
+    "reason=MAC_FAIL can_id=256 counter=5187": 1,
+    "reason=MAC_FAIL can_id=256 counter=5235": 1,
+    "reason=MAC_FAIL can_id=256 counter=5254": 1,
+    "reason=MAC_FAIL can_id=256 counter=5295": 1,
+    "reason=MAC_FAIL can_id=256 counter=5348": 1,
+    "reason=MAC_FAIL can_id=256 counter=5350": 1,
+    "reason=MAC_FAIL can_id=256 counter=5361": 1,
+    "reason=MAC_FAIL can_id=256 counter=5375": 1,
+    "reason=MAC_FAIL can_id=256 counter=5411": 1,
+    "reason=MAC_FAIL can_id=256 counter=5473": 1,
+    "reason=MAC_FAIL can_id=256 counter=5474": 1,
+    "reason=MAC_FAIL can_id=256 counter=5480": 1,
+    "reason=MAC_FAIL can_id=256 counter=5500": 1,
+    "reason=MAC_FAIL can_id=256 counter=5534": 1,
+    "reason=MAC_FAIL can_id=256 counter=5541": 1,
+    "reason=MAC_FAIL can_id=256 counter=5554": 1,
+    "reason=MAC_FAIL can_id=256 counter=5599": 1,
+    "reason=MAC_FAIL can_id=256 counter=5606": 1,
+    "reason=MAC_FAIL can_id=256 counter=5614": 1,
+    "reason=MAC_FAIL can_id=256 counter=5673": 1,
+    "reason=MAC_FAIL can_id=256 counter=5681": 1,
+    "reason=MAC_FAIL can_id=256 counter=5682": 1,
+    "reason=MAC_FAIL can_id=256 counter=5683": 1,
+    "reason=MAC_FAIL can_id=256 counter=5722": 1,
+    "reason=MAC_FAIL can_id=256 counter=5728": 1,
+    "reason=MAC_FAIL can_id=256 counter=5742": 1,
+    "reason=MAC_FAIL can_id=256 counter=5793": 1,
+    "reason=MAC_FAIL can_id=256 counter=5800": 1,
+    "reason=MAC_FAIL can_id=256 counter=5840": 1,
+    "reason=MAC_FAIL can_id=256 counter=5861": 1,
+    "reason=MAC_FAIL can_id=256 counter=5904": 1,
+    "reason=MAC_FAIL can_id=256 counter=5909": 1,
+    "reason=MAC_FAIL can_id=256 counter=5918": 1,
+    "reason=MAC_FAIL can_id=256 counter=5931": 1,
+    "reason=MAC_FAIL can_id=256 counter=5968": 1,
+    "reason=MAC_FAIL can_id=256 counter=5974": 1,
+    "reason=MAC_FAIL can_id=256 counter=5982": 1,
+    "reason=MAC_FAIL can_id=256 counter=6053": 1,
+    "reason=MAC_FAIL can_id=256 counter=6105": 1,
+    "reason=MAC_FAIL can_id=256 counter=6117": 1,
+    "reason=MAC_FAIL can_id=256 counter=6161": 1,
+    "reason=MAC_FAIL can_id=256 counter=6162": 1,
+    "reason=MAC_FAIL can_id=256 counter=6172": 1,
+    "reason=MAC_FAIL can_id=256 counter=6173": 1
+  },
+  "exit_files": {
+    "canbusload-exit-code.txt": "0",
+    "candump-exit-code.txt": "0",
+    "dashboard-exit-code.txt": "0"
+  },
+  "stats": {
+    "can-after.txt": "4: can0: <NOARP,UP,LOWER_UP,ECHO> mtu 16 qdisc pfifo_fast state UP mode DEFAULT group default qlen 10\n    link/can  promiscuity 0 allmulti 0 minmtu 16 maxmtu 16 \n    can state ERROR-ACTIVE restart-ms 100 \n\t  bitrate 500000 sample-point 0.750\n\t  tq 250 prop-seg 2 phase-seg1 3 phase-seg2 2 sjw 1 brp 1\n\t  mcp251x: tseg1 3..16 tseg2 2..8 sjw 1..4 brp 1..64 brp_inc 1\n\t  clock 4000000 \n\t  re-started bus-errors arbit-lost error-warn error-pass bus-off\n\t  0          0          0          0          0          0         numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535 tso_max_size 65536 tso_max_segs 65535 gro_max_size 65536 gso_ipv4_max_size 65536 gro_ipv4_max_size 65536 parentbus spi parentdev spi0.0 \n    RX:  bytes packets errors dropped  missed   mcast           \n      24983296 3122912      1       0       0       0 \n    TX:  bytes packets errors dropped carrier collsns           \n             0       0      0       0       0       0 \n",
+    "can-before.txt": "4: can0: <NOARP,UP,LOWER_UP,ECHO> mtu 16 qdisc pfifo_fast state UP mode DEFAULT group default qlen 10\n    link/can  promiscuity 0 allmulti 0 minmtu 16 maxmtu 16 \n    can state ERROR-ACTIVE restart-ms 100 \n\t  bitrate 500000 sample-point 0.750\n\t  tq 250 prop-seg 2 phase-seg1 3 phase-seg2 2 sjw 1 brp 1\n\t  mcp251x: tseg1 3..16 tseg2 2..8 sjw 1..4 brp 1..64 brp_inc 1\n\t  clock 4000000 \n\t  re-started bus-errors arbit-lost error-warn error-pass bus-off\n\t  0          0          0          0          0          0         numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535 tso_max_size 65536 tso_max_segs 65535 gro_max_size 65536 gso_ipv4_max_size 65536 gro_ipv4_max_size 65536 parentbus spi parentdev spi0.0 \n    RX:  bytes packets errors dropped  missed   mcast           \n      22665768 2833221      1       0       0       0 \n    TX:  bytes packets errors dropped carrier collsns           \n             0       0      0       0       0       0 \n"
+  },
+  "trials": [
+    {
+      "trial": 1,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 2,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 3,
+      "interior_load_percent": [
+        22,
+        3
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 4,
+      "interior_load_percent": [
+        22,
+        8
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 5,
+      "interior_load_percent": [
+        22,
+        11
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 6,
+      "interior_load_percent": [
+        22,
+        16
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 7,
+      "interior_load_percent": [
+        22,
+        20
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 8,
+      "interior_load_percent": [
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 9,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 10,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 11,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 12,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 13,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 14,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 15,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 16,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 17,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 18,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 19,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 20,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 21,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 22,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 23,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 24,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 25,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 26,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 27,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 28,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 29,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 30,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 31,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 32,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 33,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 34,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 35,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 36,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 37,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 38,
+      "interior_load_percent": [
+        22,
+        20
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 39,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 40,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 41,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 42,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 43,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 44,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 45,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 46,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 47,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 48,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 49,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 50,
+      "interior_load_percent": [
+        22,
+        20
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 51,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 52,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 53,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 54,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 55,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 56,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 57,
+      "interior_load_percent": [
+        22,
+        20
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 58,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 59,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 60,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 61,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 62,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 63,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 64,
+      "interior_load_percent": [
+        22,
+        20
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 65,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 66,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 67,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 68,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 69,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 70,
+      "interior_load_percent": [
+        22,
+        19
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 71,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 72,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 73,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 74,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 75,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 76,
+      "interior_load_percent": [
+        22,
+        16
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 77,
+      "interior_load_percent": [
+        22,
+        21
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 78,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 79,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 80,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 81,
+      "interior_load_percent": [
+        22,
+        15
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 82,
+      "interior_load_percent": [
+        22,
+        19
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 83,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 84,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 85,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 86,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 87,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 88,
+      "interior_load_percent": [
+        22,
+        18
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 89,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 90,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 91,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 92,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 93,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 94,
+      "interior_load_percent": [
+        22,
+        16
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 95,
+      "interior_load_percent": [
+        22,
+        20
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 96,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 97,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 98,
+      "interior_load_percent": [
+        22,
+        22
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 99,
+      "interior_load_percent": [
+        22,
+        15
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 100,
+      "interior_load_percent": [
+        22,
+        20
+      ],
+      "load_ge50": false
+    }
+  ]
+}

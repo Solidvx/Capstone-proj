@@ -1,0 +1,64 @@
+{
+  "ecu_observed": 5533,
+  "ivi_can": 5535,
+  "exact_sequence": false,
+  "ecu_tx_delta": 5535,
+  "manifest_hashes_verified": 4,
+  "tx_errors": {
+    "OSError": 1871
+  },
+  "attempt": {
+    "status": "VALID",
+    "invalid_reason": "",
+    "attack_success": null,
+    "blocked": false,
+    "detected": false,
+    "detect_latency_s": null,
+    "attack_sent": 5393,
+    "attack_tx_errors": 1871,
+    "attack_seen": 5393,
+    "attack_published": 0,
+    "observer": "reference_receiver",
+    "product_verdict": "NOT_RUN",
+    "rx_dropped": 0,
+    "baseline_published": 20,
+    "fuzzy_frames": 0,
+    "attack_auth_rejected": 0,
+    "attack_parse_rejected": 0,
+    "normal_expected": 30,
+    "normal_seen": 13,
+    "normal_delivered": 1,
+    "delivery_ratio": 0.0333,
+    "baseline_alerts": 0,
+    "alerts_in_window": 0,
+    "t_baseline_start": 41081.775107982,
+    "t_attack_start": 41083.77549108,
+    "first_injection": 41083.776523152,
+    "t_attack_end": 41086.775605985,
+    "t_post_end": 41087.775750454,
+    "first_alert": null,
+    "run_id": "LOAD-CHECK-V2-001",
+    "environment": "physical",
+    "config": 2,
+    "attack_type": "flooding",
+    "trial": 1,
+    "seed": 103001,
+    "ids_mode": "off",
+    "raw_file": "flooding-001.jsonl",
+    "raw_sha256": "05870266b043d6ad0d836332804074d58b1fb126f3973682b233a8deea0ed310"
+  },
+  "review_verdict": "NOT_ACCEPTED: load below 50%; TX errors present despite original VALID",
+  "exact_prefix_frames": 5533,
+  "ivi_tail": [
+    {
+      "can_id": 256,
+      "data": "c8c81068ffec4100"
+    },
+    {
+      "can_id": 258,
+      "data": "2b2ba8570000005a"
+    }
+  ],
+  "auth_timeout_total": 12,
+  "auth_orphan_total": 4
+}

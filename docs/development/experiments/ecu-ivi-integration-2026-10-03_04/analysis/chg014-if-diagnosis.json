@@ -1,0 +1,186 @@
+{
+  "sklearn": "1.9.1",
+  "training_vectors": 105,
+  "training_negative_decisions": 6,
+  "captures": {
+    "train": {
+      "sha256": "9fb42e343e4e5001ff9c587346d53d6dcbc9a43e0990668e4ed757dc2149c7cb",
+      "status": "FAIL",
+      "fp_windows": 7,
+      "complete_windows": 108,
+      "reasons": {
+        "IF_ANOMALY": 7
+      },
+      "runtime_checks_including_warmup": 108,
+      "anomalous_checks_including_warmup": 8,
+      "features": [
+        {
+          "feature": "msg_rate",
+          "train_min": 19.0,
+          "train_max": 22.0,
+          "runtime_min": 18.0,
+          "runtime_max": 21.0,
+          "outside_train_range": 33,
+          "outside_and_anomalous": 0
+        },
+        {
+          "feature": "mean_iat",
+          "train_min": 0.0471193512525996,
+          "train_max": 0.0525842058261705,
+          "runtime_min": 0.04680125125122571,
+          "runtime_max": 0.05257479363887428,
+          "outside_train_range": 21,
+          "outside_and_anomalous": 0
+        },
+        {
+          "feature": "std_iat",
+          "train_min": 0.048379620427650025,
+          "train_max": 0.049676665108342684,
+          "runtime_min": 0.04828478411739051,
+          "runtime_max": 0.049700303244682054,
+          "outside_train_range": 2,
+          "outside_and_anomalous": 0
+        },
+        {
+          "feature": "unique_ids",
+          "train_min": 2.0,
+          "train_max": 2.0,
+          "runtime_min": 2.0,
+          "runtime_max": 2.0,
+          "outside_train_range": 0,
+          "outside_and_anomalous": 0
+        },
+        {
+          "feature": "id_entropy",
+          "train_min": 0.9980008838722996,
+          "train_max": 1.0,
+          "runtime_min": 0.9980008838722996,
+          "runtime_max": 1.0,
+          "outside_train_range": 0,
+          "outside_and_anomalous": 0
+        },
+        {
+          "feature": "payload_change",
+          "train_min": 2.888888888888889,
+          "train_max": 3.7777777777777777,
+          "runtime_min": 3.0,
+          "runtime_max": 3.8125,
+          "outside_train_range": 1,
+          "outside_and_anomalous": 0
+        },
+        {
+          "feature": "max_id_burst",
+          "train_min": 10.0,
+          "train_max": 11.0,
+          "runtime_min": 9.0,
+          "runtime_max": 11.0,
+          "outside_train_range": 33,
+          "outside_and_anomalous": 0
+        }
+      ],
+      "fp_window_indices": [
+        2,
+        37,
+        41,
+        51,
+        53,
+        69,
+        75
+      ]
+    },
+    "eval": {
+      "sha256": "de41a1e7582e110cbf37d1edf2454f8cd8d8bfc000021208369f4c75066ea2fb",
+      "status": "FAIL",
+      "fp_windows": 16,
+      "complete_windows": 108,
+      "reasons": {
+        "IF_ANOMALY": 16
+      },
+      "runtime_checks_including_warmup": 108,
+      "anomalous_checks_including_warmup": 17,
+      "features": [
+        {
+          "feature": "msg_rate",
+          "train_min": 19.0,
+          "train_max": 22.0,
+          "runtime_min": 18.0,
+          "runtime_max": 22.0,
+          "outside_train_range": 30,
+          "outside_and_anomalous": 0
+        },
+        {
+          "feature": "mean_iat",
+          "train_min": 0.0471193512525996,
+          "train_max": 0.0525842058261705,
+          "runtime_min": 0.04693028563840217,
+          "runtime_max": 0.052574963215808394,
+          "outside_train_range": 12,
+          "outside_and_anomalous": 0
+        },
+        {
+          "feature": "std_iat",
+          "train_min": 0.048379620427650025,
+          "train_max": 0.049676665108342684,
+          "runtime_min": 0.048421867968554654,
+          "runtime_max": 0.04953247759139627,
+          "outside_train_range": 0,
+          "outside_and_anomalous": 0
+        },
+        {
+          "feature": "unique_ids",
+          "train_min": 2.0,
+          "train_max": 2.0,
+          "runtime_min": 2.0,
+          "runtime_max": 2.0,
+          "outside_train_range": 0,
+          "outside_and_anomalous": 0
+        },
+        {
+          "feature": "id_entropy",
+          "train_min": 0.9980008838722996,
+          "train_max": 1.0,
+          "runtime_min": 0.9980008838722996,
+          "runtime_max": 1.0,
+          "outside_train_range": 0,
+          "outside_and_anomalous": 0
+        },
+        {
+          "feature": "payload_change",
+          "train_min": 2.888888888888889,
+          "train_max": 3.7777777777777777,
+          "runtime_min": 3.111111111111111,
+          "runtime_max": 3.764705882352941,
+          "outside_train_range": 0,
+          "outside_and_anomalous": 0
+        },
+        {
+          "feature": "max_id_burst",
+          "train_min": 10.0,
+          "train_max": 11.0,
+          "runtime_min": 9.0,
+          "runtime_max": 11.0,
+          "outside_train_range": 30,
+          "outside_and_anomalous": 0
+        }
+      ],
+      "fp_window_indices": [
+        6,
+        10,
+        13,
+        36,
+        39,
+        52,
+        58,
+        64,
+        66,
+        80,
+        81,
+        83,
+        87,
+        91,
+        92,
+        98
+      ]
+    }
+  }
+}

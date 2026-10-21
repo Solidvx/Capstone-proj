@@ -53,6 +53,8 @@ target_link_libraries(adaptive_ecu PRIVATE ecu_core)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     add_executable(ads1115_can_smoke tools/ads1115_can_smoke.cpp)
     target_link_libraries(ads1115_can_smoke PRIVATE ecu_core)
+    add_executable(ads1115_capture tools/ads1115_capture.cpp)
+    target_link_libraries(ads1115_capture PRIVATE ecu_core)
 endif()
 
 if(ECU_BUILD_TESTS)
@@ -74,6 +76,7 @@ if(ECU_BUILD_TESTS)
         test_ekf_soc
         test_soh_estimator
         test_failsafe_sm
+        test_failsafe_profile
         test_watchdog_manager
         test_secoc
     )

@@ -18,3 +18,5 @@
 - 일반 엔지니어링 원칙과 안티패턴은 루트 SKILL의 작업 판단 절에 통합했다. 통합된 과거 보조 지침을 중복해서 읽을 필요는 없으며, 현재 작업에 해당하는 `capstone-workflow`·`commit` skill은 적용한다.
 
 IVI 플랫폼의 현행 기준은 [ADR-010](docs/ADR.md#adr-010)과 [Qt 실행 계획](plan/IVI_PLAN_B_전환계획.md)이다. 과거 Android 절차를 현재 작업 지시로 사용하지 않는다.
+
+현재 통합 기준과 팀원 후속 과제는 [CHG-019](docs/aidlc/changes/CHG-019/aidlc-state.md)·[팀원 인계](docs/development/governance/팀원_인계_20261021.md)를 따른다. 공통 상태·규칙은 AGENTS.md를 참조한다.

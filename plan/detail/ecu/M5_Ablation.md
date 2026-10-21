@@ -66,18 +66,20 @@
 
 **선행조건**: [M4](M4_IDS_공격_물리통합.md) 완료 — 탐지기 학습·평가 경로, `0x200` 송신 경로.
 
-**현재 구현 상태 (확인 기준일 2026-10-03; CHG-014 검증)**
+**현재 구현/결과 (2026-10-21 통합)**
 
 | 대상 | 상태 | 비고 |
 |---|---|---|
-| `traffic_gen.gen_attack()` 5종 | **구현됨** | seed 고정, 라벨 포함 |
-| `rule_baseline` / `spec_detector` / `if_detector` | **구현됨** | 탐지기 3종 |
-| `run_eval.py` | **구현됨** | **탐지기 비교** 러너다. 방어 구성(Config 1/2/3) 비교는 하지 않는다 |
-| `security/secoc_module.py` | **구현됨** | 합성/호스트 MAC·counter 검증의 비교 근거. 실제 Config 2/3 차단 판정은 대상 수신기의 인증/반영 로그로 확인 |
-| Ablation 하네스 | **구현·vcan 파일럿 검증** | `security/experiments/run_ablation.py`, `summarize_ablation.py`; 실제 물리 공식 평가는 대기 |
-| ROC/정상 오탐률/재현성 | **구현·로컬 검증** | CHG-015/016: offline IF score/ROC/SVG와 실제 wire 0x200 정상 윈도우 FPR를 분리. CSV/REP-1 비교 포함. [분석 절차](../../../docs/development/playbooks/experiment-analysis.md) |
-| 실제 공격 CLI | **구현·vcan 검증** | `security.attack_simulator`: fuzzy/replay/spoofing/flooding. Replay는 과거 `0x100/0x102` 인증 쌍 지원 |
-| 인증 OFF 수신기 | **격리 시험 타깃만 구현** | `ivi_dashboard_experiment`; 제품 `ivi_dashboard`에서는 인증 OFF 금지 |
+| 탐지기 비교 | 구현 | `run_eval.py`: 규칙·사양·IF 비교이며 방어구성 비교가 아님 |
+| 합성 Ablation·ROC | 구현·보존 | `run_ablation_synthetic.py`, `summarize_ablation_synthetic.py`, `analyze_roc_synthetic.py` |
+| 관측 수신기 하네스 | 구현·과거 vcan 파일럿 | `run_ablation.py`, `summarize_ablation.py`; [M5 절차](../../../docs/development/playbooks/m5-ablation-runner.md) |
+| 실장비 ECU 소유 하네스 | 구현·실험 기록 | `live_ablation.py`, `live_trial.py`, `summarize_live.py`; [실시간 절차](../../../docs/development/playbooks/live-security-validation.md) |
+| 정상 캡처·IF·분석 | 양쪽 도구 보존 | `capture_normal.py`+명시 manifest 및 `can_capture.py`+디렉토리 manifest를 구분 |
+| 인증 OFF IVI | 격리 시험 타깃 | `ivi_dashboard_experiment`; 제품 인증 정책 유지 |
+| 공식 물리 결과 | 계획12조건×100번호 수집·대조 | 최초1200 중1196 VALID/4 INVALID, 재시도 포함1201. [편차·TC 추적](../../../docs/development/experiments/physical-ablation-formal-2026-10-04/METHODS-AND-TRACEABILITY.md) |
+| 논문 표 재현 | 구현·감사 | `publication.py`, 보존 summary/출처/원장. 원본 raw는 별도 필요 |
+
+두 실장비 하네스는 입력·manifest·관측 방식이 다르다. 원장을 혼합하지 않으며 10월 4일 결과를 이번 통합 코드의 물리 인수로 표시하지 않는다. 전체 현재 상태는 [CHG-014](../../../docs/aidlc/changes/CHG-014/aidlc-state.md), 통합 검증은 [CHG-019](../../../docs/aidlc/changes/CHG-019/aidlc-state.md)를 따른다.
 
 > **혼동 금지**: `run_eval.py`가 만드는 "규칙 vs 사양 vs Isolation Forest" 표는 **탐지기 비교**다. M5가 만드는 "Config 1/2/3" 표는 **방어 구성 비교**다. 두 축을 한 표에 합치지 않는다.
 

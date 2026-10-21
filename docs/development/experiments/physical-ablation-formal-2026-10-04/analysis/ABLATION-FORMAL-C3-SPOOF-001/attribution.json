@@ -1,0 +1,95 @@
+{
+  "missing_alignment": [
+    {
+      "index": 135723,
+      "record": {
+        "t": 21595.792181067,
+        "can_id": 256,
+        "data": "c8be1068ffec4100",
+        "own": true,
+        "outcomes": [
+          {
+            "kind": "PENDING",
+            "can_id": 256,
+            "reason": "PENDING_REPLACED",
+            "own": true,
+            "auth_own": false,
+            "payload": "",
+            "original_t": null
+          },
+          {
+            "kind": "PENDING",
+            "can_id": 256,
+            "reason": "PENDING_AUTH",
+            "own": true,
+            "auth_own": false,
+            "payload": "",
+            "original_t": null
+          }
+        ],
+        "frame": {
+          "t": 21595.792181067,
+          "can_id": 256,
+          "data": "c8be1068ffec4100",
+          "dlc": 8,
+          "extended": false,
+          "remote": false,
+          "error": false
+        }
+      }
+    },
+    {
+      "index": 135724,
+      "record": {
+        "t": 21595.79326255,
+        "can_id": 256,
+        "data": "c8be1068ffec4100",
+        "own": true,
+        "outcomes": [
+          {
+            "kind": "PENDING",
+            "can_id": 256,
+            "reason": "PENDING_REPLACED",
+            "own": true,
+            "auth_own": false,
+            "payload": "",
+            "original_t": null
+          },
+          {
+            "kind": "PENDING",
+            "can_id": 256,
+            "reason": "PENDING_AUTH",
+            "own": true,
+            "auth_own": false,
+            "payload": "",
+            "original_t": null
+          }
+        ],
+        "frame": {
+          "t": 21595.79326255,
+          "can_id": 256,
+          "data": "c8be1068ffec4100",
+          "dlc": 8,
+          "extended": false,
+          "remote": false,
+          "error": false
+        }
+      }
+    }
+  ],
+  "matched": 291043,
+  "ivi_tail": 16,
+  "ids_exact_match": 3033,
+  "published_origins": {
+    "(False, False, True)": 6120
+  },
+  "mac_fail_origins": {
+    "(True, False)": 199
+  },
+  "qt_warning_count": 21,
+  "stderr_bytes": {
+    "canbusload.stderr": 0,
+    "candump.stderr": 0,
+    "dashboard.stderr": 1218
+  }
+}

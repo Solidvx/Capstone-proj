@@ -1,0 +1,17 @@
+{
+  "campaign": "PHYSICAL-ABLATION-2026-10-04",
+  "planned_per_case": 100,
+  "primary_attempt_policy": "first recorded attempt in explicit resume chain; invalid retained; retries supplemental",
+  "policy_basis": "User instructed collection of 100 planned attempts including errors; TEST_PLAN original valid-100 requirement remains a documented deviation, not silently passed.",
+  "timing_metric": "reference ECU observer injection echo to received IDS alert; not IVI display or physical pixel latency",
+  "latency_statistics": "conditional on detected VALID attempts; nearest-rank p95; no zero imputation",
+  "runs": {
+    "ABLATION-FORMAL-C1-FLOOD-001": {"note": "trial 7 invalid preserved; later repeated under new run ID"},
+    "ABLATION-FORMAL-C1-FLOOD-002": {"note": "retry 7 supplemental; IVI dashboard exit file 127 not confirmed as process exit"},
+    "ABLATION-FORMAL-C1-SPOOF-001": {"note": "one injected CAN frame absent from IVI; RX error increase; runner VALID is not loss-free acceptance"},
+    "ABLATION-FORMAL-C3-FLOOD-001": {"exclude_timing": true, "note": "IDS send-buffer exit at trial 3; legacy dequeue-time observer"},
+    "ABLATION-FORMAL-C3-FLOOD-002": {"exclude_timing": true, "note": "legacy dequeue-time window drift; 62 delivery ratios exceed 1; IDS lifetime exit trial 77"},
+    "ABLATION-FORMAL-C3-FLOOD-003": {"note": "v8 kernel receive timestamp; separate 23-trial timing stratum, not full 100-trial latency"},
+    "ABLATION-FORMAL-C3-SPOOF-001": {"note": "two injected CAN frames absent from IVI; RX error increase; repeated identical frames have ambiguous individual identities"}
+  }
+}

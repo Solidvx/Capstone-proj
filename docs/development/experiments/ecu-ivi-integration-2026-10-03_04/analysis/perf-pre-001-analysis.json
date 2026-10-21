@@ -1,0 +1,46 @@
+{
+  "source_sha256": "35fa37604770a9820513265eb0d8833b507e0e181d78b371dd93dd314fa1760a",
+  "run_id": "PERF-PRE-001",
+  "boot_id": "1927b9da-2f68-48c5-b77b-b35458b68828",
+  "expected_completed": 300,
+  "observed_samples": 300,
+  "counts": {
+    "FRAME_SWAPPED": 300,
+    "NOT_RENDERED": 0,
+    "INDETERMINATE": 0
+  },
+  "reasons": {
+    "QT_SIGNAL_PROXY_ONLY": 300
+  },
+  "completion_fraction_of_recorded": 1.0,
+  "shortfall": 0,
+  "intervals": {
+    "T1-T4": {
+      "count": 300,
+      "mean_ms": 8.943716356666666,
+      "max_ms": 66.210985,
+      "p99_ms": 15.303722
+    },
+    "T1-T2": {
+      "count": 300,
+      "mean_ms": 1.9394322466666667,
+      "max_ms": 11.14304,
+      "p99_ms": 7.533704
+    },
+    "T2-T3": {
+      "count": 300,
+      "mean_ms": 2.8340268466666667,
+      "max_ms": 8.181864,
+      "p99_ms": 7.828795
+    },
+    "T3-T4": {
+      "count": 300,
+      "mean_ms": 4.170257263333333,
+      "max_ms": 48.880394,
+      "p99_ms": 7.138523
+    }
+  },
+  "review_flags": [],
+  "formal_verdict": "NOT_ASSESSED",
+  "limits": "Qt signal proxy only. CSV cannot establish physical pixels or detect samples absent before T1 recording. Reconcile receiver/CAN logs, visibility and loss separately. Formal test requires >=1000 valid samples."
+}

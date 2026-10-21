@@ -1,0 +1,829 @@
+{
+  "ivi_error_frames": [],
+  "ecu_frames": 290121,
+  "ivi_frames": 290125,
+  "prefix_match": true,
+  "receiver_frames": 13059,
+  "filtered_match": true,
+  "messages": {
+    "BMS payload pending authentication": 6184,
+    "Authenticated BMS data published": 6184,
+    "reason=AUTH_ORPHAN channel=BMS auth without pending original": 124,
+    "Rejected invalid Fail-safe payload": 144,
+    "reason=AUTH_ORPHAN channel=Fail-safe auth without pending original": 138,
+    "Rejected invalid BMS payload": 131,
+    "Rejected invalid IDS payload": 152,
+    "IDS event published": 2
+  },
+  "exit_files": {
+    "canbusload-exit-code.txt": "0",
+    "candump-exit-code.txt": "0",
+    "dashboard-exit-code.txt": "0"
+  },
+  "stats": {
+    "can-after.txt": "4: can0: <NOARP,UP,LOWER_UP,ECHO> mtu 16 qdisc pfifo_fast state UP mode DEFAULT group default qlen 10\n    link/can  promiscuity 0 allmulti 0 minmtu 16 maxmtu 16 \n    can state ERROR-ACTIVE restart-ms 100 \n\t  bitrate 500000 sample-point 0.750\n\t  tq 250 prop-seg 2 phase-seg1 3 phase-seg2 2 sjw 1 brp 1\n\t  mcp251x: tseg1 3..16 tseg2 2..8 sjw 1..4 brp 1..64 brp_inc 1\n\t  clock 4000000 \n\t  re-started bus-errors arbit-lost error-warn error-pass bus-off\n\t  0          0          0          0          0          0         numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535 tso_max_size 65536 tso_max_segs 65535 gro_max_size 65536 gso_ipv4_max_size 65536 gro_ipv4_max_size 65536 parentbus spi parentdev spi0.0 \n    RX:  bytes packets errors dropped  missed   mcast           \n      20263224 2532903      1       0       0       0 \n    TX:  bytes packets errors dropped carrier collsns           \n             0       0      0       0       0       0 \n",
+    "can-before.txt": "4: can0: <NOARP,UP,LOWER_UP,ECHO> mtu 16 qdisc pfifo_fast state UP mode DEFAULT group default qlen 10\n    link/can  promiscuity 0 allmulti 0 minmtu 16 maxmtu 16 \n    can state ERROR-ACTIVE restart-ms 100 \n\t  bitrate 500000 sample-point 0.750\n\t  tq 250 prop-seg 2 phase-seg1 3 phase-seg2 2 sjw 1 brp 1\n\t  mcp251x: tseg1 3..16 tseg2 2..8 sjw 1..4 brp 1..64 brp_inc 1\n\t  clock 4000000 \n\t  re-started bus-errors arbit-lost error-warn error-pass bus-off\n\t  0          0          0          0          0          0         numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535 tso_max_size 65536 tso_max_segs 65535 gro_max_size 65536 gso_ipv4_max_size 65536 gro_ipv4_max_size 65536 parentbus spi parentdev spi0.0 \n    RX:  bytes packets errors dropped  missed   mcast           \n      17942224 2242778      1       0       0       0 \n    TX:  bytes packets errors dropped carrier collsns           \n             0       0      0       0       0       0 \n"
+  },
+  "trials": [
+    {
+      "trial": 1,
+      "interior_load_percent": [
+        21,
+        18
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 2,
+      "interior_load_percent": [
+        21,
+        20
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 3,
+      "interior_load_percent": [
+        21,
+        21
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 4,
+      "interior_load_percent": [
+        21,
+        3
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 5,
+      "interior_load_percent": [
+        21,
+        6
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 6,
+      "interior_load_percent": [
+        21,
+        9
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 7,
+      "interior_load_percent": [
+        21,
+        13
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 8,
+      "interior_load_percent": [
+        21,
+        17
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 9,
+      "interior_load_percent": [
+        21,
+        20
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 10,
+      "interior_load_percent": [
+        21,
+        3
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 11,
+      "interior_load_percent": [
+        21,
+        7
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 12,
+      "interior_load_percent": [
+        21,
+        10
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 13,
+      "interior_load_percent": [
+        21,
+        12
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 14,
+      "interior_load_percent": [
+        21,
+        15
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 15,
+      "interior_load_percent": [
+        21,
+        17
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 16,
+      "interior_load_percent": [
+        21,
+        19
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 17,
+      "interior_load_percent": [
+        21,
+        21
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 18,
+      "interior_load_percent": [
+        21,
+        2
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 19,
+      "interior_load_percent": [
+        21,
+        6
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 20,
+      "interior_load_percent": [
+        21,
+        10
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 21,
+      "interior_load_percent": [
+        21,
+        14
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 22,
+      "interior_load_percent": [
+        21,
+        17
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 23,
+      "interior_load_percent": [
+        21,
+        21
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 24,
+      "interior_load_percent": [
+        21,
+        4
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 25,
+      "interior_load_percent": [
+        21,
+        7
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 26,
+      "interior_load_percent": [
+        21,
+        10
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 27,
+      "interior_load_percent": [
+        21,
+        14
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 28,
+      "interior_load_percent": [
+        21,
+        17
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 29,
+      "interior_load_percent": [
+        21,
+        21
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 30,
+      "interior_load_percent": [
+        21,
+        3
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 31,
+      "interior_load_percent": [
+        21,
+        7
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 32,
+      "interior_load_percent": [
+        21,
+        10
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 33,
+      "interior_load_percent": [
+        21,
+        14
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 34,
+      "interior_load_percent": [
+        21,
+        16
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 35,
+      "interior_load_percent": [
+        21,
+        19
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 36,
+      "interior_load_percent": [
+        21,
+        21
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 37,
+      "interior_load_percent": [
+        21,
+        2
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 38,
+      "interior_load_percent": [
+        21,
+        5
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 39,
+      "interior_load_percent": [
+        21,
+        9
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 40,
+      "interior_load_percent": [
+        21,
+        13
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 41,
+      "interior_load_percent": [
+        21,
+        16
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 42,
+      "interior_load_percent": [
+        21,
+        20
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 43,
+      "interior_load_percent": [
+        21,
+        3
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 44,
+      "interior_load_percent": [
+        21,
+        6
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 45,
+      "interior_load_percent": [
+        21,
+        9
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 46,
+      "interior_load_percent": [
+        21,
+        12
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 47,
+      "interior_load_percent": [
+        21,
+        16
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 48,
+      "interior_load_percent": [
+        21,
+        20
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 49,
+      "interior_load_percent": [
+        21,
+        2
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 50,
+      "interior_load_percent": [
+        21,
+        5
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 51,
+      "interior_load_percent": [
+        21,
+        9
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 52,
+      "interior_load_percent": [
+        21,
+        13
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 53,
+      "interior_load_percent": [
+        21,
+        17
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 54,
+      "interior_load_percent": [
+        21,
+        21
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 55,
+      "interior_load_percent": [
+        21,
+        3
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 56,
+      "interior_load_percent": [
+        21,
+        5
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 57,
+      "interior_load_percent": [
+        21,
+        8
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 58,
+      "interior_load_percent": [
+        21,
+        10
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 59,
+      "interior_load_percent": [
+        21,
+        13
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 60,
+      "interior_load_percent": [
+        20,
+        17
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 61,
+      "interior_load_percent": [
+        21,
+        20
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 62,
+      "interior_load_percent": [
+        21,
+        3
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 63,
+      "interior_load_percent": [
+        21,
+        7
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 64,
+      "interior_load_percent": [
+        21,
+        11
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 65,
+      "interior_load_percent": [
+        21,
+        14
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 66,
+      "interior_load_percent": [
+        21,
+        17
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 67,
+      "interior_load_percent": [
+        21,
+        19
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 68,
+      "interior_load_percent": [
+        21,
+        1
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 69,
+      "interior_load_percent": [
+        21,
+        4
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 70,
+      "interior_load_percent": [
+        21,
+        8
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 71,
+      "interior_load_percent": [
+        21,
+        11
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 72,
+      "interior_load_percent": [
+        21,
+        14
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 73,
+      "interior_load_percent": [
+        21,
+        18
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 74,
+      "interior_load_percent": [
+        21,
+        0
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 75,
+      "interior_load_percent": [
+        21,
+        4
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 76,
+      "interior_load_percent": [
+        21,
+        8
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 77,
+      "interior_load_percent": [
+        21,
+        12
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 78,
+      "interior_load_percent": [
+        21,
+        15
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 79,
+      "interior_load_percent": [
+        21,
+        19
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 80,
+      "interior_load_percent": [
+        21,
+        2
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 81,
+      "interior_load_percent": [
+        21,
+        6
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 82,
+      "interior_load_percent": [
+        21,
+        9
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 83,
+      "interior_load_percent": [
+        21,
+        13
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 84,
+      "interior_load_percent": [
+        21,
+        16
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 85,
+      "interior_load_percent": [
+        21,
+        19
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 86,
+      "interior_load_percent": [
+        21,
+        2
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 87,
+      "interior_load_percent": [
+        21,
+        5
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 88,
+      "interior_load_percent": [
+        21,
+        8
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 89,
+      "interior_load_percent": [
+        21,
+        10
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 90,
+      "interior_load_percent": [
+        21,
+        14
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 91,
+      "interior_load_percent": [
+        21,
+        18
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 92,
+      "interior_load_percent": [
+        21,
+        1
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 93,
+      "interior_load_percent": [
+        21,
+        5
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 94,
+      "interior_load_percent": [
+        21,
+        8
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 95,
+      "interior_load_percent": [
+        21,
+        21
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 96,
+      "interior_load_percent": [
+        21,
+        21
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 97,
+      "interior_load_percent": [
+        21,
+        21
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 98,
+      "interior_load_percent": [
+        21,
+        21
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 99,
+      "interior_load_percent": [
+        21,
+        21
+      ],
+      "load_ge50": false
+    },
+    {
+      "trial": 100,
+      "interior_load_percent": [
+        21,
+        21
+      ],
+      "load_ge50": false
+    }
+  ]
+}

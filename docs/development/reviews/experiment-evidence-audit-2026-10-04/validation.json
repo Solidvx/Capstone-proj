@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-04",
+  "python_tests": {
+    "environment": "WSL existing ~/venvs/capstone-security",
+    "command": "python -m pytest security/tests -q",
+    "passed": 97,
+    "elapsed_s": 10.11
+  },
+  "evidence_checks": {
+    "inventory_counts": {
+      "ecu-ivi-integration-2026-10-03_04": 534,
+      "physical-ablation-formal-2026-10-04": 1717
+    },
+    "output_hashes_verified": 61,
+    "case_count": 12,
+    "run_count": 16,
+    "attempts": 1201,
+    "first_attempt_valid": 1196,
+    "invalid": 4,
+    "receiver_matches": 16,
+    "missing_ecu_frames_in_ivi": 3,
+    "legacy_scripts_verified": 38,
+    "broken_local_links": [],
+    "unbalanced_fences": []
+  },
+  "git_diff_check": "PASS",
+  "hardware_retests": "NOT_RUN: offline evidence remediation only",
+  "external_backup": "PENDING_DESTINATION; local bundle verification recorded separately"
+}

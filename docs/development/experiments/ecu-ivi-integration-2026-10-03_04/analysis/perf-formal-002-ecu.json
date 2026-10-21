@@ -1,0 +1,32 @@
+{
+  "run_id": "PERF-FORMAL-002",
+  "frames": 2998,
+  "id_counts": {
+    "0x100": 1499,
+    "0x102": 1499
+  },
+  "counter_first": 0,
+  "counter_last": 1498,
+  "counters_sequential": true,
+  "all_dlc_8": true,
+  "tx_before": [
+    169552,
+    21194,
+    0,
+    0,
+    0,
+    0
+  ],
+  "tx_after": [
+    193536,
+    24192,
+    0,
+    0,
+    0,
+    0
+  ],
+  "tx_packet_delta": 2998,
+  "capture_matches_tx_delta": true,
+  "span_seconds": 149.924762,
+  "verdict": "ECU_CHECKED_IVI_PENDING"
+}

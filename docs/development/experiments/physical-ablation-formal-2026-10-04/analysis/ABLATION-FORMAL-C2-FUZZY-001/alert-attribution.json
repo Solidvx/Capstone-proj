@@ -1,0 +1,38 @@
+[
+  {
+    "receiver": {
+      "can_id": 512,
+      "data": "0410dd8488fefa46",
+      "message": "IDS event published",
+      "process_result": 2,
+      "result": "FRAME",
+      "run_id": "ABLATION-FORMAL-C2-FUZZY-001",
+      "secoc_on": true,
+      "soc": 100,
+      "timestamp_ns": "9067442946819"
+    },
+    "ecu": {
+      "raw_file": "fuzzy-010.jsonl",
+      "t": 9069.696070592,
+      "data": "0410dd8488fefa46"
+    }
+  },
+  {
+    "receiver": {
+      "can_id": 512,
+      "data": "0369b3c5eaa5db70",
+      "message": "IDS event published",
+      "process_result": 2,
+      "result": "FRAME",
+      "run_id": "ABLATION-FORMAL-C2-FUZZY-001",
+      "secoc_on": true,
+      "soc": 100,
+      "timestamp_ns": "9264352913526"
+    },
+    "ecu": {
+      "raw_file": "fuzzy-042.jsonl",
+      "t": 9266.60554188,
+      "data": "0369b3c5eaa5db70"
+    }
+  }
+]

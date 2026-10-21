@@ -1,0 +1,75 @@
+{
+  "run_id": "ABLATION-FORMAL-C3-SPOOF-001",
+  "ecu_frames": 291045,
+  "ivi_can_frames": 291059,
+  "ivi_receiver_frames": 291059,
+  "receiver_matches_filtered_can": true,
+  "ecu_missing_count": 2,
+  "missing_examples": [
+    {
+      "ecu_index_example": 135723,
+      "can_id": 256,
+      "data": "c8be1068ffec4100",
+      "own": true
+    },
+    {
+      "ecu_index_example": 135724,
+      "can_id": 256,
+      "data": "c8be1068ffec4100",
+      "own": true
+    }
+  ],
+  "repeated_payload_identity": "counts verified; exact repeated-frame identities may be ambiguous",
+  "ivi_tail_frames": 16,
+  "can_error_frames": [
+    [
+      1791119104.05185,
+      536870916,
+      "0001000000000000"
+    ]
+  ],
+  "authenticated_publish_origins": {
+    "pending_own=False,auth_own=False,payload_match=True": 6120,
+    "OUTSIDE_ECU_MATCHED_CAPTURE": 8
+  },
+  "mac_fail_origins": {
+    "pending_own=True,auth_own=False": 199
+  },
+  "ids_log_results": {
+    "START": 1,
+    "CLOCK": 1,
+    "NORMAL": 9309,
+    "ANOMALY": 278694,
+    "ALERT_SENT": 3033,
+    "DIAGNOSTIC": 275573
+  },
+  "ids_sent": 3033,
+  "ids_sent_matches_non_injected_ecu_and_ivi": true,
+  "injected_id200_frames": 0,
+  "stderr": {
+    "canbusload.stderr": {
+      "bytes": 0,
+      "qt_animation_warnings": 0
+    },
+    "candump.stderr": {
+      "bytes": 0,
+      "qt_animation_warnings": 0
+    },
+    "dashboard.stderr": {
+      "bytes": 1218,
+      "qt_animation_warnings": 21
+    }
+  },
+  "ids_wire_type_counts": {
+    "4": 3026,
+    "3": 7
+  },
+  "origin_method": "ordered CAN alignment plus most recent BMS pending; descriptive association, not cryptographic re-verification",
+  "ivi_exit_files": {
+    "canbusload-exit-code.txt": "0",
+    "candump-exit-code.txt": "0",
+    "dashboard-exit-code.txt": "0"
+  },
+  "display_verdict": "NOT_MEASURED",
+  "physical_pixel_latency": null
+}

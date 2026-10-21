@@ -1,4 +1,7 @@
 > **문서명**: Software Requirements Specification (SRS)  
+
+> 2026-10-04 실장비 증거 연결: [실행 상태·시험 추적](development/experiments/physical-ablation-formal-2026-10-04/METHODS-AND-TRACEABILITY.md). 계획/설계의 존재와 시험 인수를 구분하며 INVALID·버전 편차·미수집 화면·비인증 0x200 경보의 제한을 적용한다. 아래 요구/계약 목표를 실험 결과에 맞춰 낮추지 않는다.
+
 > **버전**: v1.6 | **작성일**: 2026-03-01 | **최종 수정**: 2026-09-22
 > **작성자**: 팀원A + 팀원B (공동)  
 > **참조**: ICD v1.6, ADR-003 (IDS 알고리즘), ADR-005 (EKF), ADR-008 (Ablation Study), ADR-010 (IVI Plan B)

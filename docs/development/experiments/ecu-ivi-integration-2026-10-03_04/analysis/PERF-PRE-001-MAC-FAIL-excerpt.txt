@@ -1,0 +1,21 @@
+PERF-PRE-001: original excerpts; line numbers are 1-based.
+CAN capture:
+81: (1791049046.251250) can0 100#C8C81068FFEC4100
+82: (1791049046.252903) can0 102#C9CDADD400000028
+83: (1791049046.351380) can0 100#C8C81068FFEC4100
+84: (1791049046.353036) can0 102#0755607600000052
+85: (1791049046.451367) can0 100#C8C81068FFEC4100
+86: (1791049046.453021) can0 102#9C4E91DA0000002A
+87: (1791049046.551326) can0 100#C8C81068FFEC4100
+
+IVI receiver:
+81: {"can_id":256,"data":"c8c81068ffec4100","message":"BMS payload pending authentication","process_result":1,"result":"FRAME","run_id":"PERF-PRE-001","secoc_on":true,"soc":100,"source_data":"c8c81068ffec4100","timestamp_ns":"24103910064763"}
+82: {"can_id":258,"data":"c9cdadd400000028","message":"Authenticated BMS data published","process_result":2,"result":"FRAME","run_id":"PERF-PRE-001","secoc_on":true,"soc":100,"source_data":"c8c81068ffec4100","timestamp_ns":"24103911695229"}
+83: {"can_id":256,"data":"c8c81068ffec4100","message":"BMS payload pending authentication","process_result":1,"result":"FRAME","run_id":"PERF-PRE-001","secoc_on":true,"soc":100,"source_data":"c8c81068ffec4100","timestamp_ns":"24104010197881"}
+84: {"can_id":258,"data":"0755607600000052","message":"reason=MAC_FAIL can_id=256 counter=82","process_result":3,"result":"FRAME","run_id":"PERF-PRE-001","secoc_on":true,"soc":100,"source_data":"c8c81068ffec4100","timestamp_ns":"24104011828939"}
+85: {"can_id":256,"data":"c8c81068ffec4100","message":"BMS payload pending authentication","process_result":1,"result":"FRAME","run_id":"PERF-PRE-001","secoc_on":true,"soc":100,"source_data":"c8c81068ffec4100","timestamp_ns":"24104110181852"}
+86: {"can_id":258,"data":"9c4e91da0000002a","message":"Authenticated BMS data published","process_result":2,"result":"FRAME","run_id":"PERF-PRE-001","secoc_on":true,"soc":100,"source_data":"c8c81068ffec4100","timestamp_ns":"24104111813947"}
+87: {"can_id":256,"data":"c8c81068ffec4100","message":"BMS payload pending authentication","process_result":1,"result":"FRAME","run_id":"PERF-PRE-001","secoc_on":true,"soc":100,"source_data":"c8c81068ffec4100","timestamp_ns":"24104210141841"}
+
+Both operators report no intentional mutation test. Other pre-existing senders not yet checked.
+No root cause established. Do not edit original logs.

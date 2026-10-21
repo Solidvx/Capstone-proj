@@ -1,0 +1,21 @@
+{
+  "method": "Exact sequence aligned first/last injected own frames; interior one-second canbusload samples only, not full-window mean",
+  "trials": [
+    {
+      "trial": 1,
+      "interior_load_percent": [
+        60,
+        57
+      ],
+      "any_interior_ge50": true
+    },
+    {
+      "trial": 2,
+      "interior_load_percent": [
+        59,
+        58
+      ],
+      "any_interior_ge50": true
+    }
+  ]
+}

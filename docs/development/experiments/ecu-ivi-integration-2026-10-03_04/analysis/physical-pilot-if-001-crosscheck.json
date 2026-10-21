@@ -1,0 +1,22 @@
+{
+  "ecu_frames": 8926,
+  "ivi_frames": 8938,
+  "prefix_match": true,
+  "receiver_frames": 3521,
+  "filtered_match": true,
+  "target_ivi_gap_ms": 100.017,
+  "messages": {
+    "BMS payload pending authentication": 1709,
+    "Authenticated BMS data published": 271,
+    "IDS event published": 92,
+    "reason=AUTH_ORPHAN channel=BMS auth without pending original": 4,
+    "Rejected invalid Fail-safe payload": 4,
+    "reason=AUTH_ORPHAN channel=Fail-safe auth without pending original": 1,
+    "Rejected invalid BMS payload": 1,
+    "Rejected invalid IDS payload": 1,
+    "reason=COUNTER_BACKWARD can_id=256 counter=181": 93,
+    "WARNING: reason=COUNTER_BACKWARD can_id=256 counter=181": 186,
+    "CRITICAL: reason=COUNTER_BACKWARD can_id=256 counter=181": 1159
+  },
+  "max_load_display_percent": 24
+}

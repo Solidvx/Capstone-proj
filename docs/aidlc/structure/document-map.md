@@ -130,3 +130,25 @@ ICD v1.6에서 RollingCounter를 인증 CAN ID별 독립으로 명시하고 ECU�
 ## 마감 결정 질문 리스트 — 2026-10-03
 
 보안 실험·통합시험의 마감 대응·실험 설계·협업 확인 결정 11건(답변 완료)을 [질문 리스트](../../development/governance/보안실험_통합시험_진행결정.md)에 모았다. 답변은 [의사결정 기록](../../development/governance/의사결정_기록.md)에도 등록했다.
+
+## 실시간 보안 시험 준비 — 2026-10-03
+
+[CHG-014](../changes/CHG-014/aidlc-state.md)에 정상 캡처·IF 평가·실시간 하네스·MAC fixture·Fail-safe 프로파일·ADC 원시 측정과 검증을 기록한다. 반복 실행은 [플레이북](../../development/playbooks/live-security-validation.md), IVI 담당자 경계는 [인계 명세](../../development/security/IVI_실험_인계.md)를 따른다. 물리 시험은 사용자 실행 로그를 받은 뒤 판정한다.
+
+## ECU–IVI 실장비 시험 증거 보존
+
+[시험 결과 보존 기록](../../development/experiments/ecu-ivi-integration-2026-10-03_04/README.md)은 시험별 보고서·분석·재현 도구와 로컬 원본의 위치를 안내한다. 원본 파일 목록과 해시는 해당 디렉터리의 inventory.json에서 관리한다.
+
+[공식 물리 Ablation 기록](../../development/experiments/physical-ablation-formal-2026-10-04/README.md)은 사용자 요청에 따라 pilot과 분리한 본 실험 증거 디렉토리다. 시행별 원본과 해시는 inventory.json에서 관리한다.
+
+## 실험 감사 후 재현·제출 자료
+
+[감사/보완](../../development/reviews/experiment-evidence-audit-2026-10-04/REMEDIATION.md), [논문 재현](../../development/experiments/physical-ablation-formal-2026-10-04/REPRODUCE.md), [TC 추적·편차](../../development/experiments/physical-ablation-formal-2026-10-04/METHODS-AND-TRACEABILITY.md), [백업](../../development/experiments/physical-ablation-formal-2026-10-04/BACKUP.md)을 연결한다. 케이스별 생성물은 publication/cases와 publication/runs, 과거 분석기는 tools/legacy-analysis에 있다. 현재 상태 원본은 CHG-014를 유지한다.
+
+## 최종 실험 결과 보고서
+
+[종합 보고서](../../development/experiments/최종실험_결과_보고서.md)는 두 실험 보존 디렉토리의 공통 상위에 둔다. 계약·현재 상태 원본을 대체하지 않고 원본 집계에 연결한 논문용 결과 스냅샷이다. [표·참조 검증기](../../development/reviews/experiment-evidence-audit-2026-10-04/verify_final_report.py)와 [검증 결과](../../development/reviews/experiment-evidence-audit-2026-10-04/final-report-validation.json)를 함께 연결한다.
+
+## 개발 기준 통합과 팀 인계 — 2026-10-21
+
+[CHG-019](../changes/CHG-019/aidlc-state.md)에서 양쪽 브랜치 통합·검증·원격 반영을 기록하고 [팀원 인계](../../development/governance/팀원_인계_20261021.md)에 담당별 후속 작업을 연결한다. CHG-014의 원격 리뷰 상태/증거는 같은 폴더의 review-*-2026-10-03.md로 보존했다. 합성 CLI는 *_synthetic.py, 짧은 프로파일은 failsafe_demo_fast.csv로 구분한다. 원본 raw와 보고서 집계는 변경하지 않는다.

@@ -1,0 +1,33 @@
+{
+  "source_sha256": {
+    "IVI\uce21\uc5d0\uc11c\ubc1b\uc544\uc628\ud30c\uc77c\ub4e4\\23H10M\\00H12M\\11can.log": "58d383a180a1d4ffb6b9f9624695e794a9f1ab0130aad990a00a1d3edc97da82",
+    "IVI\uce21\uc5d0\uc11c\ubc1b\uc544\uc628\ud30c\uc77c\ub4e4\\23H10M\\receiver.jsonl": "e03674d26c2397bc3756ae681e094878bfcf21d7c355dece42c55dff655a1c0c"
+  },
+  "can_frames": 450,
+  "receiver_frames": 450,
+  "other_receiver_records": 0,
+  "exact_sequence_match": true,
+  "first_difference_index": null,
+  "can_counts": {
+    "0x100": 225,
+    "0x102": 225
+  },
+  "authenticated_bms_log_count": 225,
+  "soc_decode_mismatches": 0,
+  "receiver_messages": {
+    "BMS payload pending authentication": 225,
+    "Authenticated BMS data published": 225
+  },
+  "secoc_on_all_frames": true,
+  "counter_discontinuities": [],
+  "can_span_s": 22.42284,
+  "bms_period_ms": {
+    "count": 224,
+    "mean": 100.09416517857143,
+    "min": 99.796,
+    "max": 100.37,
+    "outside_90_110": 0
+  },
+  "formal_verdict": "NOT_ASSESSED",
+  "limits": "Strict classical-CAN parser: unsupported/error/FD rows stop analysis, never silently dropped. No inferred capture alignment or loss rate. Different node clocks never subtracted. Counter discontinuities may indicate restart or capture gaps, not necessarily bus loss."
+}

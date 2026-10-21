@@ -1,0 +1,46 @@
+{
+  "counts": {
+    "('ids', 'IDS event published')": 3001,
+    "('injected', 'Rejected invalid IDS payload')": 152,
+    "('injected', 'IDS event published')": 2
+  },
+  "ids_exact_sent_match": true,
+  "injected_published": [
+    {
+      "data": "0410dd8488fefa46",
+      "ecu_t": 18772.967487736,
+      "receiver": {
+        "can_id": 512,
+        "data": "0410dd8488fefa46",
+        "message": "IDS event published",
+        "process_result": 2,
+        "result": "FRAME",
+        "run_id": "ABLATION-FORMAL-C3-FUZZY-001",
+        "secoc_on": true,
+        "soc": 100,
+        "timestamp_ns": "18770717762199"
+      }
+    },
+    {
+      "data": "0369b3c5eaa5db70",
+      "ecu_t": 18971.445432797,
+      "receiver": {
+        "can_id": 512,
+        "data": "0369b3c5eaa5db70",
+        "message": "IDS event published",
+        "process_result": 2,
+        "result": "FRAME",
+        "run_id": "ABLATION-FORMAL-C3-FUZZY-001",
+        "secoc_on": true,
+        "soc": 100,
+        "timestamp_ns": "18969195309733"
+      }
+    }
+  ],
+  "dashboard_stderr": "QUnifiedTimer::stopAnimationDriver: driver is not running\nQUnifiedTimer::stopAnimationDriver: driver is not running\nQUnifiedTimer::stopAnimationDriver: driver is not running\nQUnifiedTimer::stopAnimationDriver: driver is not running\n",
+  "collector_stderr_bytes": {
+    "canbusload.stderr": 0,
+    "candump.stderr": 0,
+    "dashboard.stderr": 232
+  }
+}

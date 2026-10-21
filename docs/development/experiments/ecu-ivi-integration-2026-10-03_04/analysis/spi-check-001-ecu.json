@@ -1,0 +1,19 @@
+{
+  "run_id": "SPI-CHECK-001",
+  "ecu_frames": 2398,
+  "id_counts": {
+    "0x100": 1199,
+    "0x102": 1199
+  },
+  "capture_span_seconds": 119.90722393989563,
+  "counter_first": 0,
+  "counter_last": 1198,
+  "counters_sequential": true,
+  "all_dlc_8": true,
+  "alternating_bms_auth": true,
+  "error_flag_frame_count": 0,
+  "tx_packets_before": 16678,
+  "tx_packets_after": 19076,
+  "tx_delta_matches_capture": true,
+  "verdict": "ECU_CAPTURE_CHECKED_IVI_PENDING"
+}

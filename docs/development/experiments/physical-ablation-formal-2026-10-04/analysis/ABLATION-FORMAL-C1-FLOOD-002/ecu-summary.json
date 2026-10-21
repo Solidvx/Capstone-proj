@@ -1,0 +1,41 @@
+{
+  "attempts": 15,
+  "valid": 14,
+  "invalid": [
+    [
+      21,
+      "TX_ERRORS"
+    ]
+  ],
+  "sums": {
+    "attack_sent": 108422,
+    "attack_seen": 108422,
+    "attack_tx_errors": 1,
+    "tx_syscall_errors": 7,
+    "tx_recovered_frames": 7,
+    "tx_deadline_skipped": 0,
+    "normal_expected": 450,
+    "normal_seen": 446,
+    "normal_delivered": 446
+  },
+  "normal_delivery_below_expected": [
+    {
+      "trial": 11,
+      "normal_expected": 30,
+      "normal_seen": 29,
+      "normal_delivered": 29
+    },
+    {
+      "trial": 19,
+      "normal_expected": 30,
+      "normal_seen": 29,
+      "normal_delivered": 29
+    },
+    {
+      "trial": 20,
+      "normal_expected": 30,
+      "normal_seen": 28,
+      "normal_delivered": 28
+    }
+  ]
+}

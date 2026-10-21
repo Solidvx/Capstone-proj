@@ -23,7 +23,7 @@ Node A(ECU) 소프트웨어의 모듈 구조, 클래스 설계, 알고리즘, �
 
 # 2. ECU SW 계층 구조
 
-2026-09-08: 아래 구조도·API 골격은 설계 설명이다. `BmsComponent` 독립 파일은 없고 현재 조립·주기 실행은 `adaptive_ecu/main.cpp`가 담당한다. 실제 API는 각 `include/*.h`가 근거이며 아래 축약 이름으로 호출 코드를 복사하지 않는다. Python 실시간 도구·모델·시험 경로는 §3.8의 예정 항목이다. AUTOSAR를 참고한 교육용 구조이며 표준 구현·인증을 주장하지 않는다.
+2026-09-08: 아래 구조도·API 골격은 설계 설명이다. `BmsComponent` 독립 파일은 없고 현재 조립·주기 실행은 `adaptive_ecu/main.cpp`가 담당한다. 실제 API는 각 `include/*.h`가 근거이며 아래 축약 이름으로 호출 코드를 복사하지 않는다. Python 실시간 도구의 현재 경로는 §3.8을 따른다. 실험 당시 버전과 인수 제한은 [실측 추적](development/experiments/physical-ablation-formal-2026-10-04/METHODS-AND-TRACEABILITY.md)에 연결한다. AUTOSAR를 참고한 교육용 구조이며 표준 구현·인증을 주장하지 않는다.
 
 ```
 ┌───────────────────────────────────┐
@@ -530,7 +530,8 @@ ADC-2=A의 첫 시험 설정(2026-09-08): 내부 128SPS, 요청 사이 최소 10
 
 ### 3.8.1. 디렉토리 구조
 
-현행 구현은 합성 생성기와 실 CAN 도구를 분리한다. `attack_simulator.py`는 물리 `canN`에서 격리 시험 확인·10초 상한을 강제하고, `capture_normal.py`는 학습 JSONL과 manifest를 새 파일로만 만든다. `secoc_tamper_fixture.py`는 IT-004의 정상 기준→MAC 1비트 변조→같은 counter 정상 복구를 통제한다. 모델 pickle은 로드하지 않으며 `ids/runtime.py`가 명시적으로 제공된 정상 캡처를 학습한다.
+2026-10-21 통합 후 두 실행 경로를 함께 보존한다. 10월 4일 실장비 경로의 공격 CLI는 `security/attacks/attack_simulator.py`, 실시간 IDS는 `security/ids/runtime.py`와 `runtime_detector.py`, 실험은 `security/experiments/{can_capture,evaluate_normal,live_ablation,summarize_live,publication}.py`다. 별도 pickle 저장 모델을 읽는 경로는 사용하지 않는다. 실제 파일과 테스트/실측 인수는 구분하며 [CHG-014](aidlc/changes/CHG-014/aidlc-state.md)를 따른다.
+GitHub의 별도 관측 수신기 경로도 합성 생성기와 실 CAN 도구를 분리한다. `attack_simulator.py`는 물리 `canN`에서 격리 시험 확인·10초 상한을 강제하고, `capture_normal.py`는 학습 JSONL과 manifest를 새 파일로만 만든다. `secoc_tamper_fixture.py`는 IT-004의 정상 기준→MAC 1비트 변조→같은 counter 정상 복구를 통제한다. 모델 pickle은 로드하지 않으며 `ids/runtime.py`가 명시적으로 제공된 정상 캡처를 학습한다.
 
 ```
 security/
@@ -555,16 +556,20 @@ security/
 
 ### 3.8.2. CLI 인터페이스
 
+현재 `python -m security.attacks.attack_simulator --help`의 `--type` 선택 CLI가 존재한다. 실제 캠페인은 `security.experiments.live_ablation`을 사용했으며 수신·송신 소유권, 유한 재시도, 결과 원장을 함께 기록한다. 구체적 옵션과 재현은 [실행 플레이북](development/playbooks/live-security-validation.md)을 따른다.
 공통 `attack_simulator.py`는 `--type fuzzy|replay|spoofing|flooding`, `--channel`, `--duration`, `--rate`, `--seed`, `--run-id`, `--log`를 제공한다. `vcanN` 이외의 물리 인터페이스는 `--confirm-isolated-test-bus` 없이는 거부하고 실행시간 10초·요청률 4,000fps 상한을 둔다. Replay는 표준 `0x100` raw 또는 `--replay-mode authenticated-pair`의 과거 `0x100/0x102` 쌍을 사용한다. 인증 쌍 모드에서 rate는 쌍/초이며 상한은 두 프레임을 포함한 fps로 검증한다. 실행 JSON과 journal은 소켓 송신 수락 시각·성공 송신 수·중단 상태를 보존한다. 실제 버스 주입/수신 시각은 별도 Node B 관측기로 기록하고 버스 점유율은 추정값으로 채우지 않는다.
 
 ### 3.8.3. 공격별 핵심 로직
 
-| 공격 | 핵심 파라미터 | python-can 호출 |
+10월 4일 live 하네스의 시험 구현 경로는 `security/attacks/attack_simulator.py`와 `security/experiments/live_ablation.py`다. 초기 제안의 무한 송신/고정 캡처 절차와 구분한다.
+
+| 공격 | 현재 프레임 생성/선택 | 실행 구분 |
 | --- | --- | --- |
-| Fuzzy | `random.randint(0,0x7FF)`, `os.urandom(8)` | `bus.send(Message(arbitration_id, data, is_extended_id=False))` |
-| Replay | 사전 캡처된 메시지 큐 (FIFO) | 캡처: `Listener` 10초, 재전송: 원본 그대로 `bus.send()` |
-| Spoofing | target_id=0x100, 가짜 SOC raw=200 (=100%) | `bus.send(Message(0x100, [200, 190, ...]))` |
-| Flooding | target_id=0x100, 최대 속도 전송 | `while True: bus.send(msg)` (종료 기한·송신 timeout·오류 집계를 구현; 실제 속도/부하는 측정) |
+| Fuzzy | seeded RNG의 11-bit ID와 8-byte payload | seed와 실제 송신·오류를 원장에 보존 |
+| Replay | 단독 도구는 고정 예시 BMS; 물리 Ablation은 관측·수용된 BMS/auth 쌍 선택 | SecOC ON은 실제 관측 쌍, OFF는 원본 BMS 사용 |
+| Spoofing | 0x100, SOC raw=200과 고정 변조 payload | 인증 없는 주입이며 정상 인증 프레임과 결합한 게시를 별도 해석 |
+| Flooding | 0x000, 8-byte zero payload | 기한·요청률·유한 송신 재시도와 실제 점유율 측정 |
+
 
 ## 3.9. Isolation Forest IDS 엔진 (Python)
 
@@ -592,7 +597,7 @@ security/
 
 ### 3.9.3. 실시간 탐지 흐름
 
-CAN 수집 → 1초 윈도우 확정 → §3.9.1 특징 → 학습된 IF 점수 → 사전 고정한 임계 판정 → ICD §1.5의 0x200 경보 순서다. 수집·저장/로드·경보 전송은 [ECU M4](../plan/detail/ecu/M4_IDS_공격_물리통합.md)에서 구현한다.
+CAN 수집 → 1초 윈도우 확정 → §3.9.1 특징 → 학습된 IF 점수 → 사전 고정한 임계 판정 → ICD §1.5의 0x200 경보 순서다. 수집·학습·경보 전송은 `security/ids/runtime.py`에 구현되어 있으며 실행 시 검증한 정상 입력에서 학습한다. 외부 직렬화 모델 역직렬화는 사용하지 않는다. 단위 시험과 실제 공격 인수는 [실측 추적](development/experiments/physical-ablation-formal-2026-10-04/METHODS-AND-TRACEABILITY.md)에서 구분한다.
 
 `decision_function`은 낮을수록 이상이고 기본 predict 경계는 0이다. 현재 `anomaly()`는 그 부호를 반전하여 높을수록 이상이다. `wire_score()`의 0~255 raw를 다시 물리 점수처럼 100배 인코딩하지 않는다. 전송 wrapper에는 raw/표현값 중 어느 입력을 받는지 명시한다. 임계 -0.5나 미검증 유형 추론 규칙을 운영 기본값으로 복사하지 않는다. Unknown/masquerade에 새 wire 유형 코드를 임의 할당하지 않으며 유형 미확정의 송신 정책은 ICD 변경 게이트 또는 기존 코드 의미를 보존하는 구현 판단으로 정리한다.
 
@@ -720,3 +725,7 @@ S-3=A의 다음 전환 목표는 [ICD §8](ICD.md#8-승인된-다음-전환-목�
 ## CAN IDS 소프트웨어 실행 경로 (CHG-007)
 
 `security/ids/runtime_detector.py`와 `runtime.py`에 시간 주입 탐지·규칙·독립 SecOC 관찰·기존 IF 연동·JSONL replay·SocketCAN 수신/0x200 송신을 구현했다. 0x200/7차원 특징/기존 오프라인 평가 계약은 유지한다. 원인 미확정 이상은 로컬 진단으로만 남기고 wire 공격 종류를 추가하지 않는다. 임계·버퍼·IF 모드·전송 제한·키 부재 동작은 [IDS README](../security/ids/README.md)에 명시한다. 승인 대기인 Node B 인증 이벤트 전송과 세션 프로토콜은 구현하지 않았다. [시험 증거](aidlc/changes/CHG-007/audit.md).
+
+## 2026-10-21 통합 실행 경계
+
+[CHG-019](aidlc/changes/CHG-019/spec.md)에 양쪽 IDS/실험 도구 통합을 기록한다. IDS는 커널 수신 시각·독립 IF 보정을 사용하고, READY/run-id 및 유형별 최대4개 FIFO를 유지한다. 전체 송신 시도100ms 간격과 ENOBUFS/EAGAIN 기록 후 계속 수신을 결합하며 실패 경보를 재큐잉하지 않는다. 명시 ids-normal-v2 manifest 또는 로컬 frames.jsonl의 캡처 manifest를 검증한다. CAN/HAL·탐지 임계는 바꾸지 않았으며 과거 물리 결과는 통합 소스의 물리 재인수 증거가 아니다.

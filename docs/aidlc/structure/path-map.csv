@@ -199,13 +199,9 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,docs/development/governance/commit.md,add,ECU and IVI GitHub version control execution manual
 커밋관련지침/SKILL.md,.agents/skills/commit/SKILL.md,preserve,pre-existing interactive commit skill
 커밋관련지침/rules.md,.agents/skills/commit/rules.md,preserve,pre-existing commit rules
-
 ,.claude/skills/commit/SKILL.md,add,Claude entry referencing shared commit procedure
-
 ,docs/aidlc/changes/CHG-001/spec.md,add,commit guidance placement scope
-
 ,docs/aidlc/changes/CHG-001/aidlc-state.md,add,commit guidance change state
-
 ,docs/aidlc/changes/CHG-001/audit.md,add,commit guidance verification evidence
 ,docs/aidlc/changes/CHG-002/spec.md,add,IVI Qt Plan B P0 scope
 ,docs/aidlc/changes/CHG-002/aidlc-state.md,add,IVI Qt Plan B P0 state
@@ -258,19 +254,12 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,ivi_platform/test/test_socketcan_receiver.cpp,add,CHG-003 IVI Plan B P4 Linux SocketCAN integration test
 ,ivi_platform/scripts/run_vcan_integration.sh,add,CHG-003 IVI Plan B P4 vcan build and test automation
 ,ivi_platform/scripts/run_vcan_latency.sh,add,CHG-003 IVI Plan B P4 T1-T4 measurement automation
-
 ,docs/aidlc/changes/CHG-006/spec.md,add,SecOC 무수신 만료와 인증 진단
-
 ,docs/aidlc/changes/CHG-006/aidlc-state.md,add,SecOC 무수신 만료와 인증 진단
-
 ,docs/aidlc/changes/CHG-006/audit.md,add,SecOC 무수신 만료와 인증 진단
-
 ,docs/aidlc/changes/CHG-007/spec.md,add,Node A 스트리밍 CAN IDS
-
 ,docs/aidlc/changes/CHG-007/aidlc-state.md,add,Node A 스트리밍 CAN IDS
-
 ,docs/aidlc/changes/CHG-007/audit.md,add,Node A 스트리밍 CAN IDS
-
 ,security/ids/README.md,add,IDS runtime usage and validation scope
 ,docs/development/environment/ECU_IVI_하드웨어_연결가이드.html,add,hardware wiring guide based on existing layout and shared photos
 ,docs/aidlc/changes/CHG-005/spec.md,add,hardware guide work record
@@ -324,3 +313,43 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,docs/development/governance/보안실험_통합시험_진행결정.md,add,user decision question list EXQ-1 to EXQ-11 with answers
 ,security/experiments/measure_runtime_fpr.py,add,EXQ-11 runtime IDS normal FPR (synthetic pre-check)
 ,security/tests/test_measure_runtime_fpr.py,add,EXQ-11 runtime IDS normal FPR test
+,security/experiments/can_capture.py,add,CHG-014 receive-only normal capture
+,security/experiments/evaluate_normal.py,add,CHG-014 independent normal rules and IF evaluation
+,security/experiments/live_receiver.py,add,CHG-014 preserved and completed reference receiver
+,security/experiments/live_trial.py,add,CHG-014 preserved and completed trial judging
+,security/experiments/live_ablation.py,add,CHG-014 bounded live runner
+,security/experiments/mac_fixture.py,add,CHG-014 controlled dummy-key MAC fixture
+,security/experiments/summarize_live.py,add,CHG-014 audited live summary
+,security/experiments/analyze_adc.py,add,CHG-014 ADC raw capture analysis
+,security/tests/test_live_experiments.py,add,CHG-014 regression and lifecycle tests
+,adaptive_ecu/data/failsafe_demo.csv,add,CHG-014 deterministic Fail-safe input
+,adaptive_ecu/data/failsafe_demo.manifest.json,add,CHG-014 input and model manifest
+,adaptive_ecu/test/test_failsafe_profile.cpp,add,CHG-014 production algorithm profile test
+,adaptive_ecu/tools/ads1115_capture.cpp,add,CHG-014 raw ADC measurement without CAN
+,docs/development/playbooks/live-security-validation.md,add,CHG-014 operator runbook
+,docs/development/security/IVI_실험_인계.md,add,CHG-014 IVI owner handoff
+,docs/aidlc/changes/CHG-014/spec.md,add,CHG-014 scope and user decisions
+,docs/aidlc/changes/CHG-014/aidlc-state.md,add,CHG-014 canonical work state
+,docs/aidlc/changes/CHG-014/evidence.md,add,CHG-014 verification evidence
+,docs/development/experiments/ecu-ivi-integration-2026-10-03_04/README.md,add,Durable physical integration evidence index; per-file provenance in inventory.json
+,docs/development/experiments/physical-ablation-formal-2026-10-04/README.md,add,Separate formal ablation evidence from pilot records; per-file provenance in inventory.json
+,docs/development/experiments/physical-ablation-formal-2026-10-04/REPRODUCE.md,add,Reproducible offline publication pipeline
+,docs/development/experiments/physical-ablation-formal-2026-10-04/METHODS-AND-TRACEABILITY.md,add,Denominator deviation and TC evidence limits
+,docs/development/experiments/physical-ablation-formal-2026-10-04/BACKUP.md,add,Verified local recovery and external backup boundary
+,docs/development/experiments/physical-ablation-formal-2026-10-04/publication/,add,Generated twelve case and sixteen run outputs
+,docs/development/experiments/physical-ablation-formal-2026-10-04/tools/legacy-analysis/,add,Preserved historical analysis scripts
+,docs/development/reviews/experiment-evidence-audit-2026-10-04/REMEDIATION.md,add,Audit resolution and validation
+,docs/aidlc/changes/CHG-014/state-history.md,add,Preserved historical state
+,docs/development/experiments/최종실험_결과_보고서.md,add,Thesis report linked to preserved experiment evidence and publication tables
+,docs/development/reviews/experiment-evidence-audit-2026-10-04/verify_final_report.py,add,Final report numeric and reference verification
+,docs/development/reviews/experiment-evidence-audit-2026-10-04/final-report-validation.json,add,Final report validation receipt
+,docs/development/governance/팀원_인계_20261021.md,add,CHG-019 team progress and next actions
+,docs/aidlc/changes/CHG-019/spec.md,add,CHG-019 integration scope and conflict decisions
+,docs/aidlc/changes/CHG-019/aidlc-state.md,add,CHG-019 integration status
+,docs/aidlc/changes/CHG-019/evidence.md,add,CHG-019 integration test evidence
+,docs/aidlc/changes/CHG-014/review-state-2026-10-03.md,add,CHG-019 preserved upstream review state
+,docs/aidlc/changes/CHG-014/review-evidence-2026-10-03.md,add,CHG-019 preserved upstream review evidence
+,adaptive_ecu/data/failsafe_demo_fast.csv,add,CHG-019 preserved local fast input
+,adaptive_ecu/data/failsafe_demo_fast.manifest.json,add,CHG-019 fast input manifest
+,security/tests/test_runtime_integration.py,add,CHG-019 merged runtime regression
+,docs/aidlc/changes/CHG-019/validation.json,add,CHG-019 machine validation receipt

@@ -130,6 +130,18 @@ def main(argv=None) -> int:
     print(f"[참고·공식 외] masquerade 탐지: 규칙 {per[REFERENCE_ATTACK]:.1%} / "
           f"사양기반 {spec_per[REFERENCE_ATTACK]:.1%} (사양기반 정상 오탐 {spec_fpr:.1%})")
 
+    import csv
+    with open(os.path.join(args.out_dir, "detector_reference.csv"), "w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=["environment", "scope", "attack", "detector",
+                                                   "unit", "detection_rate", "normal_fpr", "normal_windows"])
+        writer.writeheader()
+        for detector, detection, normal_fpr in (
+                ("rule_baseline", per[REFERENCE_ATTACK], fpr),
+                ("spec_detector", spec_per[REFERENCE_ATTACK], spec_fpr)):
+            writer.writerow({"environment": "synthetic", "scope": "reference_not_official_matrix",
+                             "attack": REFERENCE_ATTACK, "detector": detector, "unit": "window",
+                             "detection_rate": detection, "normal_fpr": normal_fpr, "normal_windows": denom})
+
     csv_path = os.path.join(args.out_dir, "roc_points.csv")
     with open(csv_path, "w", encoding="utf-8") as handle:
         handle.write("fpr,tpr,threshold\n")

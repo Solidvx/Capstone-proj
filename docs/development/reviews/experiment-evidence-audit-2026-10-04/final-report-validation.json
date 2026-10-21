@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "errors": [],
+  "generated_tables": 4,
+  "cases": 12,
+  "runs": 16,
+  "primary_totals": {
+    "attempts": 1200,
+    "valid": 1196,
+    "invalid": 4
+  },
+  "checked_links": 74,
+  "report_sha256": "ccd61b89a95d7e0485b707665be148d4f2edcce6b43aee50fa9578faf3a2d183",
+  "summary_sha256": "5f7426b19b3b76f44cc96331c35a3ef66f08865f97fbaac7073f2f4602bbbaa0",
+  "scope": "Tables, selected integration figures, local links, explicit anchors, IDs, encoding and structure. No hardware execution."
+}

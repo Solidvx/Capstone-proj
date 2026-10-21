@@ -1,0 +1,77 @@
+{
+  "count": 23,
+  "trials": [
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100
+  ],
+  "status": {
+    "VALID": 23
+  },
+  "totals": {
+    "attack_sent": 159682,
+    "attack_seen": 159682,
+    "attack_tx_errors": 0,
+    "tx_syscall_errors": 367,
+    "tx_recovered_frames": 366,
+    "tx_deadline_skipped": 1,
+    "normal_expected": 690,
+    "normal_seen": 616,
+    "normal_delivered": 446,
+    "attack_published": 0
+  },
+  "ratios_over_one": [],
+  "ids_results": {
+    "START": 1,
+    "CLOCK": 1,
+    "NORMAL": 2535,
+    "ANOMALY": 159863,
+    "ALERT_SENT": 684,
+    "DIAGNOSTIC": 103,
+    "ALERT_TX_FAILED": 6
+  },
+  "ids_tx_failure_errnos": {
+    "105": 6
+  },
+  "ids_reasons": {
+    "UNKNOWN_ID": 159682,
+    "FRAME_RATE": 25,
+    "AUTH_TIMEOUT": 67,
+    "AUTH_ORPHAN": 30,
+    "SECOC_FAILURE_BURST": 22,
+    "MESSAGE_MISSING": 37
+  },
+  "meta": {
+    "boot-id.txt": "497df293-5230-4903-be9d-617ef37ea332\n",
+    "can-after.txt": "3: can0: <NOARP,UP,LOWER_UP,ECHO> mtu 16 qdisc pfifo_fast state UP mode DEFAULT group default qlen 10\n    link/can  promiscuity 0 allmulti 0 minmtu 16 maxmtu 16 \n    can state ERROR-ACTIVE restart-ms 100 \n\t  bitrate 500000 sample-point 0.750\n\t  tq 250 prop-seg 2 phase-seg1 3 phase-seg2 2 sjw 1 brp 1\n\t  mcp251x: tseg1 3..16 tseg2 2..8 sjw 1..4 brp 1..64 brp_inc 1\n\t  clock 4000000 \n\t  re-started bus-errors arbit-lost error-warn error-pass bus-off\n\t  0          0          0          0          0          0         numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535 tso_max_size 65536 tso_max_segs 65535 gro_max_size 65536 gso_ipv4_max_size 65536 gro_ipv4_max_size 65536 parentbus spi parentdev spi0.0 \n    RX:  bytes packets errors dropped  missed   mcast           \n             0       0      0       0       0       0 \n    TX:  bytes packets errors dropped carrier collsns           \n      30668720 3833590      0       0       0       0 \n",
+    "can-before.txt": "3: can0: <NOARP,UP,LOWER_UP,ECHO> mtu 16 qdisc pfifo_fast state UP mode DEFAULT group default qlen 10\n    link/can  promiscuity 0 allmulti 0 minmtu 16 maxmtu 16 \n    can state ERROR-ACTIVE restart-ms 100 \n\t  bitrate 500000 sample-point 0.750\n\t  tq 250 prop-seg 2 phase-seg1 3 phase-seg2 2 sjw 1 brp 1\n\t  mcp251x: tseg1 3..16 tseg2 2..8 sjw 1..4 brp 1..64 brp_inc 1\n\t  clock 4000000 \n\t  re-started bus-errors arbit-lost error-warn error-pass bus-off\n\t  0          0          0          0          0          0         numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535 tso_max_size 65536 tso_max_segs 65535 gro_max_size 65536 gso_ipv4_max_size 65536 gro_ipv4_max_size 65536 parentbus spi parentdev spi0.0 \n    RX:  bytes packets errors dropped  missed   mcast           \n             0       0      0       0       0       0 \n    TX:  bytes packets errors dropped carrier collsns           \n      29363280 3670410      0       0       0       0 \n",
+    "end.txt": "2026-10-04T21:07:20+09:00\n",
+    "exit.txt": "exit_code=0\n",
+    "qdisc-after.txt": "qdisc pfifo_fast 0: root refcnt 2 bands 3 priomap 1 2 2 2 1 2 0 0 1 1 1 1 1 1 1 1\n Sent 61337440 bytes 3833590 pkt (dropped 1801, overlimits 0 requeues 177272) \n backlog 0b 0p requeues 177272\n",
+    "qdisc-before.txt": "qdisc pfifo_fast 0: root refcnt 2 bands 3 priomap 1 2 2 2 1 2 0 0 1 1 1 1 1 1 1 1\n Sent 58726560 bytes 3670410 pkt (dropped 1140, overlimits 0 requeues 176338) \n backlog 0b 0p requeues 176338\n",
+    "spi-max-hz.txt": "2000000\n",
+    "start.txt": "2026-10-04T21:04:37+09:00\n"
+  },
+  "ids_process_log": "",
+  "clock": "SO_TIMESTAMPNS_NEW mapped to monotonic; own echo is injection origin"
+}

@@ -1,0 +1,17 @@
+{
+  "ecu_frames": 1200,
+  "ivi_frames": 844,
+  "ivi_exact_ecu_prefix": true,
+  "ecu_tail_not_in_ivi_file": 356,
+  "ecu_span_s": 59.954273,
+  "ivi_span_s": 42.140682,
+  "ecu_counter_first": 0,
+  "ecu_counter_last": 599,
+  "ecu_counter_discontinuities": 0,
+  "ecu_tx_delta": 1200,
+  "sha256": {
+    "tmp\\perf-pre-002-ecu\\candump.log": "a88b3e04dd2aff3ab134aeb38ba572d6af083ae1a11cbe8d11f3d393e943a215",
+    "tmp\\perf-pre-002-received\\perf-pre-002\\candump.log": "1b8933184e4d561f6ce17ae7b042b80e84b04fd97b9a7788c1145b0984522dcb"
+  },
+  "conclusion": "Matched recorded prefix; IVI file lacks tail. Cannot determine capture-stop/truncation/link reason from files alone. No inter-node clock subtraction."
+}

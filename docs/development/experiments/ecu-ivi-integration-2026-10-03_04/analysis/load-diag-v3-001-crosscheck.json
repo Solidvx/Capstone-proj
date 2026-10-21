@@ -1,0 +1,50 @@
+{
+  "ecu_observed": 5566,
+  "ivi_can": 5568,
+  "ecu_exact_prefix": true,
+  "ivi_tail": [
+    {
+      "can_id": 256,
+      "data": "c8c81068ffec4100"
+    },
+    {
+      "can_id": 258,
+      "data": "2b2ba8570000005a"
+    }
+  ],
+  "receiver_frames": 143,
+  "filtered_exact_match": true,
+  "messages_all_records": {
+    "BMS payload pending authentication": 76,
+    "Authenticated BMS data published": 63,
+    "reason=AUTH_ORPHAN channel=BMS auth without pending original": 1,
+    "reason=AUTH_TIMEOUT channel=BMS": 2,
+    "WARNING: reason=AUTH_TIMEOUT channel=BMS": 7,
+    "CRITICAL: reason=AUTH_TIMEOUT channel=BMS": 4,
+    "CRITICAL: reason=AUTH_ORPHAN channel=BMS auth without pending original": 1
+  },
+  "load_nonzero": [
+    {
+      "time": "canbusload 2026-10-04 07:41:24 (exact bitstuffing)",
+      "percent": 14
+    },
+    {
+      "time": "canbusload 2026-10-04 07:41:25 (exact bitstuffing)",
+      "percent": 46
+    },
+    {
+      "time": "canbusload 2026-10-04 07:41:26 (exact bitstuffing)",
+      "percent": 46
+    },
+    {
+      "time": "canbusload 2026-10-04 07:41:27 (exact bitstuffing)",
+      "percent": 31
+    }
+  ],
+  "ivi_rx_delta": 5568,
+  "can_counts": {
+    "0x100": 76,
+    "0x102": 67,
+    "0x0": 5425
+  }
+}

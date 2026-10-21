@@ -1,0 +1,30 @@
+{
+  "count": 100,
+  "status": {
+    "VALID": 100
+  },
+  "totals": {
+    "attack_sent": 286527,
+    "attack_seen": 286527,
+    "attack_tx_errors": 0,
+    "tx_syscall_errors": 0,
+    "tx_recovered_frames": 0,
+    "tx_deadline_skipped": 5,
+    "normal_expected": 3001,
+    "normal_seen": 3001,
+    "normal_delivered": 2864,
+    "attack_published": 137,
+    "attack_parse_rejected": 0
+  },
+  "meta": {
+    "boot-id.txt": "497df293-5230-4903-be9d-617ef37ea332\n",
+    "can-after.txt": "3: can0: <NOARP,UP,LOWER_UP,ECHO> mtu 16 qdisc pfifo_fast state UP mode DEFAULT group default qlen 10\n    link/can  promiscuity 0 allmulti 0 minmtu 16 maxmtu 16 \n    can state ERROR-ACTIVE restart-ms 100 \n\t  bitrate 500000 sample-point 0.750\n\t  tq 250 prop-seg 2 phase-seg1 3 phase-seg2 2 sjw 1 brp 1\n\t  mcp251x: tseg1 3..16 tseg2 2..8 sjw 1..4 brp 1..64 brp_inc 1\n\t  clock 4000000 \n\t  re-started bus-errors arbit-lost error-warn error-pass bus-off\n\t  0          0          0          0          0          0         numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535 tso_max_size 65536 tso_max_segs 65535 gro_max_size 65536 gso_ipv4_max_size 65536 gro_ipv4_max_size 65536 parentbus spi parentdev spi0.0 \n    RX:  bytes packets errors dropped  missed   mcast           \n             0       0      0       0       0       0 \n    TX:  bytes packets errors dropped carrier collsns           \n      35424472 4428059      0       0       0       0 \n",
+    "can-before.txt": "3: can0: <NOARP,UP,LOWER_UP,ECHO> mtu 16 qdisc pfifo_fast state UP mode DEFAULT group default qlen 10\n    link/can  promiscuity 0 allmulti 0 minmtu 16 maxmtu 16 \n    can state ERROR-ACTIVE restart-ms 100 \n\t  bitrate 500000 sample-point 0.750\n\t  tq 250 prop-seg 2 phase-seg1 3 phase-seg2 2 sjw 1 brp 1\n\t  mcp251x: tseg1 3..16 tseg2 2..8 sjw 1..4 brp 1..64 brp_inc 1\n\t  clock 4000000 \n\t  re-started bus-errors arbit-lost error-warn error-pass bus-off\n\t  0          0          0          0          0          0         numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535 tso_max_size 65536 tso_max_segs 65535 gro_max_size 65536 gso_ipv4_max_size 65536 gro_ipv4_max_size 65536 parentbus spi parentdev spi0.0 \n    RX:  bytes packets errors dropped  missed   mcast           \n             0       0      0       0       0       0 \n    TX:  bytes packets errors dropped carrier collsns           \n      33006584 4125823      0       0       0       0 \n",
+    "end.txt": "2026-10-04T21:49:03+09:00\n",
+    "exit.txt": "exit_code=0\n",
+    "qdisc-after.txt": "qdisc pfifo_fast 0: root refcnt 2 bands 3 priomap 1 2 2 2 1 2 0 0 1 1 1 1 1 1 1 1\n Sent 70848944 bytes 4428059 pkt (dropped 1801, overlimits 0 requeues 330588) \n backlog 0b 0p requeues 330588\n",
+    "qdisc-before.txt": "qdisc pfifo_fast 0: root refcnt 2 bands 3 priomap 1 2 2 2 1 2 0 0 1 1 1 1 1 1 1 1\n Sent 66013168 bytes 4125823 pkt (dropped 1801, overlimits 0 requeues 183810) \n backlog 0b 0p requeues 183810\n",
+    "spi-max-hz.txt": "2000000\n",
+    "start.txt": "2026-10-04T21:38:22+09:00\n"
+  }
+}

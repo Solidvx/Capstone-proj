@@ -1,0 +1,29 @@
+{
+  "can_frames": 6417,
+  "receiver_frames": 3364,
+  "ecu_ivi_exact_sequence": true,
+  "allowlisted_receiver_exact_sequence": true,
+  "all_secoc_off": true,
+  "process_results": {
+    "2": 3355,
+    "0": 5,
+    "3": 4
+  },
+  "injected_process_results": {
+    "fuzzy-001": {
+      "0": 5,
+      "3": 4
+    },
+    "replay-001": {
+      "2": 1545
+    },
+    "spoofing-001": {
+      "2": 1539
+    }
+  },
+  "ivi_rx_delta": 6417,
+  "ecu_tx_delta": 6417,
+  "busload": "NOT_COLLECTED",
+  "message_field": "Previous published message retained on ignored/rejected frames; classify by process_result",
+  "scope": "Config 1 pilot only; not official experiment completion"
+}

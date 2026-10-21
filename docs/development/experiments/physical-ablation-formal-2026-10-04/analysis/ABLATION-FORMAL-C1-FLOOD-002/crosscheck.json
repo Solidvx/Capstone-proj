@@ -1,0 +1,142 @@
+{
+  "ecu_frames": 109389,
+  "ivi_frames": 109392,
+  "prefix_match": true,
+  "receiver_frames": 970,
+  "filtered_match": true,
+  "messages": {
+    "EXPERIMENT ONLY: unauthenticated data published": 970
+  },
+  "exit_files": {
+    "canbusload-exit-code.txt": "0",
+    "candump-exit-code.txt": "0",
+    "dashboard-exit-code.txt": "127",
+    "dashboard-exit-code.txt~": ""
+  },
+  "stats": {
+    "can-after.txt": "4: can0: <NOARP,UP,LOWER_UP,ECHO> mtu 16 qdisc pfifo_fast state UP mode DEFAULT group default qlen 10\n    link/can  promiscuity 0 allmulti 0 minmtu 16 maxmtu 16 \n    can state ERROR-ACTIVE restart-ms 100 \n\t  bitrate 500000 sample-point 0.750\n\t  tq 250 prop-seg 2 phase-seg1 3 phase-seg2 2 sjw 1 brp 1\n\t  mcp251x: tseg1 3..16 tseg2 2..8 sjw 1..4 brp 1..64 brp_inc 1\n\t  clock 4000000 \n\t  re-started bus-errors arbit-lost error-warn error-pass bus-off\n\t  0          0          0          0          0          0         numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535 tso_max_size 65536 tso_max_segs 65535 gro_max_size 65536 gso_ipv4_max_size 65536 gro_ipv4_max_size 65536 parentbus spi parentdev spi0.0 \n    RX:  bytes packets errors dropped  missed   mcast           \n        875136  109392      0       0       0       0 \n    TX:  bytes packets errors dropped carrier collsns           \n             0       0      0       0       0       0 \n",
+    "can-before.txt": "4: can0: <NOARP,UP,LOWER_UP,ECHO> mtu 16 qdisc pfifo_fast state UP mode DEFAULT group default qlen 10\n    link/can  promiscuity 0 allmulti 0 minmtu 16 maxmtu 16 \n    can state ERROR-ACTIVE restart-ms 100 \n\t  bitrate 500000 sample-point 0.750\n\t  tq 250 prop-seg 2 phase-seg1 3 phase-seg2 2 sjw 1 brp 1\n\t  mcp251x: tseg1 3..16 tseg2 2..8 sjw 1..4 brp 1..64 brp_inc 1\n\t  clock 4000000 \n\t  re-started bus-errors arbit-lost error-warn error-pass bus-off\n\t  0          0          0          0          0          0         numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535 tso_max_size 65536 tso_max_segs 65535 gro_max_size 65536 gso_ipv4_max_size 65536 gro_ipv4_max_size 65536 parentbus spi parentdev spi0.0 \n    RX:  bytes packets errors dropped  missed   mcast           \n             0       0      0       0       0       0 \n    TX:  bytes packets errors dropped carrier collsns           \n             0       0      0       0       0       0 \n"
+  },
+  "trials": [
+    {
+      "trial": 7,
+      "interior_load_percent": [
+        61,
+        60
+      ],
+      "load_ge50": true
+    },
+    {
+      "trial": 8,
+      "interior_load_percent": [
+        62,
+        61
+      ],
+      "load_ge50": true
+    },
+    {
+      "trial": 9,
+      "interior_load_percent": [
+        61,
+        62
+      ],
+      "load_ge50": true
+    },
+    {
+      "trial": 10,
+      "interior_load_percent": [
+        61,
+        39
+      ],
+      "load_ge50": true
+    },
+    {
+      "trial": 11,
+      "interior_load_percent": [
+        60,
+        54
+      ],
+      "load_ge50": true
+    },
+    {
+      "trial": 12,
+      "interior_load_percent": [
+        61,
+        61
+      ],
+      "load_ge50": true
+    },
+    {
+      "trial": 13,
+      "interior_load_percent": [
+        61,
+        61
+      ],
+      "load_ge50": true
+    },
+    {
+      "trial": 14,
+      "interior_load_percent": [
+        61,
+        47
+      ],
+      "load_ge50": true
+    },
+    {
+      "trial": 15,
+      "interior_load_percent": [
+        62,
+        62
+      ],
+      "load_ge50": true
+    },
+    {
+      "trial": 16,
+      "interior_load_percent": [
+        61,
+        61
+      ],
+      "load_ge50": true
+    },
+    {
+      "trial": 17,
+      "interior_load_percent": [
+        61,
+        42
+      ],
+      "load_ge50": true
+    },
+    {
+      "trial": 18,
+      "interior_load_percent": [
+        60,
+        59
+      ],
+      "load_ge50": true
+    },
+    {
+      "trial": 19,
+      "interior_load_percent": [
+        62,
+        61
+      ],
+      "load_ge50": true
+    },
+    {
+      "trial": 20,
+      "interior_load_percent": [
+        61,
+        32
+      ],
+      "load_ge50": true
+    },
+    {
+      "trial": 21,
+      "interior_load_percent": [
+        62,
+        51
+      ],
+      "load_ge50": true
+    }
+  ]
+}

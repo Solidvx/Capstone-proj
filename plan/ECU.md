@@ -1,10 +1,13 @@
 # ECU 실행 계획 — Node A
 
+> 2026-10-04 실장비 증거 연결: [실행 상태·시험 추적](../docs/aidlc/changes/CHG-014/aidlc-state.md). 계획/설계의 존재와 시험 인수를 구분하며 INVALID·버전 편차·미수집 화면·비인증 0x200 경보의 제한을 적용한다. 아래 요구/계약 목표를 실험 결과에 맞춰 낮추지 않는다.
+
+
 > **2026-09-09 보안 후속 계획:** [공동 적용 규약](detail/common/00_협업_규약.md#security-adoption)에 따라 기존 과제에 [M3 입력·보안 시작](detail/ecu/M3_EKF_Failsafe_SecOC.md#security-adoption), [M4 IDS·공격·이벤트](detail/ecu/M4_IDS_공격_물리통합.md#security-adoption), [M5 평가](detail/ecu/M5_Ablation.md#security-adoption), [M6 추적성](detail/ecu/M6_문서_품질.md#security-adoption)의 추가 조건을 적용한다. 단계 순서·공식 계약은 유지하며 구현 완료를 뜻하지 않는다.
 
 > **담당**: ECU / BSW / BMS / SecOC / IDS · **플랫폼**: RPi4 Ubuntu 22.04, C++17, Python
 > **짝 계획**: [IVI.md](IVI.md) · **공동 절차**: [detail/common/](detail/common/)
-> **갱신 기준일**: 2026-10-03 · [전체 계획 진행·남은 관문 보고](../docs/development/reviews/전체계획_진행보고_20261003.md)
+> **갱신 기준일**: 2026-10-21 · [전체 계획 진행·남은 관문 보고](../docs/development/reviews/전체계획_진행보고_20261003.md)
 
 ---
 
@@ -76,20 +79,19 @@ Node A를 실제 차량 ECU처럼 동작시키고, Node B IVI와 CAN 버스로 e
 
 ## 2. 현재 구현 상태 스냅샷
 
-**확인 기준일 2026-10-03.** develop 작업 트리와 로컬 Linux 시험 기준이다. 소스 존재·로컬 시험·물리 인수는 다르다. 003 전달본과 이후 테스트 보강은 [전체 진행 보고](../docs/development/reviews/전체계획_진행보고_20261003.md)에서 구분한다.
+**확인 기준일 2026-10-21.** [통합 검증](../docs/aidlc/changes/CHG-019/evidence.md)과 [담당별 다음 작업](../docs/development/governance/팀원_인계_20261021.md)을 따른다. 과거 003 전달본·10월 4일 실장비 결과·현재 통합 소스의 검증을 구분한다.
 
 | 영역 | 상태 | 근거 |
 |---|---|---|
-| C++ BSW·App 모듈 | **구현됨** | `can_cdd`, `can_publisher`, `mock_can_driver`, `secoc_module`, `watchdog_manager`, `ekf_soc_estimator`, `failsafe_sm`, `sensor_simulator`, `soh_estimator` |
-| 100ms 주기 ECU 루프 | **구현됨** | `adaptive_ecu/main.cpp`. `sleep_until` 기반, SecOC 동반 송신 포함 |
-| C++ 단위 시험 | **16개 CTest 통과** | Release 전달본 및 Debug/ASan 로컬 증거. CTest 실행 파일 수이며 개별 GTest case 수와 다름 |
-| SecOC | **Python·C++ 양쪽 구현** | 입력 14B, 절단 MAC 4B, 카운터 윈도우 100, 상수시간 비교 |
-| IDS 오프라인 평가 | **구현됨** | `traffic_gen`(공격 5종), `feature_extractor`(7차원), `rule_baseline`, `spec_detector`, `if_detector`, `run_eval` |
-| IDS 실시간 경로 | **구현·로컬 검증, 물리 인수 대기** | `security/ids/runtime.py`, 정상 수집·학습·공격 도구 존재. IF 미분류 진단의 새 wire 정책은 도입하지 않음 |
-| Ablation 하네스 | **구현·vcan 파일럿 검증** | 12조합 두 run 및 원장·요약. 물리 1,200회 완료 아님 |
-| 그래프·재현성 도구 | **부분 구현** | ROC SVG·혼동지표·CSV·REP 비교 존재. M6 Ablation 3종/EKF 그림은 남음 |
-| RPi4·MCP2515·물리 CAN | **일부 관찰·기록, 최신 전달본 인수 대기** | 사용자 CAN100/102 및 Fail-safe101/103 로그·화면 관찰. 버전·동일 run을 연결한 정식 IT/TC 결과는 별도 필요 |
-| 커버리지 | **목표 미달** | 제품 src/include/main/tools 포함 라인 520/853=60.96%, Fail-safe 분기 30/32=93.75%. 누락 cpp 0; gcc15.2 로컬 단위시험 범위 |
+| C++ BSW·App·ADS1115 | 구현·로컬 회귀 | CAN/SecOC, EKF·SOH, Fail-safe, ADC 품질·송신 gate, 수집 도구 |
+| ECU CTest | 통합본 17개 통과 | CHG-019 WSL 호스트 시험. 물리 장비·정확도·전체 커버리지 인수와 구분 |
+| SecOC | Python·C++ 구현 및 회귀 | ICD 계약 유지, 새 세션·sensorState wire 전환은 별도 과제 |
+| IDS | 실시간 수신·정상 manifest 검증·독립 IF 보정·READY·공정 경보 큐·backpressure 처리 통합 | 통합 Python 회귀는 CHG-019. 통합 버전의 물리 재인수는 남음 |
+| Ablation | 합성/관측 하네스와 실장비 live 하네스·결과 집계 보존 | CHG-014: 계획12조건×100번호 수집, 최초1196 VALID/4 INVALID. 원래100유효 조건·전체 TC PASS와 다름 |
+| 그래프·재현성 | ROC/SVG·CSV·원장·논문 표·출처 도구 존재 | 공개 경량 산출물과 Git 제외 raw가 모두 있어야 전체 재분석 가능 |
+| RPi4·물리 CAN | 정상·성능·노브·보안 실험 근거 보존 | CHG-014 및 TC 추적표. 전용 IT-004·화면·장시간/복구는 잔여 |
+| Watchdog | 감시·로그 존재, 작업 회수/재시작·3회 실패 전이 미구현 | 기존 M3·TC-BSW-007 과제 |
+| 커버리지 | 과거 측정에서 목표 미달 | CHG-017의 GCC15.2 기준 라인60.96%·Fail-safe 분기93.75%. 현재 통합 소스의 재측정값 아님 |
 
 ### 문서·구현 차이와 해소 상태
 

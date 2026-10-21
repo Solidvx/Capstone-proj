@@ -4,7 +4,7 @@
 
 ## 입력과 모드
 
-저장소 루트에서 `python -m security.ids.runtime --help`를 실행한다. 기본 모드를 묵시적으로 선택하지 않는다. `--train-normal 정상.jsonl`은 별도 정상 데이터로 IF를 학습해 사용하고, `--rules-only`는 개발·ablation용이다. 모델 pickle을 불러오지 않는다. 정상 데이터는 최소 두 개의 완료된 1초 창이 필요하며 학습 데이터의 정상성은 공급자가 확인한다.
+저장소 루트에서 `python -m security.ids.runtime --help`를 실행한다. 기본 모드를 묵시적으로 선택하지 않는다. `--train-normal 정상.jsonl`은 별도 정상 데이터로 IF를 학습해 사용하고, `--rules-only`는 개발·ablation용이다. 모델 pickle을 불러오지 않는다. 정상 데이터는 최소 두 개의 완료된 1초 창이 필요하다. `capture_normal` 출력은 `--normal-manifest`로 ids-normal-v2 해시·완료·프레임 검증을 적용한다. `experiments.can_capture` 출력은 `--train-normal <폴더>/frames.jsonl`과 같은 폴더의 manifest.json을 검사한다. manifest 없는 임의 JSONL을 CLI에서 학습하지 않는다. `--calibrate-normal`은 별도 정상 캡처 디렉토리의 frames.jsonl이며 학습과 다른 해시·충분한 창을 요구한다.
 
 JSONL의 CAN ID는 10진 정수, 데이터는 16진 문자열, `t`는 0 이상 단조 증가 초다. `tick`은 프레임 없이 시간만 진행한다. 실제 로그의 Unix 시각과 혼동하지 않는다.
 
@@ -48,10 +48,14 @@ IF는 최근 1초의 최대 4096개 프레임에서 7개 특징을 계산해 1�
 python -m security.ids.runtime --interface vcan0 --train-normal normal.jsonl --normal-manifest normal.manifest.json --secoc-key /path/to/key.bin --log live.jsonl --duration 30 --send-alerts
 ```
 
-`--send-alerts` 없이 수신·로그만 수행한다. 송신은 기존 ICD 0x200 8바이트 BE이며 epoch 초의 하위32비트를 사용한다. 전체 경보 송신은 100ms 간격으로 제한한다. 로그에는 모든 탐지와 실제 ALERT_SENT를 구분한다. 키/페이로드를 로그에 복사하지 않는다. 송신/수신 오류는 종료하고 소켓을 닫는다.
+`--send-alerts` 없이 수신·로그만 수행한다. 송신은 기존 ICD 0x200 8바이트 BE이며 epoch 초의 하위32비트를 사용한다. 전체 경보 송신은 100ms 간격으로 제한한다. 로그에는 모든 탐지와 실제 ALERT_SENT를 구분한다. 실제 키와 원본 BMS payload를 로그에 복사하지 않는다. 경보 payload는 전송 근거로 기록한다. 경보 송신은 nonblocking이며 ENOBUFS/EAGAIN은 ALERT_TX_FAILED(errno, timestamp, data)로 기록하고 수신·탐지를 계속한다. 유형별 최대4개 FIFO가 경보 유형의 기아를 막고 전체100ms 시도 간격을 적용한다. 선택된 경보는 송신 실패에도 소비하고 재큐잉·재전송하지 않는다. READY/run-id와 부모 수명 모드를 함께 지원한다. ALERT_SENT는 소켓 수락이며 IVI 도달 증거는 아니다. 그 밖의 송신 오류와 수신 오류는 종료하고 소켓을 닫는다.
 
 ## 완료 범위
 
+2026-10-03 후속: EXQ-11의 규칙 기본 임계는 SDD-ECU §3.9.5에 확정 기록됐고 합성 정상 오탐은 CHG-013에 보존했다. 위 "시험용 초기 정책"은 최초 구현 당시 설명이며 실물 보정이 완료됐다는 뜻은 아니다. 정상 실측 수집·IF 독립 평가와 실시간 실험은 [CHG-014 실행 절차](../../docs/development/playbooks/live-security-validation.md)를 따른다.
+
 현재 학습·평가·오탐률/ROC·반복 절차는 [how_to_train.md](how_to_train.md)를 따른다. READY에는 `send_alerts`를 명시해 수신-only를 경보 모드로 오인하지 않는다. CHG-014~016의 vcan/분석 검증은 아래 원래 CHG-007 소프트웨어 범위를 보완하며 물리 합격을 대신하지 않는다.
 
-[CHG-007](../../docs/aidlc/changes/CHG-007/audit.md)의 소프트웨어 시험 범위만 완료로 판단한다. 물리 CAN·vcan 실제 송수신, Node B 화면까지의 통합, 탐지율/오탐률·CPU/RAM 목표 달성, 인증 이벤트 채널, 새 세션은 후속 검증이다. 이번 작업은 발표의 1차 IDS 소프트웨어 구현이며 ECU M4/M5 전체 완료 선언이 아니다.
+과거 [CHG-007](../../docs/aidlc/changes/CHG-007/audit.md) 이후 vcan 및 실장비 결과는 [CHG-014](../../docs/aidlc/changes/CHG-014/aidlc-state.md)에 있다. 최신 통합 코드의 회귀·미검증 범위는 [CHG-019](../../docs/aidlc/changes/CHG-019/aidlc-state.md)를 따른다. 전체 M4/M5 인수, 물리 화면·CPU/RAM·새 세션 완료를 뜻하지 않는다.
+
+실험 실행기가 지정하는 `--parent-pid`는 실제 부모 PID와 일치해야 하며, 이 모드에서는 duration 대신 부모 수명과 cleanup으로 종료한다. 독립 실행의 duration은 유지한다.

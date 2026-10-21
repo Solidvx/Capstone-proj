@@ -1,0 +1,54 @@
+{
+  "run_id": "ABLATION-FORMAL-C3-FUZZY-001",
+  "ecu_frames": 292215,
+  "ivi_can_frames": 292233,
+  "ivi_receiver_frames": 16218,
+  "receiver_matches_filtered_can": true,
+  "ecu_missing_count": 0,
+  "missing_examples": [],
+  "repeated_payload_identity": "counts verified; exact repeated-frame identities may be ambiguous",
+  "ivi_tail_frames": 18,
+  "can_error_frames": [],
+  "authenticated_publish_origins": {
+    "pending_own=False,auth_own=False,payload_match=True": 6255,
+    "OUTSIDE_ECU_MATCHED_CAPTURE": 9
+  },
+  "mac_fail_origins": {},
+  "ids_log_results": {
+    "START": 1,
+    "CLOCK": 1,
+    "NORMAL": 12455,
+    "ANOMALY": 276946,
+    "ALERT_SENT": 3001
+  },
+  "ids_sent": 3001,
+  "ids_sent_matches_non_injected_ecu_and_ivi": true,
+  "injected_id200_frames": 154,
+  "stderr": {
+    "canbusload.stderr": {
+      "bytes": 0,
+      "qt_animation_warnings": 0
+    },
+    "candump.stderr": {
+      "bytes": 0,
+      "qt_animation_warnings": 0
+    },
+    "dashboard.stderr": {
+      "bytes": 232,
+      "qt_animation_warnings": 4
+    }
+  },
+  "ids_wire_type_counts": {
+    "1": 2994,
+    "3": 5,
+    "4": 2
+  },
+  "origin_method": "ordered CAN alignment plus most recent BMS pending; descriptive association, not cryptographic re-verification",
+  "ivi_exit_files": {
+    "canbusload-exit-code.txt": "0",
+    "candump-exit-code.txt": "0",
+    "dashboard-exit-code.txt": "0"
+  },
+  "display_verdict": "NOT_MEASURED",
+  "physical_pixel_latency": null
+}

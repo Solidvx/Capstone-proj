@@ -1,0 +1,50 @@
+{
+  "manifest_status": "ERROR",
+  "verified_result_hashes": 4,
+  "attempts": [
+    {
+      "status": "INVALID",
+      "invalid_reason": "TX_ERRORS",
+      "attack_success": null,
+      "blocked": false,
+      "detected": false,
+      "detect_latency_s": null,
+      "attack_sent": 5425,
+      "attack_tx_errors": 1828,
+      "attack_seen": 5425,
+      "attack_published": 0,
+      "observer": "reference_receiver",
+      "product_verdict": "NOT_RUN",
+      "rx_dropped": 0,
+      "baseline_published": 20,
+      "fuzzy_frames": 0,
+      "attack_auth_rejected": 0,
+      "attack_parse_rejected": 0,
+      "normal_expected": 30,
+      "normal_seen": 15,
+      "normal_delivered": 2,
+      "delivery_ratio": 0.0667,
+      "baseline_alerts": 0,
+      "alerts_in_window": 0,
+      "t_baseline_start": 42088.692893167,
+      "t_attack_start": 42090.693273337,
+      "first_injection": 42090.694585017,
+      "t_attack_end": 42093.69337331,
+      "t_post_end": 42094.693514807,
+      "first_alert": null,
+      "run_id": "LOAD-DIAG-V3-001",
+      "environment": "physical",
+      "config": 2,
+      "attack_type": "flooding",
+      "trial": 1,
+      "seed": 103001,
+      "ids_mode": "off",
+      "raw_file": "flooding-001.jsonl",
+      "raw_sha256": "60a1209a436ce0b5394dcf8bb7b7baef0db4cb381a66e434acc64b4bbb4f997a"
+    }
+  ],
+  "send_error_errno_counts": {
+    "105": 1828
+  },
+  "ivi_crosscheck": "PENDING"
+}

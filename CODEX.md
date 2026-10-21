@@ -18,3 +18,5 @@
 기존 Codex 보조 문서와 미사용 메타데이터는 루트 지침으로 통합했다. 별도 운영 팩을 읽을 필요가 없다.
 
 IVI 플랫폼의 현행 기준은 [ADR-010](docs/ADR.md#adr-010)과 [Qt 실행 계획](plan/IVI_PLAN_B_전환계획.md)이다. 과거 Android 절차를 현재 작업 지시로 사용하지 않는다.
+
+현재 통합 기준과 팀원 후속 과제는 [CHG-019](docs/aidlc/changes/CHG-019/aidlc-state.md)·[팀원 인계](docs/development/governance/팀원_인계_20261021.md)를 따른다. 공통 상태·규칙은 AGENTS.md를 참조한다.

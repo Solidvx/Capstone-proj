@@ -1,0 +1,85 @@
+{
+  "date": "2026-10-21",
+  "inputs": {
+    "github_develop": "644eb9914518880bba9958243971a2b4e3dfdc62",
+    "local_preserved": "57794311be9e56fd595a541e1fb6a09ac04ddf79"
+  },
+  "environment": {
+    "os": "WSL Ubuntu",
+    "python": "3.12.3",
+    "gcc": "13.3.0",
+    "cmake": "3.28.3",
+    "openssl": "3.0.13",
+    "pytest": "9.1.1",
+    "numpy": "2.5.3",
+    "scikit_learn": "1.9.1",
+    "installed_qt": "6.4.2",
+    "required_qt_minimum": "6.8"
+  },
+  "python": {
+    "passed": 147,
+    "subtests_passed": 9,
+    "junit": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0",
+      "tests": "156",
+      "time": "13.204",
+      "timestamp": "2026-10-21T21:58:55.238629+09:00"
+    },
+    "command": "python -m pytest -p no:cacheprovider security/tests ivi_platform/test/test_period_analysis.py ivi_platform/test/test_pi_handoff.py -q"
+  },
+  "ecu_ctest": {
+    "passed": 17,
+    "failed": 0
+  },
+  "ivi_ctest": {
+    "passed": 9,
+    "skipped": 1,
+    "failed": 0,
+    "skip": "test_socketcan_receiver: vcan0 unavailable"
+  },
+  "not_run": [
+    "Qt 6.8 dashboard and experiment executable build/tests (installed Qt 6.4.2)",
+    "physical CAN and RPi reacceptance",
+    "hardware display, 8-hour stability, coverage remeasurement"
+  ],
+  "cli_smoke": {
+    "synthetic_matrix_rows": 24,
+    "summary": "PASS",
+    "help": [
+      "security.ids.runtime",
+      "security.experiments.run_ablation",
+      "security.experiments.live_ablation"
+    ]
+  },
+  "document_check": {
+    "checked_local_links": 933,
+    "errors": []
+  },
+  "preservation": {
+    "unchanged_snapshot_evidence_files": 269,
+    "verified_raw_inventory_files": 2251,
+    "verified_publication_output_hashes": 61,
+    "verified_legacy_scripts": 38,
+    "receiver_crosschecks": 16,
+    "retained_missing_frame_exceptions": 3
+  },
+  "historical_results": {
+    "cases": 12,
+    "runs": 16,
+    "all_attempts": 1201,
+    "first_attempts": 1200,
+    "first_attempt_valid": 1196,
+    "invalid": 4
+  },
+  "contract_changed": false,
+  "staged_content_check": {
+    "staged_delta_paths": 338,
+    "preserved_evidence_files": 269,
+    "provenance_analyzer_bytes_preserved": true,
+    "icd_unchanged": true,
+    "errors": []
+  }
+}

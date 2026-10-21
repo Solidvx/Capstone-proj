@@ -1,0 +1,80 @@
+{
+  "source_sha256": {
+    "tmp\\perf-formal-001-received\\perf-formal-001\\candump.log": "fa7c9ce72a18081d5f7e3223f5d459a439f1be401675d1bda8db11df772e2239",
+    "tmp\\perf-formal-001-received\\perf-formal-001\\receiver.jsonl": "84c34b8ef8a63095965cb5653c1f5752f3d72d97976bab5719382a0e378ed20f"
+  },
+  "can_frames": 2998,
+  "receiver_frames": 2008,
+  "other_receiver_records": 3,
+  "exact_sequence_match": false,
+  "first_difference_index": 2008,
+  "can_counts": {
+    "0x100": 1499,
+    "0x102": 1499
+  },
+  "authenticated_bms_log_count": 1000,
+  "soc_decode_mismatches": 0,
+  "receiver_messages": {
+    "BMS payload pending authentication": 1004,
+    "Authenticated BMS data published": 1000,
+    "reason=MAC_FAIL can_id=256 counter=82": 1,
+    "reason=COUNTER_BACKWARD can_id=256 counter=290": 1,
+    "reason=COUNTER_BACKWARD can_id=256 counter=292": 1,
+    "reason=COUNTER_BACKWARD can_id=256 counter=832": 1
+  },
+  "secoc_on_all_frames": true,
+  "counter_discontinuities": [
+    {
+      "pair_index": 40,
+      "previous": 40,
+      "current": 82,
+      "modulo_delta": 42
+    },
+    {
+      "pair_index": 41,
+      "previous": 82,
+      "current": 42,
+      "modulo_delta": 4294967256
+    },
+    {
+      "pair_index": 400,
+      "previous": 400,
+      "current": 290,
+      "modulo_delta": 4294967186
+    },
+    {
+      "pair_index": 401,
+      "previous": 290,
+      "current": 292,
+      "modulo_delta": 2
+    },
+    {
+      "pair_index": 402,
+      "previous": 292,
+      "current": 403,
+      "modulo_delta": 111
+    },
+    {
+      "pair_index": 927,
+      "previous": 927,
+      "current": 832,
+      "modulo_delta": 4294967201
+    },
+    {
+      "pair_index": 928,
+      "previous": 832,
+      "current": 929,
+      "modulo_delta": 97
+    }
+  ],
+  "can_span_s": 149.929652,
+  "bms_period_ms": {
+    "count": 1498,
+    "mean": 100.08543791722296,
+    "min": 99.63,
+    "max": 100.537,
+    "outside_90_110": 0
+  },
+  "formal_verdict": "NOT_ASSESSED",
+  "limits": "Strict classical-CAN parser: unsupported/error/FD rows stop analysis, never silently dropped. No inferred capture alignment or loss rate. Different node clocks never subtracted. Counter discontinuities may indicate restart or capture gaps, not necessarily bus loss."
+}

@@ -50,7 +50,7 @@ def score_dataset(dataset_path,output):
     metadata=validate_capture(train_path,train_manifest)
     if metadata.get('environment')!=dataset['environment']:raise ValueError('training/capture environment mismatch')
     if not isinstance(metadata.get('run_id'),str) or not metadata['run_id']:raise ValueError('training run_id required')
-    model=train_model(train_path,train_manifest)
+    model=train_model(train_path,manifest_path=train_manifest)
     versions={'sklearn':importlib.metadata.version('scikit-learn'),
               'numpy':importlib.metadata.version('numpy'),'python':sys.version,
               'normal_sha256':hash_file(train_path),'normal_manifest_sha256':hash_file(train_manifest),
