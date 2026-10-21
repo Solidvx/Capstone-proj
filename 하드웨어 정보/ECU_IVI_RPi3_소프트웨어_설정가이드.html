@@ -207,7 +207,13 @@ nano tmp/live-three-node-settings.json</code></pre></div>
 <div class="pass"><b>확인 결과</b><br>파일럿과 공식 결과는 실제 출력으로 판정합니다. 1,200은 계획 시행 수이며 1,200개 유효 결과를 보장하지 않습니다.</div>
 <div class="stop"><b>여기서 멈추는 경우</b><br>학습·보정 데이터 생성부터 결과 해석까지는 <a href="../docs/development/playbooks/three-node-hardware-experiment.md">상세 실험 절차</a>를 따릅니다. 중단 캠페인 부분 재개는 제공하지 않습니다.</div>
 <label class="check"><input type="checkbox" class="done">이 단계 확인 완료</label></section>
-<div class="group" id="trouble"><h2>문제가 생기면 여기에서 멈추기</h2><p>에러를 없애기 위해 설정을 계속 추가하지 말고, 해당 노드의 출력부터 확인합니다.</p></div>
+<section class="step" id="test360"><span class="where">공격 Pi3 · 프로젝트 루트</span><h3>테스트용: 구성·공격별 30회, 총 360회</h3><p>공식 1,200회보다 작은 시험을 하려면 아래 별도 스크립트를 사용하세요. <b>원격 settings·키·학습/보정 캡처·IVI 바이너리 준비는 그대로 필요</b>합니다. 파일럿 결과는 요구하지 않습니다.</p><pre><code>.venv-handoff/bin/python -m security.experiments.live_three_node_test360 --help
+
+read -r -p "Pi3의 시험용 키 파일 절대경로: " SECOC_KEY
+.venv-handoff/bin/python -m security.experiments.live_three_node_test360 \
+  --settings tmp/live-three-node-settings.json \
+  --run-id THREE-TEST360-001 --out tmp/three-test360-001 \
+  --key "$SECOC_KEY" --i-am-on-a-test-bus</code></pre><div class="pass">3구성 × 4공격 × 30회. 결과는 stage=test360으로 표시합니다. 공식 실행기는 100회씩 그대로입니다.</div><div class="stop">기존 출력 경로를 재사용하지 마세요. 오류 시 중단하며, 360회 유효 결과를 보장하지 않습니다. 이 결과는 공식 실행의 12회 pilot을 대신하지 않습니다.</div></section><div class="group" id="trouble"><h2>문제가 생기면 여기에서 멈추기</h2><p>에러를 없애기 위해 설정을 계속 추가하지 말고, 해당 노드의 출력부터 확인합니다.</p></div>
 <section class="step" id="step-22"><div class="num">STEP 22</div><span class="where">문제가 있는 Pi</span><h3>can0가 없거나 BUS-OFF일 때</h3><p>아래 읽기 명령으로 원인을 확인합니다.</p>
 <div class="cmd"><div class="cmdhead"><span>터미널에 입력</span><button class="copy" data-copy="cmd-39" type="button">복사</button></div><pre><code id="cmd-39">sudo dmesg | grep -Ei &#x27;mcp251|spi|can|i2c&#x27; | tail -60
 ip -details -statistics link show can0</code></pre></div>

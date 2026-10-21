@@ -182,18 +182,23 @@ def summarize_campaign(root):
             'note':'Reference defence metrics and IVI publications are distinct. Collection completeness is not acceptance.'}
 
 
-def main(argv=None):
-    parser=argparse.ArgumentParser(description=__doc__)
+def main(argv=None, *, test360=False):
+    description = ('Test-only campaign: 3 configurations x 4 attacks x 30 trials = 360. '
+                   'No pilot required; this is not the official campaign.') if test360 else __doc__
+    parser=argparse.ArgumentParser(description=description)
     for name in ('settings','out','run-id','key'):parser.add_argument('--'+name,required=True)
-    parser.add_argument('--stage',choices=('pilot','official'),required=True)
-    parser.add_argument('--pilot-dir')
+    if test360:
+        parser.set_defaults(stage='test360')
+    else:
+        parser.add_argument('--stage',choices=('pilot','official'),required=True)
+        parser.add_argument('--pilot-dir')
     parser.add_argument('--interface',default='can0')
     parser.add_argument('--sensor-mode',choices=('constant','ads1115'),default='constant')
     for name,default in (('rate',1000),('duration',3),('baseline',2),('post',1)):
         parser.add_argument('--'+name,type=float,default=default)
     parser.add_argument('--i-am-on-a-test-bus',action='store_true')
     args=parser.parse_args(argv)
-    args.trials=1 if args.stage=='pilot' else 100
+    args.trials={'pilot':1,'official':100,'test360':30}[args.stage]
     try:
         if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,59}',args.run_id):raise ValueError('invalid run-id')
         error=validate('flooding',args.interface,args.rate,args.duration,args.i_am_on_a_test_bus)
@@ -215,7 +220,7 @@ def main(argv=None):
     except (OSError,ValueError,KeyError,TypeError) as error:parser.error(str(error))
     root=Path(args.out);root.mkdir(parents=True,exist_ok=False)
     (root/'settings.json').write_bytes(Path(args.settings).read_bytes())
-    campaign={'run_id':args.run_id,'trials':args.trials,'phases':phases,'settings_sha256':sha256(args.settings),
+    campaign={'run_id':args.run_id,'stage':args.stage,'trials':args.trials,'phases':phases,'settings_sha256':sha256(args.settings),
               'source_sha256':{p.as_posix():sha256(p) for p in sorted(Path('security').rglob('*.py'))}}
     (root/'campaign.json').write_text(json.dumps(campaign,indent=2)+'\n')
     old=signal.signal(signal.SIGTERM,interrupted)
@@ -231,6 +236,7 @@ def main(argv=None):
         signal.signal(signal.SIGTERM,old)
         result=summarize_campaign(root)
         result['status']=status
+        result['stage']=args.stage
         (root/'summary.json').write_text(json.dumps(result,indent=2)+'\n')
     return 130 if status=='INTERRUPTED' else 2 if status!='COMPLETE' or result['valid_trials']!=12*args.trials else 0
 

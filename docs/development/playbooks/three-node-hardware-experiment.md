@@ -193,6 +193,26 @@ python3 -m security.experiments.live_three_node --stage official \
 
 판정된 INVALID는 원장에 남기고 다음 계획 번호로 진행한다. 프로세스 종료·시각 오류·baseline 실패 등은 즉시 중단한다. 자동 재시도·기존 결과 덮어쓰기는 하지 않는다. 1,200은 계획 시행 수이며 1,200유효·공식 합격과 다르다. 중단 후에는 원인을 해결하고 새 출력 경로로 실행한다. 이 일괄 실행기의 캠페인 부분 재개는 제공하지 않는다.
 
+### 테스트용 360회 실행 (구성·공격별 30회)
+
+공격 Pi3의 프로젝트 루트에서 별도 모듈 `live_three_node_test360`을 실행한다. **3구성 × 4공격 × 30회 = 360회**로 고정되며 `--stage`·`--trials` 인수는 받지 않는다. 공식 실행기는 여전히 100회씩, 총1,200회다.
+
+```bash
+.venv-handoff/bin/python -m security.experiments.live_three_node_test360 --help
+
+read -r -p "공격 Pi3의 시험용 키 파일 절대경로: " SECOC_KEY
+.venv-handoff/bin/python -m security.experiments.live_three_node_test360 \
+  --settings tmp/live-three-node-settings.json \
+  --run-id THREE-TEST360-001 --out tmp/three-test360-001 \
+  --key "$SECOC_KEY" --i-am-on-a-test-bus
+```
+
+기존 원격 settings, 동일 시험 키, ECU의 독립 정상 학습/보정 캡처, IVI 실험 바이너리와 SSH 권한이 먼저 준비돼야 한다. `--help` 성공만으로 물리 시험 준비가 끝나지 않는다. 별도 pilot 결과는 요구하지 않지만 시험 버스 확인·설정 검증·quiet bus·baseline 검사·원격 프로세스 종료 처리는 기존과 같다.
+
+campaign.json과 summary.json에는 `stage=test360`, campaign의 `trials=30`이 저장된다. 출력 경로가 이미 있으면 덮어쓰지 않는다. 재실행할 때 run-id와 out을 새 값으로 바꾼다. 360은 계획 시행 수이며 INVALID도 그대로 기록한다. 치명적 오류/중단 시 나머지 조건은 실행하지 않고 자동 재시도·부분 재개도 하지 않는다. 테스트 결과를 공식12회 pilot 대신 사용할 수 없다.
+
+기본 constant 입력·offscreen 표시 경계는 동일하다. ADC 입력으로 테스트하려면 `--sensor-mode ads1115`를 명시한다. 이 변경은 실장비360회를 수행한 결과가 아니라 실행 횟수·기록·중단 동작의 로컬 검증이다.
+
 ## 7. 유형 정합과 계측 해석
 
 ICD의 `1=Fuzzy, 2=Replay, 3=Spoofing, 4=Flooding`과 ECU IDS·IVI 이름 매핑은 동일하다. Fail-safe 사유 0은 정의되지 않아 ECU IDS와 동일하게 IVI·Python 참조 파서에서도 거부하도록 보정했다.

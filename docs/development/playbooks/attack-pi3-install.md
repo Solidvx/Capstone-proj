@@ -69,3 +69,7 @@ ECU·IVI에도 이 PR의 `remote_process`와 관련 구현이 필요하다. Pi3�
 ## 확인된 범위
 
 사용자가 제공한 세 노드 화면에서 ECU·IVI·Pi3가 각각 보낸 0x123 프레임을 다른 두 노드가 수신하고, 표시된 오류 카운터가 0임을 확인했다. 이는 단발 CAN 송수신 증거이며 장시간 부하·SecOC·IDS·원격 실행·1,200회 인수는 아니다. 화면에 나온 장비 주소는 이 문서에 기록하지 않는다.
+
+## 360회 테스트 스크립트
+
+`security/experiments/live_three_node_test360.py`가 구성별·공격별30회씩 총360회를 실행한다. 추가 Python 의존성은 없다. 같은 소스 버전의 `live_three_node.py`도 필요하므로 새 파일 하나만 복사하지 않는다. [실행 명령](three-node-hardware-experiment.md)의 테스트용360회 절을 따른다. 공식1,200회 실행은 변경하지 않는다.

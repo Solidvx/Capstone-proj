@@ -117,3 +117,9 @@ E3P 구매 페이지 자동 접근은 실패했다. 실물 헤더 방향·동일
 - IVI: 새 외부 빌드 폴더에 `cmake -S ivi_platform -B <build> -DIVI_BUILD_TESTS=ON -DIVI_BUILD_QT_APP=OFF`, build, CTest → **9/9 통과**.
 - 두 Python CLI `--help` 통과. 변경 문서 상대 링크와 `git diff --check` 통과. 키/장비 주소/스크린샷/빌드 산출물 포함 여부 점검.
 - 사용자 제공 화면: ECU·IVI·Pi3의 단발0x123 각 송신을 다른 두 노드가 수신, 표시 오류0 확인. 장시간/고부하/IDS/Qt 실제 게시/원격 supervisor/12회 pilot/1,200회 검증으로 확대 해석하지 않는다.
+
+## 360회 테스트 실행기 후속 검증
+
+`live_three_node_test360` 진입점을 추가하고 공유 실행기에서 30회 고정 test360 단계로 실행한다. 기존 CLI의 pilot1회/official100회와 공식 pilot 게이트는 유지한다. 결과 stage 표시, 12조건×30회 예약, 기존 출력 거부, 시험 버스 확인, ERROR/INTERRUPTED 후 조건 중단, INVALID의 비성공 종료, 테스트 결과의 공식 pilot 대체 거부를 검증했다.
+
+실행: `python -m pytest security/tests/test_live_three_node_test360.py security/tests/test_live_three_node.py security/tests/test_three_node.py security/tests/test_live_experiments.py -q` → **36 passed, 1 skipped** (Linux 전용). macOS 로컬 모의 시험이며 실제360회는 수행하지 않았다.

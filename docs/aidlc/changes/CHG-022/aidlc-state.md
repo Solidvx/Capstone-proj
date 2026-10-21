@@ -13,3 +13,7 @@
 ## 2026-10-22 PR 준비 후속 상태
 
 사용자가 커밋·push·PR 생성을 요청했다. 원래 dirty 작업본을 보존하고 최신 origin/develop 76b56f4에서 feat/three-node-campaign을 분리해 이번 변경만 이관한다. 기존 develop에 이미 있는 ECU 동기화 파일을 중복 반입하지 않는다. 사용자 screenshot에서 세 노드 상호 단발 0x123 송수신과 오류0을 확인했다. Pi3 최초 소스 배포 및 원격 실험은 아직 미실행이며 [설치 안내](../../../development/playbooks/attack-pi3-install.md)를 추가했다.
+
+## 테스트360회 후속 작업
+
+공식 실행을 보존한 별도 live_three_node_test360 스크립트와 시험·재현 안내를 추가했다. 관련36통과/1Linux생략. 실제 원격360회 실행은 미실시이며 원격 설정과 자료 준비가 필요하다.
