@@ -195,23 +195,53 @@ python3 -m security.experiments.live_three_node --stage official \
 
 ### 테스트용 360회 실행 (구성·공격별 30회)
 
-공격 Pi3의 프로젝트 루트에서 별도 모듈 `live_three_node_test360`을 실행한다. **3구성 × 4공격 × 30회 = 360회**로 고정되며 `--stage`·`--trials` 인수는 받지 않는다. 공식 실행기는 여전히 100회씩, 총1,200회다.
+공격 Pi3의 프로젝트 루트에서 실행한다. **3구성 × 4공격 × 30회 = 360개 시험 번호**이며, 실패 후 재시도는 별도 attempt로 보존하므로 실제 실행 횟수는 더 많을 수 있다. 공식 1,200회 실행기는 그대로다.
+
+**세 노드 모두 같은 새 소스로 업데이트한다.** 테스트 전용 설정 템플릿에는 ECU·IVI 수신 관찰기와 세 노드 CAN 상태 확인 명령이 추가되어 있다. 기존 설정 파일만으로는 새 테스트를 실행할 수 없다.
+
+```bash
+cp security/experiments/live-three-node-test360-settings.template.json tmp/live-three-node-test360-settings.json
+nano tmp/live-three-node-test360-settings.json
+```
+
+REPLACE 항목을 자신의 장비·프로젝트·키·학습/보정 파일 경로로 바꾼다. `health_a/b/c`의 `sudo -n`이 비밀번호 질문 없이 실행될 수 있는지 확인한다. 기존 권한 정책 안에서 준비하며 전체 명령에 대한 무제한 sudo 권한을 추가하지 않는다. 기본 인터페이스는 세 노드 모두 can0이며 다른 인터페이스를 사용하면 설정의 모든 관련 명령도 일치시킨다. 자동 복구는 전용 시험 CAN 인터페이스만 재설정한다.
 
 ```bash
 .venv-handoff/bin/python -m security.experiments.live_three_node_test360 --help
-
 read -r -p "공격 Pi3의 시험용 키 파일 절대경로: " SECOC_KEY
 .venv-handoff/bin/python -m security.experiments.live_three_node_test360 \
-  --settings tmp/live-three-node-settings.json \
+  --settings tmp/live-three-node-test360-settings.json \
   --run-id THREE-TEST360-001 --out tmp/three-test360-001 \
   --key "$SECOC_KEY" --i-am-on-a-test-bus
 ```
 
-기존 원격 settings, 동일 시험 키, ECU의 독립 정상 학습/보정 캡처, IVI 실험 바이너리와 SSH 권한이 먼저 준비돼야 한다. `--help` 성공만으로 물리 시험 준비가 끝나지 않는다. 별도 pilot 결과는 요구하지 않지만 시험 버스 확인·설정 검증·quiet bus·baseline 검사·원격 프로세스 종료 처리는 기존과 같다.
+| 상황 | 실행 동작 |
+|---|---|
+| 유형 불일치·미탐·복합 탐지 | 측정 결과로 보존하고 다음 번호 진행 |
+| 개별 판정 INVALID, baseline 경보·수신 관찰 누락 | 사유를 보존하고 다음 번호 진행 |
+| 실행 중 CAN 오류·프로세스 종료·정상 baseline 부족 | 소유 프로세스 종료 확인 → 세 노드 CAN 확인/필요시 재설정 → 같은 번호 최대 2회 재시도 |
+| 키·설정·파일 저장 오류, IDS OFF 구성에서 경보 발생 | 캠페인 중단 |
+| 원격 종료 확인 실패·SSH 단절로 종료 불명 | 중복 실행 방지를 위해 중단; 자동 재시작하지 않음 |
+| 재시도 한도 초과·CAN 복구 실패 | 중단하고 미실행 번호 보존 |
 
-campaign.json과 summary.json에는 `stage=test360`, campaign의 `trials=30`이 저장된다. 출력 경로가 이미 있으면 덮어쓰지 않는다. 재실행할 때 run-id와 out을 새 값으로 바꾼다. 360은 계획 시행 수이며 INVALID도 그대로 기록한다. 치명적 오류/중단 시 나머지 조건은 실행하지 않고 자동 재시도·부분 재개도 하지 않는다. 테스트 결과를 공식12회 pilot 대신 사용할 수 없다.
+`--max-recoveries 0`이면 자동 재시도를 끈다. 기본값은 2이며, 명시적인 재개 실행에서는 해당 번호의 복구 예산이 다시 시작된다. 기존 실패 attempt는 삭제하거나 성공으로 덮어쓰지 않는다.
 
-기본 constant 입력·offscreen 표시 경계는 동일하다. ADC 입력으로 테스트하려면 `--sensor-mode ads1115`를 명시한다. 이 변경은 실장비360회를 수행한 결과가 아니라 실행 횟수·기록·중단 동작의 로컬 검증이다.
+**재개:** Ctrl+C 또는 복구 한도 초과로 멈췄다면, 문제를 해결한 뒤 위와 **동일한 명령 끝에 `--resume`**을 붙인다. 소스·설정·실행 조건·run-id가 같아야 하며, 같은 시험 키를 유지한다. 완료된 번호는 INVALID를 포함해 건너뛴다. 기록을 봉인하기 전에 강제 종료됐거나 원격 종료가 불명확한 경우 재개를 거부한다. 원격 프로세스 상태를 수동 확인한 뒤 새 캠페인으로 시작하고 이전 증거를 보존한다. 소스나 설정을 수정했다면 새 run-id/out을 사용한다.
+
+**결과 읽기:** `checkpoint.json`은 최근 실행 번호, `summary.json`은 종료 시 완료/유효/무효/남은 번호와 구성·공격별 유형 집계다. 세부 기록은 `C3-fuzzy/trial-001/attempt-001/` 같은 구조로 보존한다. 종료 코드 0은 360개가 모두 유효하게 수집됐다는 뜻이며 탐지 합격을 뜻하지 않는다. INVALID 또는 중단은 2, Ctrl+C는 130이다.
+
+| 유형 결과 | 의미 |
+|---|---|
+| MATCH | 기대한 유형만 관측 |
+| COMPOUND | 기대한 유형과 다른 유형이 함께 관측 |
+| MISMATCH | 기대한 유형 없이 다른 유형만 관측 |
+| MISSED | 해당 구간에서 유형 경보가 관측되지 않음 |
+| NOT_EVALUATED | C1·C2는 IDS OFF라 유형 일치 평가 제외 |
+| INVALID | 유효한 유형 평가에 필요한 증거 부족 |
+
+`bus_type_result`와 `ivi_type_result`는 각각 공격 Pi에서 받은 경보, IVI 서비스 게시 로그의 결과다. ECU·IVI의 `remote_arrival`은 별도 전체 CAN 수신 관찰기에서 공격 payload와 일치한 프레임 수·baseline과 다른 프레임 수·드롭·CAN 오류를 기록한다. 자기 echo만으로 원격 도착을 인정하지 않는다. CAN payload 일치는 발신자 인증이 아니며, baseline과 동일한 replay 등은 유일한 공격 프레임 도착으로 단정하지 않는다. 다른 노드의 시각을 빼서 지연을 계산하지 않는다.
+
+매 번호마다 ECU·IDS·IVI를 새로 시작하고 정상 warmup 후 공격한다. 따라서 시작 비용이 늘고 IDS 상태도 번호마다 초기화된다. 이 테스트는 통신·유형 확인용 독립 시험이며 정식 연속 100회 결과와 합산하지 않는다. 기본 constant 입력·offscreen 서비스 로그를 사용하며 화면 픽셀 검증은 별도다. ADC 시험은 `--sensor-mode ads1115`를 명시한다. 테스트360 결과는 공식12회 pilot을 대신할 수 없다. 실제 장비 실행은 별도로 필요하다.
 
 ## 7. 유형 정합과 계측 해석
 

@@ -73,3 +73,5 @@ ECU·IVI에도 이 PR의 `remote_process`와 관련 구현이 필요하다. Pi3�
 ## 360회 테스트 스크립트
 
 `security/experiments/live_three_node_test360.py`가 구성별·공격별30회씩 총360회를 실행한다. 추가 Python 의존성은 없다. 같은 소스 버전의 `live_three_node.py`도 필요하므로 새 파일 하나만 복사하지 않는다. [실행 명령](three-node-hardware-experiment.md)의 테스트용360회 절을 따른다. 공식1,200회 실행은 변경하지 않는다.
+
+새 테스트360은 ECU·IVI 수신 관찰기와 종료 확인 응답을 사용하므로 **세 노드 모두 같은 버전으로 업데이트**한다. 테스트 전용 `live-three-node-test360-settings.template.json`을 사용한다. 기존 정식 설정 파일은 별도로 보존한다. `--resume`은 같은 소스·조건에서 완료 번호를 건너뛰며, 종료가 확인되지 않은 시도는 자동 재개하지 않는다.

@@ -55,7 +55,9 @@ def main():
     print(json.dumps({'result':'REMOTE_START','run_id':args.run_id,
                       'executable_sha256':hashlib.sha256(executable.read_bytes()).hexdigest()
                       if executable.is_file() else None}),flush=True)
-    return supervise(command, args.duration)
+    code = supervise(command, args.duration)
+    print(json.dumps({"result": "REMOTE_STOPPED", "run_id": args.run_id, "exit_code": code}), flush=True)
+    return code
 
 
 if __name__ == '__main__':

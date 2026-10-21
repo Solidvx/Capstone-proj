@@ -58,6 +58,8 @@ class Actors:
         return child
 
     def check(self):
+        for child in self.children:
+            if child.read_error is not None:raise child.read_error
         if any(c.process.poll() is not None for c in self.children):
             raise RuntimeError('remote actor exited; inspect preserved process logs')
 
@@ -76,13 +78,16 @@ def run_case(settings, args, config, attack, root):
     values = {'run_id':run_id,'lifetime_s':str(lifetime),'lifetime_ms':str(lifetime*1000),
               'secoc':'off' if config == 1 else 'on','sensor_mode':args.sensor_mode}
     manifest = {'run_id':run_id,'environment':'physical','config':config,'ids_mode':'rules+if' if config==3 else 'off',
-                'attacks':[attack],'trials_per_attack':args.trials,'start_trial':1,'previous_run_id':None,
+                'attacks':[attack],'trials_per_attack':args.trials,'start_trial':getattr(args,'start_trial',1),'previous_run_id':None,
                 'rate_fps':args.rate,'attack_s':args.duration,'baseline_s':args.baseline,'post_s':args.post,
                 'sensor_mode':args.sensor_mode,'observer':'reference_receiver_on_attacker',
                 'product_verdict':'NOT_RUN','settings_sha256':sha256(args.settings),
                 'clock':'attacker kernel receive clock; injection is MSG_CONFIRM own echo',
                 'ids_rule_event_counts':None,'ids_log_note':'Original IDS event log remains on Node A; no cross-host timestamp slicing.'}
     actors, bus, active, status = Actors(), None, None, 'COMPLETE'
+    resilient = getattr(args, 'resilient', False)
+    observers = []
+    pending_row = None
     with (root/'attempts.jsonl').open('x') as ledger:
         try:
             key = Path(args.key).read_bytes()
@@ -91,6 +96,11 @@ def run_case(settings, args, config, attack, root):
             quiet_end = time.monotonic()+.5
             while time.monotonic()<quiet_end:
                 if bus.receive():raise RuntimeError('bus active before owned ECU start')
+            if resilient:
+                for role in ('observer_a', 'observer_b'):
+                    observer = actors.start(render_command(settings[role], values), root, role)
+                    observer.ready(run_id)
+                    observers.append(observer)
             receiver = actors.start(render_command(settings['receiver_off' if config==1 else 'receiver_on'],values),root,'ivi')
             receiver.ready(run_id)
             ready = [r for r in receiver.snapshot() if r.get('result')=='READY'][-1]
@@ -105,19 +115,25 @@ def run_case(settings, args, config, attack, root):
             reference = ReferenceReceiver(config!=1,key)
             with (root/'warmup.jsonl').open('x') as stream:
                 collect(bus,reference,max(3,args.baseline),stream,actors)
-            for trial in range(1,args.trials+1):
+            for trial in range(manifest['start_trial'],manifest['start_trial']+args.trials):
                 active={'run_id':run_id,'environment':'physical','config':config,'ids_mode':manifest['ids_mode'],
                         'attack_type':attack,'trial':trial,'seed':trial_seed(attack,trial)}
                 raw=root/f'{attack}-{trial:03d}.jsonl'
                 before=len(receiver.snapshot())
                 with raw.open('x') as stream:
+                    if resilient:
+                        from security.experiments.test360_support import phase_barrier
+                        phase_barrier(observers, 'baseline', actors)
                     baseline=collect(bus,reference,args.baseline,stream,actors)
                     if sum(o.kind=='PUBLISHED' and o.can_id==0x100 for r in baseline[0] for o in r.outcomes)<5*args.baseline:
                         raise RuntimeError('baseline ECU/reference not ready')
-                    if any(r.can_id==0x200 for r in baseline[0]):raise RuntimeError('baseline IDS alert')
+                    if not resilient and any(r.can_id==0x200 for r in baseline[0]):raise RuntimeError('baseline IDS alert')
                     replay=captured_replay(baseline[0],config!=1) if attack=='replay' else None
+                    if resilient:phase_barrier(observers, 'attack', actors)
                     injection=collect(bus,reference,args.duration,stream,actors,attack,args.rate,active['seed'],replay)
+                    if resilient:phase_barrier(observers, 'post', actors)
                     post=collect(bus,reference,args.post,stream,actors)
+                if resilient:phase_barrier(observers, 'idle', actors)
                 window=TrialWindows(baseline[4],injection[4],post[4],post[5],injection[3])
                 row=judge_trial(config,attack,baseline[0]+injection[0]+post[0],window,injection[1],injection[2],bus.dropped)
                 alerts={r.data.hex() for r in injection[0]+post[0] if r.can_id==0x200 and not r.own
@@ -128,18 +144,46 @@ def run_case(settings, args, config, attack, root):
                 row.update(ivi_published_attack_codes=sorted(published),
                            ivi_expected_type_published=row['expected_attack_code'] in published if config==3 else None,
                            ivi_evidence='same alert payload in B publication log; no remote clock subtraction; pixels NOT_RUN')
+                if resilient:
+                    from security.experiments.test360_support import add_evidence
+                    row.update(active)
+                    add_evidence(row, injection[0], observers)
                 row.update(active,raw_file=raw.name,raw_sha256=sha256(raw))
-                ledger.write(json.dumps(row)+'\n');ledger.flush()
+                if resilient:
+                    pending_row = row
+                else:
+                    ledger.write(json.dumps(row)+'\n');ledger.flush()
                 print(json.dumps({k:row[k] for k in ('config','attack_type','trial','status')}),flush=True)
                 active=None
         except KeyboardInterrupt:
             status='INTERRUPTED'
         except (OSError,ValueError,RuntimeError,TimeoutError) as error:
             status='ERROR';manifest['error']=str(error)
+            if resilient:
+                from security.experiments.test360_support import recoverable
+                manifest['recoverable'] = recoverable(error)
         finally:
             errors=actors.close()
+            if resilient:
+                try:
+                    manifest['cleanup_confirmed'] = all(any(r.get('result') in ('REMOTE_STOPPED', 'OBSERVER_STOPPED')
+                        and r.get('run_id') == run_id for r in child.snapshot()) for child in actors.children)
+                except OSError:
+                    manifest['cleanup_confirmed'] = False
+                if not manifest['cleanup_confirmed']:errors.append('remote cleanup acknowledgement missing')
             if errors:status='ERROR';manifest['cleanup_errors']=errors
             if bus:bus.close()
+            if pending_row is not None:
+                # Read the complete IVI log after SSH/log threads have drained.
+                from security.experiments.test360_support import classification
+                published={bytes.fromhex(r['data'])[0] for r in receiver.snapshot()[before:]
+                           if r.get('result')=='FRAME' and r.get('can_id')==0x200
+                           and r.get('process_result')==2 and r.get('data') in alerts}
+                pending_row['ivi_published_attack_codes']=sorted(published)
+                pending_row['ivi_expected_type_published']=pending_row['expected_attack_code'] in published if config==3 else None
+                pending_row['ivi_type_result']=(classification(published,pending_row['expected_attack_code']) if config==3
+                    else 'NOT_EVALUATED') if pending_row['status']=='VALID' else 'INVALID'
+                ledger.write(json.dumps(pending_row)+'\n');ledger.flush()
             if active:ledger.write(json.dumps({**active,'status':'INVALID','invalid_reason':status})+'\n')
     manifest['status']=status
     manifest['files_sha256']={p.name:sha256(p) for p in root.iterdir() if p.is_file()}
