@@ -164,3 +164,16 @@ isolated-v1은 fuzzy/spoofing 5fps, replay 5쌍/s, flooding 목표1000fps이다.
 회귀: 관련 Python 75 passed, 1 Linux-only skipped. 지속 오류의 재시도 소진 후
 cleanup 확인 및 정상 CAN 점검이 되면 다른 조합을 계속하며 PARTIAL을 반환한다.
 해당 복구 경로는 단위 시험으로 확인했고 물리360회에서는 오류가 없어 실행되지 않았다.
+
+## 실제 화면 수동 확인 및 차단 증거 점검
+
+사용자가 최신 IVI 일반 대시보드와 ECU ads1115 정상 송신을 실행하고 가변저항 변화의 화면 반영을 확인했다.
+ECU IDS + 키 없는 Pi3 isolated-v1 수동 주입으로 Flooding/Fuzzy/Replay/Spoofing Attack 문구 전환을 각각 보고했다.
+이는 사용자 관찰 증거이며 화면 녹화나 자동 시각 판정은 아니다. 재부팅 자동실행은 미검증이다.
+
+inspect_ivi_rejections는 봉인된 360회 로그를 검증하고 IVI 같은 호스트 구간의 payload 일치 후보를 집계한다.
+C2/C3 replay 각480 auth 후보 중 published30/rejected450이며 수집 단계의 원본 정상 auth도 후보에 포함되므로
+이를 공격 성공30건으로 해석하거나 차단율로 계산하지 않는다. Spoofing은 C1/C2/C3 각451/451/450건이
+invalid BMS payload로 거부됐다. 이는 SecOC 효과가 아니라 입력 범위 검사다.
+Flooding/fuzzy는 IVI 수신 필터 때문에 해당 FRAME 로그가 없어 0을 차단 성공으로 해석하지 않는다.
+일반 차단율은 아직 미측정이다. 정상 오탐률은 새 독립 정상 캡처로 평가할 예정이다.
