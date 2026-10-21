@@ -86,3 +86,9 @@
 - [논문용 재현 절차](experiments/physical-ablation-formal-2026-10-04/REPRODUCE.md)
 
 - [최종 실험 결과 보고서](experiments/최종실험_결과_보고서.md): 실험 설계·과정·12조건 결과·비교 분석·한계와 논문 절별 활용 안내.
+
+- [3노드 소프트웨어 설정 HTML](../../하드웨어%20정보/ECU_IVI_RPi3_소프트웨어_설정가이드.html): 노드별 부팅 설정·CAN 통신·ADC·Qt·실험 준비를 단계별로 안내
+- [ECU·IVI·공격 Pi3 HTML 배선 지도](../../하드웨어%20정보/ECU_IVI_RPi3_3노드_배선가이드.html): 40핀 지도, DSI 화면 전원, Pi3 변환기와 조립 체크리스트
+- [그림으로 따라 하는 3노드 회로 변경과 실험](playbooks/three-node-hardware-experiment.md): 전체 연결도·ECU 조립도·Pi3 전원/신호 배선 그림, 조립 체크리스트와 1,200회 실행
+
+- [공격 Pi3 소스 설치](playbooks/attack-pi3-install.md): PR 브랜치 다운로드·필요 파일·Python 환경·원격 실행 준비

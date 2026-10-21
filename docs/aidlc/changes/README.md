@@ -22,3 +22,5 @@ CHG-template은 CHG-<번호>의 구조 템플릿이다. 실제 작업 번호나 
 - [CHG-018: 후속 변경 Draft PR 정리](CHG-018/aidlc-state.md)
 
 - [CHG-019: 로컬·GitHub 개발 기준 통합과 팀 인계](CHG-019/aidlc-state.md)
+
+- [CHG-022: 3노드 회로·IDS 유형 정합·일괄 실험](CHG-022/aidlc-state.md)

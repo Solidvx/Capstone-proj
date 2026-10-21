@@ -152,3 +152,9 @@ ICD v1.6에서 RollingCounter를 인증 CAN ID별 독립으로 명시하고 ECU�
 ## 개발 기준 통합과 팀 인계 — 2026-10-21
 
 [CHG-019](../changes/CHG-019/aidlc-state.md)에서 양쪽 브랜치 통합·검증·원격 반영을 기록하고 [팀원 인계](../../development/governance/팀원_인계_20261021.md)에 담당별 후속 작업을 연결한다. CHG-014의 원격 리뷰 상태/증거는 같은 폴더의 review-*-2026-10-03.md로 보존했다. 합성 CLI는 *_synthetic.py, 짧은 프로파일은 failsafe_demo_fast.csv로 구분한다. 원본 raw와 보고서 집계는 변경하지 않는다.
+
+- 2026-10-22: 사용자 지정 `하드웨어 정보/ECU_IVI_RPi3_소프트웨어_설정가이드.html`을 추가했다. 하드웨어 안내의 후속 노드별 소프트웨어 절차이며 운영 인덱스와 상호 연결한다.
+- 2026-10-22: 사용자 지정 `하드웨어 정보/` 폴더에 `ECU_IVI_RPi3_3노드_배선가이드.html`을 추가했다. 기존 HTML 형식을 따르는 3노드 시각 안내이며 기존 2노드 파일은 보존했다. 운영 인덱스와 3노드 Markdown에서 연결한다.
+- 2026-10-21: [3노드 회로·실험 절차](../../development/playbooks/three-node-hardware-experiment.md)와 [CHG-022](../changes/CHG-022/aidlc-state.md)를 추가했다. 조립 순서·용어 설명·체크리스트를 보완하고 `development/playbooks/assets/three-node/`에 본문용 SVG 4장을 배치했다. 기존 하드웨어 HTML은 이전 회로 기록으로 보존하며 이번 변경은 새 부품 구성에 한정한다.
+
+- 2026-10-22: 공격 Pi3 설치 안내를 `development/playbooks/attack-pi3-install.md`에 추가했다.
