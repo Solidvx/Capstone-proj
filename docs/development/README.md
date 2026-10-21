@@ -98,3 +98,6 @@
 - [3노드 실험 과정·결과 보고서](experiments/three-node-validation-20261022.md): 360회·화면 확인·정상 오탐률 진행 및 차단율 후속 계획.
 
 - [3노드 인수인계](playbooks/three-node-handoff.md): 실행·증거 묶음·남은 검증.
+
+- [이번 세션 총정리](reviews/2026-10-22-session-summary.md)
+- [오늘 실험 총정리](experiments/2026-10-22-experiments-summary.md)

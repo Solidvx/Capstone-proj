@@ -370,3 +370,5 @@ security/tests/test_secoc.py,security/tests/test_secoc.py,preserve,original byte
 ,하드웨어 정보/PC_3노드_실험_실행가이드.html,add,CHG-022 PC campaign step guide
 ,docs/development/experiments/three-node-validation-20261022.md,add,CHG-022 physical results and pending validation report
 ,docs/development/playbooks/three-node-handoff.md,add,CHG-022 team handoff and evidence package
+,docs/development/reviews/2026-10-22-session-summary.md,add,session handoff summary
+docs/development/experiments/three-node-validation-20261022.md,docs/development/experiments/2026-10-22-experiments-summary.md,move,experiment summary with legacy redirect

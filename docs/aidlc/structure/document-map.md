@@ -164,3 +164,6 @@ ICD v1.6에서 RollingCounter를 인증 CAN ID별 독립으로 명시하고 ECU�
 - [3노드 실험 과정·결과](../../development/experiments/three-node-validation-20261022.md): CHG-022 물리360회, 화면 수동 확인, 정상 오탐률 진행, 차단 시험 계획.
 
 - [3노드 인수인계](../../development/playbooks/three-node-handoff.md): 팀원용 실행·증거 전달 안내.
+
+- [세션 총정리](../../development/reviews/2026-10-22-session-summary.md)
+- [실험 총정리](../../development/experiments/2026-10-22-experiments-summary.md)
