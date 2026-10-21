@@ -85,6 +85,7 @@ class RuntimeDetector:
         self.failures: deque[float] = deque(maxlen=4096)
         self.last_model_check = start_time
         self.rate_latched = False
+        self.unknown_ids = deque(maxlen=4096)
 
     def _failure(self, now, cid, reason, attack_type=0):
         self.failures.append(now)
@@ -127,7 +128,13 @@ class RuntimeDetector:
         if frame.extended or frame.remote or frame.error or not 0 <= cid <= 0x7ff:
             return events + [Event(frame.t, cid, "FRAME_FORMAT", 1)]
         if cid not in KNOWN_IDS:
-            events.append(Event(frame.t, cid, "UNKNOWN_ID", 1))
+            # A single unknown ID is suspicious, but does not prove fuzzing.
+            events.append(Event(frame.t, cid, "UNKNOWN_ID"))
+            while self.unknown_ids and frame.t-self.unknown_ids[0][0] >= 1.0:
+                self.unknown_ids.popleft()
+            self.unknown_ids.append((frame.t, cid))
+            if len({item[1] for item in self.unknown_ids}) >= 3:
+                events.append(Event(frame.t, cid, "UNKNOWN_ID_DIVERSITY", 1))
         if frame.dlc != 8 or len(data) != 8:
             return events + [Event(frame.t, cid, "DLC", 1)]
         # Do not learn/trigger on the IDS's own alert stream.
@@ -143,7 +150,7 @@ class RuntimeDetector:
         self.last_seen[cid] = frame.t
         self.missing.discard(cid)
         if cid in (0x100, 0x102) and previous is not None and frame.t-previous < self.config.min_period_s:
-            events.append(Event(frame.t, cid, "PERIOD_TOO_SHORT", 4))
+            events.append(Event(frame.t, cid, "PERIOD_TOO_SHORT"))
         if cid == 0x100:
             if data[0] > 200 or data[1] > 200 or data[6] > 165 or data[7] != 0:
                 return events + [Event(frame.t, cid, "BMS_RANGE", 3)]

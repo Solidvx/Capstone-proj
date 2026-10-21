@@ -268,7 +268,7 @@ def main(argv=None):
                                          "offset_ns":transport.clock_offset_ns})+"\n")
                 ready={"result":"READY","run_id":args.run_id,"interface":args.interface,
                        "timestamp":transport.start_time,"mode":"rules+if" if model else "rules-only",
-                       "send_alerts":args.send_alerts}
+                       "send_alerts":args.send_alerts,"classification_version":"evidence-v2"}
                 output.write(json.dumps(ready)+"\n")
                 output.flush()
                 if args.ready_file:

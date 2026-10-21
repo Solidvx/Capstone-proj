@@ -252,3 +252,36 @@ def test_evidence_collection_error_after_last_trial_blocks_resume(tmp_path,monke
     manifest.write_text(json.dumps(content))
     assert pc.main(arguments+['--resume'])==2
     assert len(calls)==12
+
+
+def test_fuzzy_injected_alert_id_is_not_ids_off_failure():
+    tx = attackrecords() + [{'result':'TX','trial':1,'can_id':0x200,'data':'e429935ca80f489d'}]
+    records = captures(code=0) + [{'result':'OBS_FRAME','phase':'attack','can_id':0x200,'data':'e429935ca80f489d'}]
+    baseline = [{'result':'FRAME','can_id':0x100,'timestamp_ns':'1500000000','process_result':2}]
+    assert not pc.unexpected_off_alert(records,tx,1)
+    assert pc.unexpected_off_alert(records,tx,2)
+    row = pc.evaluate(1,'fuzzy',1,tx,[records,records],baseline)
+    assert row['status'] == 'VALID'
+    records.append({'result':'OBS_FRAME','phase':'post','can_id':0x200,'data':'0400000000000000'})
+    assert pc.unexpected_off_alert(records,tx,1)
+    assert 'ALERT_WITH_IDS_OFF' in pc.evaluate(1,'fuzzy',1,tx,[records,records],baseline)['invalid_reason']
+
+
+def test_pc_deferred_case_does_not_stop_other_cases(tmp_path,monkeypatch):
+    calls,health=install_fake(monkeypatch,[('ERROR',False,True)]*3)
+    monkeypatch.setattr(pc,'run_case',scheduler.live.run_case)
+    command=argv(tmp_path,'pilot')+['--continue-on-error','--no-can-reset']
+    assert pc.main(command)==2
+    result=json.loads((tmp_path/'run/summary.json').read_text())
+    assert result['status']=='PARTIAL' and result['completed_trials']==11
+    assert result['remaining_trials']==1 and len(calls)==14
+    assert not any(c.kwargs.get('recover') for c in health.call_args_list)
+    assert pc.main(command+['--resume'])==0
+    assert len(calls)==15
+
+
+def test_pc_continue_never_skips_terminal_errors(tmp_path,monkeypatch):
+    calls,_=install_fake(monkeypatch,[('ERROR',False,False)])
+    monkeypatch.setattr(pc,'run_case',scheduler.live.run_case)
+    assert pc.main(argv(tmp_path,'pilot')+['--continue-on-error'])==2
+    assert len(calls)==1

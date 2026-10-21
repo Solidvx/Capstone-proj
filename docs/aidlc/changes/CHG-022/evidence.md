@@ -144,3 +144,23 @@ E3P 구매 페이지 자동 접근은 실패했다. 실물 헤더 방향·동일
 - 전체 Python 실행(추가4검증 전): **190 passed, 3 skipped, 1 failed**. 기존 test_publication의 hashlib.file_digest 사용이 macOS Python3.9.6에 없어 실패했다. 변경 전 feat/three-node-test360 트리의 같은 시험에서도 재현했고 해당 구현은 수정하지 않았다.
 - pc_campaign/can_attack_worker/retire_pi3_ssh의 CLI help, JSON 템플릿 파싱, diff 공백 검사 및 HTML 로컬 링크를 확인했다. PC HTML 첫 화면은 Quick Look으로 렌더링해 확인했다. 전체 페이지 브라우저 상호작용 검증은 미실행이다.
 - Linux SocketCAN/실물3노드·SSH/sudo·실제360/1200회·실제 SSH 키 삭제는 이 Mac에서 수행하지 않았다. 새 프로그램 소스와 모의 검증 통과를 실장비 인수 성공으로 간주하지 않는다. 기본 IVI offscreen은 서비스 게시 증거이며 화면 픽셀 검증이 아니다.
+
+## 분리 공격과 물리 360회 검증 — 2026-10-22
+
+PC-TYPES360-001, isolated-v1, ads1115, test360: 수집 360/360, 유효 360,
+무효 0, 미완료 0, attempt 360, process session 12, COMPLETE.
+C3 flooding/fuzzy/replay/spoofing은 각각 ECU IDS와 IVI 게시 유형 MATCH 30/30.
+C1/C2는 IDS OFF로 NOT_EVALUATED. 모든 회차 ECU/IVI payload 일치 후보 관찰.
+근거: 로컬 제외 경로 tmp/pc-types360-001/summary.json 및 사용자 장비 실행 출력.
+키·장비 주소·원시 로그는 커밋하지 않는다.
+
+기존 고속 혼합 공격과 비교하면 규칙과 주입 조건이 함께 변경됐다.
+isolated-v1은 fuzzy/spoofing 5fps, replay 5쌍/s, flooding 목표1000fps이다.
+미등록 단일 ID는 유형 미지정 이상으로 보존하고 최근 1초 미등록 ID 다양성 3 이상을 fuzzy로 판단한다.
+짧은 단일 주기는 유형 미지정 이상으로 보존하며 flooding은 FRAME_RATE로 판단한다.
+이 결과는 일반 정확도/차단율/오탐률/화면 표시 성공을 입증하지 않는다.
+정상 구간 IF_ANOMALY 후보 원인과 실제 화면 확인은 미해결이다.
+
+회귀: 관련 Python 75 passed, 1 Linux-only skipped. 지속 오류의 재시도 소진 후
+cleanup 확인 및 정상 CAN 점검이 되면 다른 조합을 계속하며 PARTIAL을 반환한다.
+해당 복구 경로는 단위 시험으로 확인했고 물리360회에서는 오류가 없어 실행되지 않았다.
