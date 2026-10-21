@@ -186,3 +186,7 @@ Replay 동일 auth 송신16개, 게시1(원본 정상 후보), 거부16(counter 
 변조 raw/auth1쌍, IVI 연결 원본 일치, MAC_FAIL(counter16123) 거부.
 근거는 사용자 제공 manifest·CLI·payload 필터 출력이며 장비 원본 전체 재수집은 아직 미수행이다.
 상세 수치·로그 상대 위치·실패 시도·해석 제한은 [통합 보고서](../../../development/experiments/three-node-validation-20261022.md) 6·8절을 따른다.
+
+## MAC30회 및 원본 수집
+
+mac-repeat-20261022-061633: planned30, MAC_REJECTED30, 귀속 가능 후보30, complete_coverage=true. payload/source_data 대조 기준 표본이며 일반100% 차단을 주장하지 않는다. 장비 정상 캡처 해시를 검증했고 고정 IF 이유는 IF_ANOMALY2건이다. 세 장비 로그 스냅샷을 수집하고 비식별 공유 묶음을 준비했다. 공식1200회·재부팅 자동실행은 오늘 범위에서 제외했다.

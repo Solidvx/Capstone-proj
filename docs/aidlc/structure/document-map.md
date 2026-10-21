@@ -162,3 +162,5 @@ ICD v1.6에서 RollingCounter를 인증 CAN ID별 독립으로 명시하고 ECU�
 - 2026-10-22: PC 실행기 전환과 Pi3 관리용 SSH 정리를 `development/playbooks/pc-campaign.md` 및 `하드웨어 정보/PC_3노드_실험_실행가이드.html`에 안내한다. 이전 Pi3 실행 절차에는 현행 안내 링크를 추가했다.
 
 - [3노드 실험 과정·결과](../../development/experiments/three-node-validation-20261022.md): CHG-022 물리360회, 화면 수동 확인, 정상 오탐률 진행, 차단 시험 계획.
+
+- [3노드 인수인계](../../development/playbooks/three-node-handoff.md): 팀원용 실행·증거 전달 안내.
