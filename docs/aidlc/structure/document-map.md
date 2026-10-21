@@ -148,3 +148,7 @@ ICD v1.6에서 RollingCounter를 인증 CAN ID별 독립으로 명시하고 ECU�
 ## 최종 실험 결과 보고서
 
 [종합 보고서](../../development/experiments/최종실험_결과_보고서.md)는 두 실험 보존 디렉토리의 공통 상위에 둔다. 계약·현재 상태 원본을 대체하지 않고 원본 집계에 연결한 논문용 결과 스냅샷이다. [표·참조 검증기](../../development/reviews/experiment-evidence-audit-2026-10-04/verify_final_report.py)와 [검증 결과](../../development/reviews/experiment-evidence-audit-2026-10-04/final-report-validation.json)를 함께 연결한다.
+
+## 개발 기준 통합과 팀 인계 — 2026-10-21
+
+[CHG-019](../changes/CHG-019/aidlc-state.md)에서 양쪽 브랜치 통합·검증·원격 반영을 기록하고 [팀원 인계](../../development/governance/팀원_인계_20261021.md)에 담당별 후속 작업을 연결한다. CHG-014의 원격 리뷰 상태/증거는 같은 폴더의 review-*-2026-10-03.md로 보존했다. 합성 CLI는 *_synthetic.py, 짧은 프로파일은 failsafe_demo_fast.csv로 구분한다. 원본 raw와 보고서 집계는 변경하지 않는다.

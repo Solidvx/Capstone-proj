@@ -15,7 +15,7 @@
 | MAC fixture | `python -m security.experiments.mac_fixture` | 정상 MAC → 1비트 변조 → 동일 next-counter 정상 복구; 더미 키 전용 |
 | ADC 원시 취득 | `adaptive_ecu/build/ads1115_capture` | CAN 무송신, 범위 밖 값도 보존하는 단발 변환 CSV |
 | ADC 분석 | `python -m security.experiments.analyze_adc` | 위치별 1,000회 충족·원시 분포·오류·현재 ±32 범위 이탈 |
-| Fail-safe 입력 | `adaptive_ecu/data/failsafe_demo.csv` | 실제 ECU CSV→EKF→FSM 경로의 결정적 입력 |
+| Fail-safe 입력 | `adaptive_ecu/data/failsafe_demo_fast.csv` | 실제 ECU CSV→EKF→FSM 경로의 결정적 입력 |
 
 하네스는 별도 프로세스인 ECU·IDS와 같은 호스트에서 SocketCAN을 관측한다. `observer=reference_receiver`의 판정은 Python 참조 수신기 판정이며 실제 IVI 판정이 아니다. 실제 CAN 프레임을 받았더라도 `product_verdict=NOT_RUN`은 IVI 증거 인수 전까지 유지한다. Fuzzy는 유효 범위 밖 데이터 수용을 따로 센다. Flooding은 BMS 전달률을 보고하며 임의 90% 이진 성공 기준을 두지 않는다.
 
@@ -116,10 +116,10 @@ Node B의 독립 시험 실행에서 이 더미 키를 사용한다. 수신 이�
 
 ## 7. IT-002 프로파일과 EXQ-10
 
-ECU 기본 설정은 유지했다. [프로파일 manifest](../../../adaptive_ecu/data/failsafe_demo.manifest.json)에 입력 단위·EKF 설정·CSV 마지막 행 유지와 실제 호스트 시험 전이를 기록했다. 모델 시간은 물리 UI 지연이 아니다.
+ECU 기본 설정은 유지했다. [프로파일 manifest](../../../adaptive_ecu/data/failsafe_demo_fast.manifest.json)에 입력 단위·EKF 설정·CSV 마지막 행 유지와 실제 호스트 시험 전이를 기록했다. 모델 시간은 물리 UI 지연이 아니다.
 
 ```sh
-./adaptive_ecu/build/adaptive_ecu --interface can0 --secoc on --key /etc/secoc/key.bin --sensor-mode profile_csv --profile adaptive_ecu/data/failsafe_demo.csv
+./adaptive_ecu/build/adaptive_ecu --interface can0 --secoc on --key /etc/secoc/key.bin --sensor-mode profile_csv --profile adaptive_ecu/data/failsafe_demo_fast.csv
 ```
 
 ECU 로그·`0x101`/`0x103`·IVI 인증/화면을 함께 남긴다. 별도 노브 경로의 10초 이상 간격 이벤트 수락 시험도 유지한다.
@@ -138,7 +138,7 @@ set -C
 
 ## 8. 제출 표
 
-합성 표는 `summarize_ablation.py`의 environment 열을 사용한다. `analyze_roc.py`가 만드는 `detector_reference.csv`는 masquerade **참고 표**이며 공식 4종·3구성 표에 합산하지 않는다. 단일 run 진단은 `summarize_live`, 실제 재개·버전별 논문 집계는 [publication 재현 절차](../experiments/physical-ablation-formal-2026-10-04/REPRODUCE.md)를 사용한다. 탐지율의 시행 분모와 ROC/오탐의 윈도우 분모를 혼합하지 않는다. 물리 미측정 칸은 미측정으로 남긴다. 계획 번호 수집 완료와 원래 유효100회 기준 충족을 분리하며 미충족 조건을 PASS로 바꾸지 않는다.
+합성 표는 `summarize_ablation_synthetic.py`의 environment 열을 사용한다. `analyze_roc_synthetic.py`가 만드는 `detector_reference.csv`는 masquerade **참고 표**이며 공식 4종·3구성 표에 합산하지 않는다. 단일 run 진단은 `summarize_live`, 실제 재개·버전별 논문 집계는 [publication 재현 절차](../experiments/physical-ablation-formal-2026-10-04/REPRODUCE.md)를 사용한다. 탐지율의 시행 분모와 ROC/오탐의 윈도우 분모를 혼합하지 않는다. 물리 미측정 칸은 미측정으로 남긴다. 계획 번호 수집 완료와 원래 유효100회 기준 충족을 분리하며 미충족 조건을 PASS로 바꾸지 않는다.
 
 IVI 인계: [시험 모드·관측 계약](../security/IVI_실험_인계.md).
 

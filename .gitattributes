@@ -4,3 +4,8 @@ docs/development/experiments/ecu-ivi-integration-2026-10-03_04/** -text -whitesp
 docs/development/experiments/physical-ablation-formal-2026-10-04/** -text -whitespace
 docs/development/experiments/최종실험_결과_보고서.md -text -whitespace
 docs/development/reviews/experiment-evidence-audit-2026-10-04/** -text -whitespace
+adaptive_ecu/data/failsafe_demo.csv -text
+adaptive_ecu/data/failsafe_demo_fast.csv -text
+# These exact analyzer bytes are referenced by publication/provenance.json.
+security/experiments/publication.py -text whitespace=cr-at-eol
+security/experiments/summarize_live.py -text whitespace=cr-at-eol

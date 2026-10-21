@@ -14,5 +14,11 @@ CHG-template은 CHG-<번호>의 구조 템플릿이다. 실제 작업 번호나 
 - [CHG-010: IVI Debian 13·Qt 6.8 기준 통일](CHG-010/aidlc-state.md)
 - [CHG-011: ECU ADS1115 제품 연결](CHG-011/aidlc-state.md)
 - [CHG-012: SecOC RollingCounter 인증 CAN ID별 독립](CHG-012/aidlc-state.md)
-- [CHG-013: 보안 실험 도구와 Ablation 합성 사전검증](CHG-013/aidlc-state.md)
-- [CHG-014: 실시간 보안 시험 준비와 실행 증거](CHG-014/aidlc-state.md)
+- [CHG-013: 초기 합성 실험·후속 물리 CAN 보안 통합](CHG-013/aidlc-state.md)
+- [CHG-014: 보안 도구 리뷰·실장비 실행·결과 감사](CHG-014/aidlc-state.md)
+- [CHG-015: 수동 Pi 시험 사전 설정·로그·IF 분석 준비](CHG-015/aidlc-state.md)
+- [CHG-016: 독립 선행 준비·wire FPR·재현성·ASan 검증](CHG-016/aidlc-state.md)
+- [CHG-017: 전체 계획 대조·Fail-safe 회귀·품질 실측](CHG-017/aidlc-state.md)
+- [CHG-018: 후속 변경 Draft PR 정리](CHG-018/aidlc-state.md)
+
+- [CHG-019: 로컬·GitHub 개발 기준 통합과 팀 인계](CHG-019/aidlc-state.md)

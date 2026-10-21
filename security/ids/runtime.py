@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import errno
 from dataclasses import asdict
+from collections import OrderedDict
 import json
 import math
 import os
@@ -15,6 +16,30 @@ import time
 
 from .if_detector import IsolationForestDetector
 from .runtime_detector import Config, Observation, RuntimeDetector
+
+
+class AlertThrottle:
+    """Fair FIFO of at most four attack types; codes are not priorities."""
+
+    def __init__(self, cooldown_s=0.1):
+        if not math.isfinite(cooldown_s) or cooldown_s <= 0:
+            raise ValueError("cooldown must be finite and positive")
+        self.cooldown_s = cooldown_s
+        self.last_sent = float("-inf")
+        self.pending = OrderedDict()
+
+    def offer(self, event):
+        if event.attack_type not in (1, 2, 3, 4):
+            return
+        # Replacing a same-type event never changes its position in the queue.
+        self.pending[event.attack_type] = event
+
+    def pop_ready(self, now):
+        if not self.pending or now-self.last_sent < self.cooldown_s:
+            return None
+        _, event = self.pending.popitem(last=False)
+        self.last_sent = now
+        return event
 
 
 def read_records(path):
@@ -70,7 +95,10 @@ def normal_vectors(path):
     return vectors
 
 
-def train_model(path, calibration_path=None):
+def train_model(path, calibration_path=None, *, manifest_path=None):
+    if manifest_path is not None:
+        from security.capture_normal import validate_capture
+        validate_capture(Path(path), Path(manifest_path))
     model = IsolationForestDetector().fit(normal_vectors(path))
     if calibration_path is not None:
         if Path(path).read_bytes() == Path(calibration_path).read_bytes():
@@ -153,12 +181,16 @@ def run_replay(detector,records,output):
     return count
 
 
-def send_alert(transport, payload, timestamp, last_attempt, output):
+def send_alert(transport, payload, timestamp, last_attempt, output, *, run_id=None, event=None):
     """Bound alert attempts, including failures; never block CAN observation."""
     if timestamp - last_attempt.get("all", float("-inf")) < 0.1:
         return
     last_attempt["all"] = timestamp
     record = {"timestamp": timestamp, "can_id": 0x200, "data": payload.hex()}
+    if run_id is not None:
+        record["run_id"] = run_id
+    if event is not None:
+        record.update(reason=event.reason, attack_type=event.attack_type)
     try:
         transport.send(payload)
     except OSError as error:
@@ -181,6 +213,9 @@ def main(argv=None):
     mode.add_argument("--train-normal",help="separate known-normal JSONL capture for mandatory IF mode")
     mode.add_argument("--rules-only",action="store_true",help="explicit rule-only development/ablation mode")
     parser.add_argument('--calibrate-normal', help='independent normal JSONL, at least 100 model windows')
+    parser.add_argument("--normal-manifest", help="ids-normal-v2 manifest; local capture directories use their manifest.json")
+    parser.add_argument("--run-id", default="development", help="shared trial/run identifier")
+    parser.add_argument("--ready-file", help="new JSON readiness file written after SocketCAN opens")
     parser.add_argument("--secoc-key",help="32-byte key file for independent local SecOC observation")
     parser.add_argument("--config",help="JSON Config overrides; thresholds require deployment calibration")
     parser.add_argument("--log",required=True,help="new output JSONL path; existing files are not overwritten")
@@ -196,14 +231,30 @@ def main(argv=None):
         parser.error("duration must be between 0 and 86400 seconds")
     if args.parent_pid is not None and (not args.interface or args.parent_pid != os.getppid()):
         parser.error("--parent-pid must identify the current parent of a live IDS")
+    if args.normal_manifest and not args.train_normal:
+        parser.error("--normal-manifest requires --train-normal")
+    if args.ready_file and not args.interface:
+        parser.error("--ready-file requires --interface")
     transport=None
     try:
         config=Config(**(json.loads(Path(args.config).read_text()) if args.config else {}))
         key=Path(args.secoc_key).read_bytes() if args.secoc_key else None
-        model=train_model(args.train_normal, args.calibrate_normal) if args.train_normal else None
+        if args.ready_file and Path(args.ready_file).exists():
+            raise ValueError("ready file already exists")
+        if args.train_normal and not args.normal_manifest:
+            from security.experiments.evaluate_normal import load_capture
+            _, _, validated = load_capture(Path(args.train_normal).parent)
+            if validated.resolve() != Path(args.train_normal).resolve():
+                raise ValueError("training path must match its capture manifest")
+        if args.calibrate_normal:
+            from security.experiments.evaluate_normal import load_capture
+            _, _, validated = load_capture(Path(args.calibrate_normal).parent)
+            if validated.resolve() != Path(args.calibrate_normal).resolve():
+                raise ValueError("calibration path must match its capture manifest")
+        model=train_model(args.train_normal, args.calibrate_normal, manifest_path=args.normal_manifest) if args.train_normal else None
         detector=RuntimeDetector(config,key,model,time.monotonic() if args.interface else 0.0)
         with Path(args.log).open("x",encoding="utf-8") as output:
-            output.write(json.dumps({"result":"START","mode":"rules+if" if model else "rules-only",
+            output.write(json.dumps({"result":"START","run_id":args.run_id,"mode":"rules+if" if model else "rules-only",
                                      "secoc_observation":key is not None,"config":asdict(config),
                                      "if_calibration":model.calibration if model else None})+"\n")
             if args.replay:
@@ -215,6 +266,16 @@ def main(argv=None):
                 output.write(json.dumps({"result":"CLOCK", "source":"SO_TIMESTAMPNS_NEW",
                                          "mapping":"fixed realtime to monotonic",
                                          "offset_ns":transport.clock_offset_ns})+"\n")
+                ready={"result":"READY","run_id":args.run_id,"interface":args.interface,
+                       "timestamp":transport.start_time,"mode":"rules+if" if model else "rules-only",
+                       "send_alerts":args.send_alerts}
+                output.write(json.dumps(ready)+"\n")
+                output.flush()
+                if args.ready_file:
+                    with Path(args.ready_file).open("x", encoding="utf-8") as ready_output:
+                        json.dump(ready, ready_output)
+                print(json.dumps(ready), flush=True)
+                alert_throttle=AlertThrottle()
                 deadline=time.monotonic()+args.duration
                 last_sent={}
                 while (os.getppid() == args.parent_pid if args.parent_pid is not None else time.monotonic()<deadline):
@@ -226,10 +287,14 @@ def main(argv=None):
                                                  "anomaly_score":0.0})+"\n")
                     for event in events:
                         output.write(json.dumps(asdict(event),sort_keys=True)+"\n")
-                        # Global 100ms cooldown prevents IDS amplification of an attack.
-                        payload=event.alert_payload(int(time.time()))
-                        if args.send_alerts and payload:
-                            send_alert(transport, payload, event.timestamp, last_sent, output)
+                        alert_throttle.offer(event)
+                    now = frame.t if frame else transport.idle_time
+                    selected = alert_throttle.pop_ready(now) if args.send_alerts else None
+                    if selected:
+                        payload = selected.alert_payload(int(time.time()))
+                        # Pop once: backpressure is recorded, never requeued or retried.
+                        send_alert(transport, payload, now, last_sent, output,
+                                   run_id=args.run_id, event=selected)
                     output.flush()
                 output.write(json.dumps({"result":"END"})+"\n")
     except (OSError,ValueError,TypeError,RuntimeError) as error:

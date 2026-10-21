@@ -56,8 +56,9 @@ end-to-end 지연을 **정의된 지점에서** 측정하고 병목을 줄인다
 
 | 대상 | 상태 |
 |---|---|
-| 지연 측정 도구 | **미구현**. 과거 `measure_latency.py` 자리표시자는 0바이트였고 정리 시 제거됨 |
-| `latency_results.csv` | 미생성 |
+| 주기 측정 도구 | **구현됨(CHG-013)**. `normalize_candump_period.py` + `analyze_period.py`; 실장비 결과는 미수집 |
+| e2e 지연 측정 도구 | **구현됨(P4)**. Qt `--latency-csv` T1~T4 계측, `measure_latency.py`, `run_vcan_latency.sh`; 물리 결과는 미수집 |
+| 물리 `latency_results.csv` | 미생성 |
 | ADR-004/006/007/010 | 초안 상태 ([M1](M1_AOSP_Docker_CI.md), [M2](M2_HALMock_PlanAB.md)) |
 
 ### 해소한 결함 — **측정 지표가 서로 다른 것을 같은 이름으로 부르고 있었다**
@@ -91,7 +92,7 @@ end-to-end 지연을 **정의된 지점에서** 측정하고 병목을 줄인다
 
 ### 3.1 TC-PERF-002 — 주기 수집·분석 과제
 
-수치·시계·원시 데이터의 정본은 [공동 통합시험](../common/02_통합시험.md) §6이다. 아래 도구는 미구현 산출물이며 기존 seq 전용 CSV·candump 파서 골격을 공식 분석기로 사용하지 않는다.
+수치·시계·원시 데이터의 정본은 [공동 통합시험](../common/02_통합시험.md) §6이다. CHG-013에서 아래 정규화·판정 도구를 구현했으며 기존 seq 전용 CSV·candump 파서 골격은 공식 분석기로 사용하지 않는다. 물리 캡처가 없으므로 TC 통과 상태는 아니다.
 
 1. 대상 캡처 어댑터를 작성해 실제 candump/SocketCAN 출력 fixture를 정규화한다. 절대 또는 단조 수신 시각을 사용하며 전체 프레임 delta를 대상 ID 주기로 쓰지 않는다.
 2. `run_id,boot_id,sample_id,can_id,timestamp_ns` CSV와 manifest를 만든다. manifest는 수집 환경·도구 버전·시계·구간·대상 ID·총행수·드롭/오류·원본 hash를 포함한다.
@@ -99,7 +100,7 @@ end-to-end 지연을 **정의된 지점에서** 측정하고 병목을 줄인다
 4. 101개 이상 프레임에서 100개 이상 간격을 계산한다. 각 간격 90~110ms를 모두 충족해야 PASS다. 평균·표준편차·최소·최대·이탈 수를 함께 출력한다. 소수의 이탈을 95% 기준으로 허용하지 않는다.
 5. 캡처 누락·중복·손상·시계 불명·표본 부족은 INVALID, 유효한 범위 이탈은 FAIL이다. 목표를 낮추는 옵션은 공식 판정에 허용하지 않는다.
 
-예정 CLI: `analyze_period.py --input period_raw.csv --manifest capture_manifest.json`. 실기기 수집 명령은 Android 환경과 도구 지원 확인 후 확정한다. Node B 수신 간격은 버스 지연을 포함하므로 ECU 송신 요청의 진단 시각과 구분한다.
+현행 CLI는 `python3 ivi_platform/scripts/normalize_candump_period.py --input can.log --output period_raw.csv --manifest capture_manifest.json ...` 뒤 `python3 ivi_platform/scripts/analyze_period.py --input period_raw.csv --manifest capture_manifest.json --output period_result.json`이다. 상세 인자와 물리 실행 순서는 [물리 CAN 보안 통합 실행 절차](../../../docs/development/playbooks/security-can-integration.md)를 따른다. Node B 수신 간격은 버스 지연을 포함하므로 ECU 송신 요청의 진단 시각과 구분한다.
 
 ### 3.2 TC-PERF-001 / TC-IVI-008 — 지연 분석 과제
 

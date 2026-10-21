@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 import socket
 import struct
+import hashlib
 import tempfile
 import unittest
 from unittest.mock import patch, Mock
@@ -15,15 +16,19 @@ class RuntimeCliTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory)
             normal=root/'normal.jsonl'
-            normal.write_text(''.join(json.dumps({'t':i*.1,'can_id':0x100,
-                'data':'96be1068ffec4100'})+'\n' for i in range(41)))
-            model=train_model(normal)
+            normal.write_text(''.join(json.dumps({'t':i*.1+offset,'can_id':cid,
+                'data':'96be1068ffec4100'})+'\n' for i in range(40) for cid,offset in ((0x100,0),(0x102,.002))))
+            manifest=root/'normal.manifest.json'
+            manifest.write_text(json.dumps({'schema':'ids-normal-v2','status':'COMPLETE',
+                'rejected_frames':0,'duration_s':4,'allowed_ids':[0x100,0x102],
+                'accepted_frames':80,'capture_sha256':hashlib.sha256(normal.read_bytes()).hexdigest()}))
+            model=train_model(normal,manifest_path=manifest)
             self.assertIsNotNone(model.model)
             replay=root/'attack.jsonl'
             replay.write_text(json.dumps({'t':0.0,'can_id':0x555,'data':'00'*8})+'\n'+
                               json.dumps({'tick':1.0})+'\n')
             log=root/'events.jsonl'
-            args=['--replay',str(replay),'--train-normal',str(normal),'--log',str(log)]
+            args=['--replay',str(replay),'--train-normal',str(normal),'--normal-manifest',str(manifest),'--log',str(log)]
             self.assertEqual(main(args),0)
             records=[json.loads(line) for line in log.read_text().splitlines()]
             self.assertEqual(records[0]['mode'],'rules+if')

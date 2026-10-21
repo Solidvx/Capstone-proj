@@ -68,3 +68,5 @@ description: Develop, review, test, and document the ECU/IVI capstone while pres
 ## 수치 검증
 
 재현 도구는 가능한 경우 표준 라이브러리 경로를 제공하고 선택적 의존성의 생략을 명시한다. 실제로 주장할 지표를 측정하며 대리 지표를 같은 이름으로 쓰지 않는다. 하네스를 변경하면 가까운 회귀 시험을 실행하고, 문서에 수치를 쓰기 전에 원출력과 일치하는지 확인한다. 기본 검증 명령은 AGENTS의 Verification Baseline 한 곳에서 관리한다.
+
+작업 재개 시 [CHG-019](docs/aidlc/changes/CHG-019/aidlc-state.md)의 통합 검증과 [팀원 인계](docs/development/governance/팀원_인계_20261021.md)를 먼저 확인한다. 실장비 증거의 원본은 CHG-014이며 합성·관측·실장비 하네스의 이름을 구분한다.

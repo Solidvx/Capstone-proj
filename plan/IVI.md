@@ -39,18 +39,16 @@ SocketCAN(can0/vcan0)
 
 ## 2. 현재 상태
 
-확인 기준일은 2026-09-23이다.
+확인 기준일은 2026-10-21이다. [통합 검증](../docs/aidlc/changes/CHG-019/evidence.md)·[팀원 인계](../docs/development/governance/팀원_인계_20261021.md)에서 현재 소스와 과거 시험을 구분한다.
 
 | 영역 | 상태 | 근거 |
 |---|---|---|
-| Plan B 결정 | 완료 | ADR-010, 본 계획, 전환 계획 |
-| `ivi_platform/` 제품 코드 | P3 상태·UI 완료 | parser·SecOC·pending/stale service·SocketCAN·Qt/QML dashboard 존재 |
-| 이전 Qt/C++ 구현 | 선별 반영 완료 | 출처 해시 확인 후 현 ICD와 ECU 벡터에 맞춰 재구성 |
-| CMake/Qt 빌드 | 검증 완료 | macOS arm64 Qt 6.11.2 Debug/Release 앱 빌드 통과 |
-| IVI 시험 | P4까지 통과 | macOS Qt 8/8, Linux Qt Release 9/9, vcan T1→T4 1,000표본; 물리 시험은 미실행 |
-| GitHub Actions | 미구현 | `.github/workflows/` 없음 |
-| ARM64 toolchain | 미구현 | Dockerfile/toolchain 없음 |
-| 물리 CAN·RPi4 | 미검증 | 장비 증거 없음 |
+| Plan B | Debian13·C++17·Qt6.8 Quick | ADR-010, P0 결정 |
+| 제품 코드 | P1~P4 구현·시험 기록 존재 | 인증 수신·서비스·QML, CHG-003/006 |
+| 실험 타깃 | 별도 `ivi_dashboard_experiment`와 READY·수신 관측 코드 통합 | 제품 인증 OFF는 금지, 격리 실험만 명시 허용. CHG-014 원격 리뷰 증거 |
+| 최신 통합 코어 시험 | 9개 통과·SocketCAN1개 skip | CHG-019 WSL. Qt6.4만 설치되어 Qt6.8 화면·실험 앱 빌드는 미실행 |
+| 물리 CAN·RPi4 | P5 부분 인수·10월3~4일 결과 보존 | 정상·노브·성능·12조건 실험 로그 대조. 화면 캡처/Qt 경고 영향·전용변조/복구·장시간 인수 잔여 |
+| GitHub Actions·ARM64 toolchain | 미구현 | P6/품질 후속 과제. 예정 명세를 현재 CI로 간주하지 않음 |
 
 이전 구현은 인증 전에 원본 데이터를 게시하는 문제, counter wrap-around 오류, IDS 자동 해제 등 현행 계약과 맞지 않는 부분이 있었다. P1에서 안전한 기준선을 만들고 P2에서 pending·SecOC·CAN 수신 경계를 완성했다. P3에서 BMS 300ms stale, last-good, sequence 기반 IDS 확인, 전체 화면 Fail-safe 경고와 Qt 시험을 완성했다. sensorState wire는 ICD §8의 양측 동시 전환 전까지 미지원으로 표시한다.
 

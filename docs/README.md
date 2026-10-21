@@ -1,5 +1,7 @@
 # 프로젝트 문서
 
+현재 통합 소스의 상태·담당별 다음 작업은 [팀원 인계](development/governance/팀원_인계_20261021.md), 검증은 [CHG-019](aidlc/changes/CHG-019/aidlc-state.md)를 따른다.
+
 진행 기준은 [ECU](../plan/ECU.md), [IVI](../plan/IVI.md), [Common](../plan/detail/common/00_협업_규약.md) 세 계획이다. 계약·요구사항·시험 기준은 아래 공식 문서를 따른다.
 
 ## 공식 문서

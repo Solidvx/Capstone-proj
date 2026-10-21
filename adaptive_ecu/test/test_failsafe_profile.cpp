@@ -8,7 +8,7 @@
 
 TEST(FailSafeProfile, ProductionEstimatorAndStateMachineReachCritical) {
     SensorSimulator sensor(SensorSimulator::Mode::PROFILE_CSV,
-                           std::string(ECU_SOURCE_DIR) + "/data/failsafe_demo.csv");
+                           std::string(ECU_SOURCE_DIR) + "/data/failsafe_demo_fast.csv");
     EkfSocEstimator estimator;
     FailSafeStateMachine state;
     std::vector<FailSafeEvent> events;

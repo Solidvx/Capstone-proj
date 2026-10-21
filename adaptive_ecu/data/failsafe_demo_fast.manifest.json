@@ -1,0 +1,21 @@
+{
+  "purpose": "IT-002 deterministic ECU profile path; physical IVI acceptance requires separate evidence",
+  "profile": "failsafe_demo_fast.csv",
+  "units": {"voltage": "pack V (10 cells)", "current": "A, negative discharge", "temperature": "deg C"},
+  "dt_s": 0.1,
+  "initial_soc": 0.75,
+  "capacity_ah": 50.0,
+  "initial_covariance": 0.01,
+  "process_noise": 0.00001,
+  "measurement_noise": 0.02,
+  "ocv_coefficients_a3_a2_a1_a0": [2.1667, -3.7321, 2.7655, 3.0],
+  "input": "10 rows at 42V, then 30V held by production CSV last-row behavior; -2A and 25C throughout",
+  "initial_state": "NORMAL",
+  "expected_sequence": ["NORMAL", "WARNING (reason 0x01)", "CRITICAL (reason 0x02)"],
+  "verification": "test_failsafe_profile uses production SensorSimulator, EkfSocEstimator and FailSafeStateMachine for 1000 steps",
+  "observed_host_test": [
+    {"zero_based_step": 47, "model_time_s": 4.7, "soc_percent": 18.422, "state": "WARNING"},
+    {"zero_based_step": 63, "model_time_s": 6.3, "soc_percent": 4.63028, "state": "CRITICAL"}
+  ],
+  "limits": "Model time is not physical end-to-end latency. CSV simulates inputs, not real battery discharge. No ECU default or wire contract changed."
+}
