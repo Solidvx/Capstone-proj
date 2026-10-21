@@ -158,3 +158,5 @@ ICD v1.6에서 RollingCounter를 인증 CAN ID별 독립으로 명시하고 ECU�
 - 2026-10-21: [3노드 회로·실험 절차](../../development/playbooks/three-node-hardware-experiment.md)와 [CHG-022](../changes/CHG-022/aidlc-state.md)를 추가했다. 조립 순서·용어 설명·체크리스트를 보완하고 `development/playbooks/assets/three-node/`에 본문용 SVG 4장을 배치했다. 기존 하드웨어 HTML은 이전 회로 기록으로 보존하며 이번 변경은 새 부품 구성에 한정한다.
 
 - 2026-10-22: 공격 Pi3 설치 안내를 `development/playbooks/attack-pi3-install.md`에 추가했다.
+
+- 2026-10-22: PC 실행기 전환과 Pi3 관리용 SSH 정리를 `development/playbooks/pc-campaign.md` 및 `하드웨어 정보/PC_3노드_실험_실행가이드.html`에 안내한다. 이전 Pi3 실행 절차에는 현행 안내 링크를 추가했다.

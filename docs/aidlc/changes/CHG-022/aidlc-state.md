@@ -24,3 +24,9 @@
 # 연속 실행 전환 후속 — 2026-10-22
 
 사용자 요청에 따라 구성·공격 조합별 30회 연속 실행으로 전환했다. 정상 360회는 12세션으로 실행하며 오류 시 완료 번호를 보존하고 실패 번호부터 제한 복구한다. 회차별 관찰기 ACK·수신·드롭 증거를 분리하고 모든 완료 행의 IVI 로그를 종료 후 확정한다. schema=test360-v3-continuous로 이전 독립 실행 결과와 재개를 혼합하지 않는다. 관련 pytest 74통과/2Linux생략. 실제 장비 실행은 미실행이다.
+
+## PC 진행 전환 상태 — 2026-10-22
+
+최신 origin/develop 0b99070에서 feat/pc-campaign 작업을 분리했다. pc_campaign이 PC에서 모든 원격 역할을 관리하며 can_attack_worker는 Pi3에서 키 없이 실제 SocketCAN 송신만 한다. replay는 관찰 raw/auth 쌍을 검증 없이 복사하고, 실제 인증은 ECU·IVI에 남긴다. IVI 게시와 ECU IDS 송신 로그를 대조하며 이전 공격자 참조 차단율·성공률·지연을 추정하지 않는다. 원본 IDS 로그까지 PC 결과 폴더에 수집한다.
+
+SSH 선별 정리 도구는 기본 preview, --apply일 때만 해당 Pi3 키 권한과 파일을 제거한다. PC의 독립 키로 세 노드 접근을 검증하며 기존 authorized_keys를 백업한다. 관련91통과/2Linux생략. 실제 장비 실험·키 삭제는 수행하지 않았다. PC 접속·설정 파일·원격 권한·pilot 확인이 남아 있다. 변경 전후 Python3.9에서 동일한 기존 publication/file_digest 실패가 재현되며 이번 범위 밖으로 유지한다. 자세한 검증은 evidence와 PC 안내 참조.

@@ -50,7 +50,8 @@ def read_run(directory):
             for field in ("attack_success", "blocked", "detected"):
                 if row[field] is not None and type(row[field]) is not bool:
                     raise ValueError("non-boolean metric")
-            if type(row["detected"]) is not bool or type(row["blocked"]) is not bool:
+            pc_unmeasured = manifest.get("controller") == "PC" and row.get("blocking_evaluated") is False and row["blocked"] is None
+            if type(row["detected"]) is not bool or (type(row["blocked"]) is not bool and not pc_unmeasured):
                 raise ValueError("missing required detection/block metric")
             latency = row["detect_latency_s"]
             if latency is not None and (not math.isfinite(latency) or latency < 0):
