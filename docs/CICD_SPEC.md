@@ -1,12 +1,12 @@
 > **문서명**: CI/CD Pipeline Specification (CICD_SPEC)
-> **최종 검토**: 2026-10-03 · **상태**: CI 예정 명세. GitHub workflow·Docker ARM64·cross toolchain은 없으나 IVI 제품/수동 배포 스크립트와 ECU 계측 옵션은 존재한다. [실행 현황](development/reviews/전체계획_진행보고_20261003.md)
+> **최종 검토**: 2026-11-14 · **상태**: native 품질과 별도 ARM64 cross/QEMU job, 읽기 전용 제품 health·로컬 release/rollback 도구 구현. 원격 CI·실제 Pi 자동 배포 인수는 미완료. [후속 증거](aidlc/changes/CHG-029/aidlc-state.md)
 > **원천**: [SRS](SRS.md) FR-CI-001~006/NFR-QA, [TEST_PLAN](TEST_PLAN.md) TC-CI-001~006, ADR-006/007
 
 # 1. 개요
 
 ## 1.1. 목적
 
-Node A ECU와 Node B C++/Qt IVI의 정적 분석→ARM64 빌드→시험/커버리지→대상 배포를 자동화한다. Git 원격과 `main`·`develop`은 존재하지만 `.github/` workflow와 배포 자동화는 아직 없다.
+Node A ECU와 Node B C++/Qt IVI의 정적 분석→ARM64 빌드→시험/커버리지→대상 배포를 자동화한다. Git 원격과 `main`·`develop` 및 native 품질 기준선 `quality.yml`이 존재한다. 아래 전체 인수 목표를 완료한 상태는 아니며, 자동 배포는 아직 없다.
 
 ## 1.2. 파이프라인 4단계 요약
 
@@ -17,12 +17,21 @@ Stage 1 정적 분석 → Stage 2 ARM64 빌드 → Stage 3 시험·커버리지 
 | 경로 | 상태·역할 |
 |---|---|
 | `adaptive_ecu/CMakeLists.txt` | 존재. 실제 executable `adaptive_ecu`, 시험 옵션 `ECU_BUILD_TESTS` |
-| `.github/workflows/ci.yml` | 예정. 이벤트·jobs·품질 게이트 |
-| `Dockerfile.arm64`, `toolchain-aarch64.cmake` | 예정. 대상 compiler/runtime/의존성 |
-| `scripts/health_check.sh` | 예정. Node A 정상 데이터 확인·실패 코드 |
-| `ivi_platform/` | 구현됨. Qt/CMake·CTest·수동 Pi 빌드/배포 스크립트 존재. GitHub CI 연결·자동 health/rollback 인수는 남음 |
+| `.github/workflows/quality.yml` | native x86/ARM64 빌드·ECU28/IVI제품44 strict CTest·Python·cppcheck·coverage 연결. 보호 사건 제품 시험 추가 후 목록이며 원격 실행 미검증 |
+| `Dockerfile.arm64`, `toolchain-aarch64.cmake` | 존재. x86-64 compiler/Qt host tools + ARM64 OpenSSL/GTest/Qt·명시 QEMU. `tools/quality/cross_build.py`가 양측 ELF/시험 검사 |
+| `scripts/health_check.sh`, `tools/deployment/health.py` | 존재. 일반 IVI 프로세스·artifact·열고 있는 비공개 로그·인증된 새 ECU 데이터 대조 |
+| `tools/deployment/release.py` | 존재. 명시적 hook·상한의 로컬 staging/원자 전환·이전 버전 검증 rollback. 실제 대상/계정/서비스/전달 workflow는 미확정 |
+| `ivi_platform/` | Qt/CMake·CTest·수동 Pi 빌드/배포 스크립트 존재. GitHub workflow 연결은 있으나 원격 실행·자동 health/rollback 인수는 남음 |
 
 # 2. GitHub Actions 파이프라인 상세
+
+현행 full-product/coverage 기준선은 Debian trixie 컨테이너의 native 빌드다. 별도 cross-arm64 job은 x86-64 compiler host에서 ARM64 두 제품을 만들고 QEMU로 비장비 C++ 시험을 실행한다. native ARM64 실행만으로 cross 인수를 주장하지 않는다. 컨테이너 tag·패키지 공급은 아직 불변 digest/version lock이 아니며 설치 버전을 artifact에 남긴다. Actions 두 개는 조회한 SHA로 고정했다. Codecov, 실제 배포, secrets, 저장소 보호 설정은 연결하지 않았다. coverage 부족은 `continue-on-error`로 숨기지 않으며 현재 로컬 수치상 해당 게이트는 실패한다.
+
+2026-11-11 제품 통합 연결: job 컨테이너의 NET_ADMIN으로 해당 가상 네트워크에 vcan0을 새로 만들고 kind/UP을 읽기 전용 health로 확인한다. host network·privileged 컨테이너·실물 장치 mount는 사용하지 않는다. runner 커널의 vcan 지원/모듈과 SocketCAN이 필요하다. 생성/권한/지원 실패 시 기본 시험으로 우회하거나 skip을 합격으로 만들지 않는다. ECU28개(실제 SOC CSV 평가 추가)와 IVI기본21+실제 제품23개(현행CSV 계측/계산·CAN 수신 성공 복구 회귀 포함)를 정확히 요구한다. 로컬 도구의 --allow-no-vcan은 별도 개발용이며 이 workflow에서는 사용하지 않는다.
+
+ECU가 먼저 빌드되고 IVI CMake에 실제 adaptive_ecu 절대 경로를 넘겨 제품 시험을 등록한다. ECU/IVI/Python 시험 단계와 양측 coverage는 build 성공을 전제로 독립 실행한다. 앞 시험 실패가 뒤 시험/보고서 생성을 숨기지 않고 job은 실패를 유지한다. JUnit·gcov/요약·개인 임시 키를 보존하지 않는 제품 시험 원본은 artifact 대상이다. GitHub/Docker/runner 커널에서의 실제 인수는 로컬 Linux 프로필 통과와 별도로 필요하다.
+
+컨테이너 옵션과 조건식은 [GitHub workflow 문법](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax), 실패 뒤 독립 단계 조건은 [상태 검사 함수](https://docs.github.com/en/actions/reference/workflows-and-actions/expressions#status-check-functions)를 따른다. run 단계의 기본 셸은 [컨테이너 실행 안내](https://docs.github.com/en/actions/how-tos/write-workflows/choose-where-workflows-run/run-jobs-in-a-container)에 따라 sh이며 bash가 필요한 coverage 단계만 명시한다.
 
 명령·작성 절차의 단일 관리 위치는 [IVI CI 참조 §1](../plan/detail/ivi/ref_CI파이프라인_명령모음.md#1-ci-구현-명세--단일-관리-위치)다. 본 문서는 공식 인수 명세를 관리한다. 전체 YAML/Docker/CMake를 양쪽에 중복 유지하지 않는다. 구현 후 실행 정본은 실제 파일이다.
 
@@ -36,7 +45,7 @@ cppcheck Error 0건을 검사한다. SRS의 Critical/Error 표현을 실제 도�
 
 ## 2.3. Stage 2 — ARM64 크로스컴파일 빌드 (FR-CI-003)
 
-Docker에서 실제 CMake 타겟 `adaptive_ecu`를 빌드한다. IVI 소스가 생기면 Qt 6 ARM64 개발 패키지를 고정하고 `ivi_platform`의 CMake target도 별도 artifact로 빌드한다. 예를 들어 빌드 경로가 `build-arm64/`면 artifact는 `build-arm64/adaptive_ecu`다. `ecu_node_a`라는 없는 타겟명을 사용하지 않는다. compiler·sysroot·OpenSSL·GoogleTest의 ARM64 ABI를 확인하고 ELF 아키텍처·소스 revision·artifact hash를 보존한다.
+Docker의 x86-64 compiler host에서 실제 CMake 타겟 `adaptive_ecu`와 `ivi_dashboard`를 ARM64로 빌드한다. ARM64 Qt 라이브러리와 같은 Debian 배포 버전의 x86-64 Qt host tools를 구분한다. 패키지 설치 목록과 image inspect를 보존하며 아직 불변 digest/version pin 전체 인수는 아니다. `ecu_node_a`라는 없는 타겟명을 사용하지 않는다. compiler·sysroot·OpenSSL·GoogleTest의 ARM64 ABI를 확인하고 ELF 아키텍처·소스 revision·artifact hash를 보존한다.
 
 각 CI job은 독립 실행 환경이다. 앞 job에서 로컬로 만든 Docker 이미지를 다음 job에 존재한다고 가정하지 않는다. 고정 digest로 가져오거나 동일 정의로 재빌드하거나 save/load artifact 전달을 구현하고 검증한다.
 
@@ -61,11 +70,11 @@ Docker에서 실제 CMake 타겟 `adaptive_ecu`를 빌드한다. IVI 소스가 �
 
 ## 3.1. Dockerfile.arm64
 
-예정 파일. 베이스 이미지와 패키지 버전을 기록하고 x86 compiler 도구와 ARM64 타겟 라이브러리를 구분한다. Ubuntu 멀티아키텍처 저장소를 실제 지원 아키텍처에 맞춰 구성한다. `dpkg --add-architecture arm64` 한 줄만으로 필요한 패키지 공급이 보장되지 않는다. 새 checkout에서 컨테이너 빌드·의존성 탐색·시험을 재현해야 한다.
+구현 파일. 소스/키를 이미지에 COPY하지 않으며 `.dockerignore`는 recipe만 build context에 허용한다. 베이스 이미지·설치 패키지를 실행 증거로 기록하고 x86 compiler 도구와 ARM64 타겟 라이브러리를 구분한다. `dpkg --add-architecture arm64` 한 줄만으로 필요한 패키지 공급이 보장되지 않는다. 새 checkout에서 컨테이너 빌드·의존성 탐색·시험을 재현해야 한다.
 
 ## 3.2. toolchain-aarch64.cmake
 
-예정 파일. compiler/processor·find root·target runtime·CTest emulator를 정하고 OpenSSL/Threads/GoogleTest가 호스트 라이브러리에 잘못 연결되지 않는지 확인한다. 구체 값은 실제 이미지와 일치시킨다.
+구현 파일. aarch64-linux-gnu compiler·target OpenSSL/GTest/Qt 경로와 CTest의 qemu-aarch64 -L / 접두사를 지정한다. 제품 및 선택한 모든 C++ 시험의 ELF machine183을 검사하고 host compiler machine62와 구분한다.
 
 ## 3.3. adaptive_ecu/CMakeLists.txt 필수 옵션
 
@@ -75,7 +84,7 @@ Docker에서 실제 CMake 타겟 `adaptive_ecu`를 빌드한다. IVI 소스가 �
 
 ## 4.1. 동작 원리
 
-ARM64 사용자 프로그램을 지정 emulator/runtime으로 실행하는 계획이다. QEMU 설치, binfmt 등록, 동적 runtime 공급은 각각 확인한다. 컨테이너 mount/path와 CTest 명령이 실제 실행 가능해야 한다.
+ARM64 사용자 프로그램을 지정 emulator/runtime으로 실행하는 별도 cross job을 구현했다. 정확한 전체 CTest 등록28/21을 확인한 뒤 native/vcan 제품·Python 통합은 native job에 남기고 비장비 C++ ECU24/IVI18을 에뮬레이션한다. failure/error/skip/누락/중복은 실패이며 제외 이유를 result.json에 보존한다. QEMU 설치, binfmt 등록, 동적 runtime 공급은 각각 확인한다. 컨테이너 mount/path와 CTest 명령이 실제 실행 가능해야 한다.
 
 ## 4.2. QEMU 에뮬레이션 한계 및 처리 방침
 
@@ -89,15 +98,15 @@ CI에서 Mock/가상 입력 단위시험과 실제 장비 시험을 구분한다
 
 ## 5.2. RPi4 배포 계정 설정
 
-배포 계정과 ECU 서비스 실행 계정을 구분한다. [IVI M4](../plan/detail/ivi/M4_대시보드_Alert_배포.md)의 현재 계획은 deploy로 전달, root 서비스로 ECU 실행이다. 파일 소유·실행·profile 읽기·키 읽기 권한과 제한된 서비스 관리/전환 권한을 실제 대상에서 검증한다. sudo 그룹 전체 권한을 관례로 추가하지 않는다.
+배포 계정과 ECU 서비스 실행 계정을 구분한다. [IVI M4](../plan/detail/ivi/M4_대시보드_Alert_배포.md)의 과거 계획은 deploy로 전달, root 서비스로 ECU 실행이다. 현재 template 서비스/감독 경계와 차이가 있어 실제 운영 정책 확인이 필요하다. 파일 소유·실행·profile 읽기·키 읽기 권한과 제한된 서비스 관리/전환 권한을 실제 대상에서 검증한다. sudo 그룹 전체 권한을 관례로 추가하지 않는다.
 
 # 6. Health Check 스크립트
 
-`scripts/health_check.sh`는 예정이다. 서비스 active 외에 배포 hash/설정, 새 정상 CAN/인증 데이터, 오류·stale 상태, 요구된 IVI 연결을 확인하고 실패 코드를 반환한다. 검사 기한·재시도 값은 구현/측정 근거를 남긴다. 이전 5회×3초 골격을 승인된 상한으로 취급하지 않는다. 키 누락·프로세스 생존하나 송신 정지·버전 불일치·rollback 실패를 음성 시험에 포함한다.
+`scripts/health_check.sh`와 `tools/deployment/health.py`는 구현됐다. [배포 안전 절차](development/playbooks/deployment-safety.md)에 실제 입력/증거·한계가 있다. 서비스 active 외에 배포 hash/설정, 새 CAN/인증 데이터, 오류·stale 상태, 요구된 IVI 연결을 확인하고 실패 코드를 반환한다. 배터리 보호 상태 자체를 프로그램 장애로 판단하거나 초기화하지 않는다. 검사 기한·재시도 값은 구현/측정 근거를 남긴다. 이전 5회×3초 골격을 승인된 상한으로 취급하지 않는다. 키 누락·프로세스 생존하나 송신 정지·버전 불일치·rollback 실패를 음성 시험에 포함한다.
 
 # 7. ecu-node-a.service systemd 유닛
 
-Node A 대상 파일은 `/etc/systemd/system/ecu-node-a.service`다. 실행 파일·인자·작업 디렉토리·profile/키 권한의 정본은 [IVI M4 §3.4](../plan/detail/ivi/M4_대시보드_Alert_배포.md#34-systemd-유닛)에 둔다. Node B Qt 앱에는 별도 systemd 서비스/그래픽 세션 정책을 정의하고 이 Node A 유닛을 적용하지 않는다. 서비스 재기동·완료 heartbeat·CAN 재개를 확인하며 SecOC counter/세션 복구는 별도 인수한다.
+과거 Node A 설계 파일명은 `/etc/systemd/system/ecu-node-a.service`다. 현재 구현에는 `adaptive_ecu/service/capstone-ecu@.service`와 별도 감독자의 fresh/resume 정책이 있으므로 동일한 설치 서비스라고 가정하지 않는다. 실제 계정/서비스 운영 인수 전까지 [IVI M4 §3.4](../plan/detail/ivi/M4_대시보드_Alert_배포.md#34-systemd-유닛)의 과거 root 예시로 현재 정책을 덮어쓰지 않는다. Node B Qt 앱에는 별도 systemd 서비스/그래픽 세션 정책을 정의하고 이 Node A 유닛을 적용하지 않는다. 서비스 재기동·완료 heartbeat·CAN 재개를 확인하며 SecOC counter/세션 복구는 별도 인수한다.
 
 # 8. 요구사항 추적 매트릭스
 

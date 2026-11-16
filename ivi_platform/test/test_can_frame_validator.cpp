@@ -15,6 +15,13 @@ void run() {
               ivi::CanFrameValidation::kAccepted);
     EXPECT_EQ(ivi::validateClassicCanFrame(ivi::kCanIdIdsAlert, 8),
               ivi::CanFrameValidation::kAccepted);
+    for(const auto id:{ivi::kCanIdCurrentState,ivi::kCanIdCurrentStateSecOc,ivi::kCanIdSessionEcu,ivi::kCanIdDiagnosticEcu}){
+        EXPECT_EQ(ivi::validateClassicCanFrame(id,8),ivi::CanFrameValidation::kAccepted);
+        EXPECT_EQ(ivi::validateClassicCanFrame(id|ivi::kCanEffFlag,8),ivi::CanFrameValidation::kExtendedFrame);
+        EXPECT_EQ(ivi::validateClassicCanFrame(id,7),ivi::CanFrameValidation::kInvalidLength);
+    }
+    EXPECT_EQ(ivi::validateClassicCanFrame(ivi::kCanIdSessionIvi,8),ivi::CanFrameValidation::kUnsupportedId);
+    EXPECT_EQ(ivi::validateClassicCanFrame(ivi::kCanIdDiagnosticIvi,8),ivi::CanFrameValidation::kUnsupportedId);
 
     EXPECT_EQ(ivi::validateClassicCanFrame(ivi::kCanIdBmsStatus, 7),
               ivi::CanFrameValidation::kInvalidLength);

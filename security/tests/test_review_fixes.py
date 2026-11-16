@@ -85,14 +85,14 @@ class ReviewFixTests(unittest.TestCase):
     def test_live_ready_is_written_only_after_socket_opens(self):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory);ready=root/'ready.json';log=root/'ids.jsonl'
-            socket=Mock(start_time=0.0, clock_offset_ns=0, idle_time=0.0)
+            socket=Mock(start_time=0.0, clock_offset_ns=0, idle_time=0.0, rx_dropped=0)
             socket.receive.return_value=None
-            with patch('security.ids.runtime.SocketCan',return_value=socket):
+            with patch('security.ids.runtime.OrderedSocketCan',return_value=socket):
                 self.assertEqual(ids_main(['--interface','vcan0','--rules-only','--duration','.001',
                     '--log',str(log),'--run-id','pilot','--ready-file',str(ready)]),0)
             self.assertEqual(json.loads(ready.read_text())['run_id'],'pilot')
             bad_ready=root/'bad-ready.json'
-            with patch('security.ids.runtime.SocketCan',side_effect=OSError('bind failed')):
+            with patch('security.ids.runtime.OrderedSocketCan',side_effect=OSError('bind failed')):
                 self.assertEqual(ids_main(['--interface','vcan0','--rules-only','--log',str(root/'bad-log'),
                     '--ready-file',str(bad_ready)]),2)
             self.assertFalse(bad_ready.exists())

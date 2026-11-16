@@ -7,7 +7,11 @@ import subprocess
 from security.experiments.can_capture import inspect_interface
 
 
-def check(channel, recover=False):
+def check(channel, recover=False,environment='physical'):
+    if environment=='vcan':
+        if recover or not re.fullmatch(r'vcan[0-9]+',channel):raise ValueError('read-only explicit vcan check required')
+        return {'result':'CAN_HEALTHY','interface':channel,'reset':False,**inspect_interface(channel,'vcan')}
+    if environment!='physical':raise ValueError('explicit bus environment required')
     if not re.fullmatch(r'can[0-9]+', channel):
         raise ValueError('physical can interface required')
     response = subprocess.run(['ip', '-details', '-json', 'link', 'show', 'dev', channel],
@@ -43,8 +47,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--interface', default='can0')
     parser.add_argument('--recover', action='store_true')
+    parser.add_argument('--environment',choices=('physical','vcan'),default='physical')
     args = parser.parse_args()
-    print(json.dumps(check(args.interface, args.recover)), flush=True)
+    print(json.dumps(check(args.interface, args.recover,args.environment)), flush=True)
 
 
 if __name__ == '__main__':

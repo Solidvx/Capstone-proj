@@ -30,7 +30,7 @@ EXTRAS = (
     'docs/development/playbooks/m5-ablation-runner.md',
     'docs/development/playbooks/experiment-analysis.md',
     'security/experiments/m5-settings.template.json',
-    'security/experiments/ids-captures.template.json',
+    'security/experiments/ids-captures.template.json', '임시_할일.md',
     'security/ids/README.md', 'security/ids/how_to_train.md',
     'docs/development/playbooks/pre-hardware-readiness.md',
     'docs/ICD.md', 'docs/SRS.md', 'docs/TEST_PLAN.md',

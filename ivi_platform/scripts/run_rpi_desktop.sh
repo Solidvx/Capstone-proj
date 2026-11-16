@@ -2,8 +2,11 @@
 set -euo pipefail
 
 dashboard=/opt/ivi/bin/ivi_dashboard
-key_path=/etc/ivi/secoc.key
-interface_name=can0
+key_path="${IVI_SECOC_KEY:-/etc/ivi/secoc.key}"
+interface_name="${IVI_CAN_INTERFACE:-can0}"
+session_policy="${IVI_SESSION_POLICY:-/etc/ivi/session-v2.conf}"
+# Desktop and system-service users must not share ownership of a private journal.
+event_policy="${IVI_EVENT_POLICY:-${XDG_CONFIG_HOME:-${HOME}/.config}/capstone-ivi/event-store.json}"
 
 if [[ ! -x "${dashboard}" ]]; then
   echo "ERROR: installed dashboard binary is missing" >&2
@@ -29,4 +32,11 @@ if [[ -z "${WAYLAND_DISPLAY:-}" ]]; then
 fi
 
 export QT_QPA_PLATFORM=wayland
-exec "${dashboard}" --interface "${interface_name}" --secoc-key "${key_path}"
+if [[ ! -r "${session_policy}" || ! -r "${event_policy}" ]]; then
+  echo "ERROR: readable session and desktop-owned event policy files are required" >&2
+  exit 6
+fi
+exec /usr/bin/python3 /opt/ivi/libexec/dashboard_handoff.py --mode desktop \
+  --launcher /opt/ivi/libexec/run_rpi_desktop.sh --grace-seconds 5 -- \
+  "${dashboard}" --interface "${interface_name}" --secoc-key "${key_path}" \
+  --protocol session-v2 --session-policy "${session_policy}" --event-policy "${event_policy}"

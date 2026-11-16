@@ -30,6 +30,10 @@ public:
     void stop();
     bool isRunning() const;
     std::string lastError() const;
+    std::uint64_t receivedFrames()const{return received_frames_.load();}
+    std::uint64_t socketDrops()const{return socket_drops_.load();}
+    bool dropMeasurementAvailable()const{return drop_measurement_.load();}
+    bool sendControl(std::uint32_t can_id,const CanPayload& payload);
 
 private:
     void receiveLoop();
@@ -40,6 +44,8 @@ private:
     FrameCallback callback_;
     std::thread worker_;
     std::atomic<bool> running_{false};
+    std::atomic<std::uint64_t> received_frames_{0},socket_drops_{0};
+    std::atomic<bool> drop_measurement_{false};
     int socket_fd_ = -1;
 #if defined(__linux__)
     int wake_fds_[2] = {-1, -1};

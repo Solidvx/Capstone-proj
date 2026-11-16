@@ -1,0 +1,8 @@
+{
+  "directory": "/var/lib/capstone-ivi/events",
+  "segment_bytes": 10485760,
+  "total_bytes": 2147483648,
+  "warning_bytes": 1073741824,
+  "min_free_bytes": 524288000,
+  "queue_capacity": 128
+}

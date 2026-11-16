@@ -43,6 +43,7 @@ cppcheck-result.xml
 
 # 크로스컴파일 바이너리 (ARM64)
 *.arm64
+!/Dockerfile.arm64
 adaptive_ecu/bin/
 
 
@@ -222,6 +223,3 @@ temp/
 *.candump
 *.pcap
 *.pcapng
-
-# Local evidence recovery archives (not an off-device backup)
-evidence-backups/

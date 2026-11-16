@@ -11,6 +11,7 @@ sklearn 가용 시 Isolation Forest 비교도 함께 출력(없으면 SKIPPED).
 from __future__ import annotations
 
 import os
+import math
 import random
 import sys
 
@@ -26,19 +27,27 @@ for sub in ("ids", "attacks", "analysis"):
 
 from traffic_gen import ATTACKS, gen_attack, gen_normal  # noqa: E402
 from feature_extractor import raw_windows, windows  # noqa: E402
-from rule_baseline import RuleBaseline, metrics_at, roc_auc  # noqa: E402
+from rule_baseline import RuleBaseline, confusion_metrics, metrics_at, roc_auc  # noqa: E402
 from spec_detector import SpecDetector  # noqa: E402
 
 SEED = 42
 TRAIN_S = 90.0
+CALIBRATION_S = 60.0  # 합성 runner의 별도 정상 보정 구간; 실물 운영값 아님
 NORMAL_EVAL_S = 60.0
 ATTACK_S = 30.0
 TARGET_FPR = 0.01  # 운영점: 정상 오탐율 ~1%
 
 
+def format_metric(value, specification=".3f"):
+    """미정의 지표를 성공/실패 수치 대신 N/A로 표시한다."""
+    return "N/A" if value is None else format(value, specification)
+
+
 def _percentile(values: list[float], q: float) -> float:
-    if not values:
-        return 0.0
+    if not values or any(type(value) not in (int, float) or not math.isfinite(value) for value in values):
+        raise ValueError("calibration needs nonempty finite scores")
+    if type(q) not in (int, float) or not math.isfinite(q) or not 0 <= q <= 1:
+        raise ValueError("percentile must be in [0, 1]")
     s = sorted(values)
     idx = min(len(s) - 1, int(round(q * (len(s) - 1))))
     return s[idx]
@@ -53,6 +62,19 @@ def build_dataset(rng: random.Random):
         for v, y, a in windows(gen_attack(atk, ATTACK_S, rng)):
             test.append((v, y, a))
     return train, test
+
+
+def prepare_rule_evaluation(rng: random.Random):
+    """기존 학습/평가 draw 뒤 별도 정상 draw로 임계만 보정한다.
+
+    평가 점수/라벨은 임계 선정에 전달하지 않는다. 원래 학습/평가 자료를
+    보존하기 위해 새 보정 draw를 뒤에 생성한다. 실제 capture 분리는 아니다.
+    """
+    train, test = build_dataset(rng)
+    calibration = [v for v, _, _ in windows(gen_normal(CALIBRATION_S, rng))]
+    model = RuleBaseline().fit(train)
+    threshold = _percentile([model.score(v) for v in calibration], 1.0 - TARGET_FPR)
+    return model, train, calibration, test, threshold
 
 
 def detection_latency(rng: random.Random, model, threshold: float) -> dict:
@@ -73,16 +95,14 @@ def detection_latency(rng: random.Random, model, threshold: float) -> dict:
 
 def eval_rule(rng: random.Random):
     """규칙 베이스라인: (per_attack 탐지율, fpr, auc, recall) 산출."""
-    train, test = build_dataset(rng)
-    model = RuleBaseline().fit(train)
+    model, _, calibration, test, thr = prepare_rule_evaluation(rng)
     scores = [model.score(v) for v, _, _ in test]
     labels = [y for _, y, _ in test]
     atypes = [a for _, _, a in test]
-    normal_scores = [s for s, y in zip(scores, labels) if y == 0]
-    thr = _percentile(normal_scores, 1.0 - TARGET_FPR)
     m = metrics_at(scores, labels, atypes, thr)
-    return {"per_attack": m["per_attack"], "fpr": m["fpr"], "recall": m["recall"],
-            "auc": roc_auc(scores, labels)}
+    return {**m, "auc": roc_auc(scores, labels), "threshold": thr,
+            "calibration_windows": len(calibration),
+            "threshold_selection": "separate synthetic normal calibration; no evaluation scores"}
 
 
 def eval_spec(rng: random.Random):
@@ -110,11 +130,8 @@ def eval_spec(rng: random.Random):
     _run(raw_windows(gen_normal(NORMAL_EVAL_S, rng)))
     for atk in ATTACKS:
         _run(raw_windows(gen_attack(atk, ATTACK_S, rng)))
-    fpr = fp / (fp + tn) if (fp + tn) else 0.0
-    recall = tp / (tp + fn) if (tp + fn) else 0.0
     return {"per_attack": {a: h[0] / h[1] for a, h in per_hit.items()},
-            "fpr": fpr, "recall": recall,
-            "tp": tp, "fp": fp, "tn": tn, "fn": fn}
+            **confusion_metrics(tp, fp, tn, fn)}
 
 
 def reproducibility(seeds):
@@ -136,49 +153,46 @@ def reproducibility(seeds):
 
 def main() -> None:
     rng = random.Random(SEED)
-    train, test = build_dataset(rng)
-
-    model = RuleBaseline().fit(train)
+    model, train, calibration, test, thr = prepare_rule_evaluation(rng)
     scores = [model.score(v) for v, _, _ in test]
     labels = [y for _, y, _ in test]
     atypes = [a for _, _, a in test]
-
-    # 운영 임계 = 정상 윈도우 점수의 (1-FPR) 분위수 → 목표 FPR 근사
-    normal_scores = [s for s, y in zip(scores, labels) if y == 0]
-    thr = _percentile(normal_scores, 1.0 - TARGET_FPR)
 
     auc = roc_auc(scores, labels)
     m = metrics_at(scores, labels, atypes, thr)
     lat = detection_latency(random.Random(SEED + 1), model, thr)
 
     print("=" * 64)
-    print("규칙기반 IDS 베이스라인 — 오프라인 실측 (seed=%d)" % SEED)
+    print("규칙기반 IDS 베이스라인 — 독립 보정 합성 평가 (seed=%d)" % SEED)
     print("=" * 64)
-    print(f"학습 정상 윈도우 {len(train)} · 평가 윈도우 {len(test)} "
+    print(f"학습 정상 {len(train)} · 별도 정상 보정 {len(calibration)} · 평가 윈도우 {len(test)} "
           f"(정상 {labels.count(0)} / 공격 {labels.count(1)})")
-    print(f"운영 임계(z) = {thr:.2f}  (목표 FPR {TARGET_FPR:.0%})\n")
-    print(f"ROC-AUC        : {auc:.3f}")
-    print(f"Precision      : {m['precision']:.3f}")
-    print(f"Recall(탐지율) : {m['recall']:.3f}")
-    print(f"F1             : {m['f1']:.3f}")
-    print(f"오탐율(FPR)    : {m['fpr']:.3f}   (TP={m['tp']} FP={m['fp']} TN={m['tn']} FN={m['fn']})")
+    print(f"합성 보정 임계(z) = {thr:.2f}  (보정 목표 FPR {TARGET_FPR:.0%}; 평가 FPR 보장 아님)\n")
+    print("판단 단위: 합성 입력의 1초 윈도우 · 지표 단위: ratio · 분모0: N/A")
+    print(f"ROC-AUC        : {format_metric(auc)}")
+    print(f"Precision      : {format_metric(m['precision'])}")
+    print(f"Recall(탐지율) : {format_metric(m['recall'])}")
+    print(f"F1             : {format_metric(m['f1'])}")
+    print(f"FNR / TNR      : {format_metric(m['fnr'])} / {format_metric(m['tnr'])}")
+    print(f"Balanced Acc.  : {format_metric(m['balanced_accuracy'])}")
+    print(f"MCC            : {format_metric(m['mcc'])}")
+    print(f"오탐율(FPR)    : {format_metric(m['fpr'])}   (TP={m['tp']} FP={m['fp']} TN={m['tn']} FN={m['fn']})")
     print("\n공격 유형별 탐지율 · 탐지지연(초):")
     for atk in ATTACKS:
-        r = m["per_attack"].get(atk, 0.0)
+        r = m["per_attack"].get(atk)
         d = lat.get(atk)
         dtxt = f"{d}s" if d is not None else "미탐지"
-        print(f"  {atk:9s}: 탐지율 {r:5.1%}   지연 {dtxt}")
+        print(f"  {atk:9s}: 탐지율 {format_metric(r, '5.1%')}   지연 {dtxt}")
 
-    print("\n[해석] 규칙(rate) 베이스라인은 fabrication형(볼륨↑: flooding/fuzzy/replay/"
-          "spoofing) 100% 탐지하나 stealthy masquerade(피해 ECU 정지+동일 주기 위장)는"
-          " 거의 놓친다 → per-ID 사양기반 등 추가 탐지가 필요하다는 정량 근거.")
+    print("\n[범위] 위 수치는 생성한 합성 윈도우의 결과다. 임계는 별도 정상 자료로 고정했으며, "
+          "공격별 결과와 미탐지/오탐을 그대로 보고한다. 실시간 CAN 탐지/차단이나 IF 추가 효과의 인수가 아니다.")
 
     # ── 사양기반(per-ID) 탐지기 — masquerade 보완 ──────────────────────────
     print("\n" + "=" * 64)
     print("per-ID 사양기반 탐지기 — 규칙이 놓친 masquerade 보완")
     print("=" * 64)
     sp = eval_spec(random.Random(SEED))
-    print(f"오탐율(FPR) {sp['fpr']:.3f}  (TP={sp['tp']} FP={sp['fp']} TN={sp['tn']} FN={sp['fn']})")
+    print(f"오탐율(FPR) {format_metric(sp['fpr'])}  (TP={sp['tp']} FP={sp['fp']} TN={sp['tn']} FN={sp['fn']})")
     print("공격 유형별 탐지율 (규칙 → 사양기반):")
     for atk in ATTACKS:
         r = m["per_attack"].get(atk, 0.0)
@@ -205,7 +219,7 @@ def main() -> None:
             raise RuntimeError("scikit-learn 미설치")
         ifd = IsolationForestDetector().fit(train)
         if_scores = [ifd.anomaly(v) for v, _, _ in test]
-        print(f"Isolation Forest ROC-AUC : {roc_auc(if_scores, labels):.3f} (참고 비교)")
+        print(f"Isolation Forest ROC-AUC : {format_metric(roc_auc(if_scores, labels))} (참고 비교)")
     except Exception as e:
         print(f"Isolation Forest 비교: SKIPPED ({e}) — 설치 후 재실행하면 자동 비교")
 

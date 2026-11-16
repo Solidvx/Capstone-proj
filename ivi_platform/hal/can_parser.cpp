@@ -68,7 +68,8 @@ std::optional<SecurityAlert> parseIdsAlert(const CanPayload& payload) {
 bool isSupportedCanId(std::uint32_t can_id) {
     return can_id == kCanIdBmsStatus || can_id == kCanIdBmsFailSafe ||
            can_id == kCanIdBmsSecOc || can_id == kCanIdFailSafeSecOc ||
-           can_id == kCanIdIdsAlert;
+           can_id == kCanIdIdsAlert || can_id==kCanIdCurrentState || can_id==kCanIdCurrentStateSecOc ||
+           can_id==kCanIdSessionEcu || can_id==kCanIdDiagnosticEcu;
 }
 
 const char* failSafeStateName(std::uint8_t state) {

@@ -124,7 +124,24 @@ void testSensorStateLabels() {
     EXPECT_TRUE(std::string(ivi::sensorStateName(255)) == "UNSUPPORTED_CODE");
 }
 
+void testLocalSocketDropsAreUnknownUntilMeasured() {
+    ivi::VehicleDataService service;
+    EXPECT_TRUE(!service.latest().ivi_socket_drops.has_value());
+    const auto before=service.latest().snapshot_revision;
+    EXPECT_TRUE(service.updateSocketDrops(0));
+    EXPECT_EQ(*service.latest().ivi_socket_drops,0u);
+    EXPECT_TRUE(service.latest().snapshot_revision>before);
+    EXPECT_TRUE(!service.updateSocketDrops(0));
+    EXPECT_TRUE(service.updateSocketDrops(4));
+    EXPECT_EQ(*service.latest().ivi_socket_drops,4u);
+    EXPECT_TRUE(!service.latest().vehicle.valid);
+    EXPECT_TRUE(!service.latest().security_observation_ready);
+    EXPECT_TRUE(service.updateSocketDrops(std::nullopt));
+    EXPECT_TRUE(!service.latest().ivi_socket_drops.has_value());
+}
+
 void run() {
+    testLocalSocketDropsAreUnknownUntilMeasured();
     testStaleBoundaryAndLastGood();
     testFailSafeDoesNotRefreshBmsAge();
     testIdsAcknowledgementSequence();

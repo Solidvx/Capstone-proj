@@ -4,6 +4,7 @@ Run on macOS/Linux PC (or WSL). PC needs no CAN device or SecOC key.
 """
 import json
 import math
+import shlex
 from pathlib import Path
 import subprocess
 import time
@@ -19,8 +20,18 @@ CODES={'fuzzy':1,'replay':2,'spoofing':3,'flooding':4}
 
 
 def validate_pc_settings(settings):
+    if not isinstance(settings,dict) or settings.get('protocol')!='legacy-v1':
+        raise ValueError('pc_campaign is legacy-v1 only; select protocol=legacy-v1 explicitly. '
+                         'session-v2 is not implemented in this runner')
     targets=validate_settings(settings)
     validate_extra(settings,targets)
+    for role in ('ecu','ids','receiver_on','receiver_off'):
+        tokens=shlex.split(settings[role][-1])
+        positions=[index for index,value in enumerate(tokens) if value=='--protocol']
+        if len(positions)!=1 or positions[0]+1>=len(tokens) or tokens[positions[0]+1]!='legacy-v1':
+            raise ValueError(f'{role}: explicit --protocol legacy-v1 required; mixed/default protocols rejected')
+        if any(value.split('=',1)[0] in ('--session-policy','--session-context-fd','--ids-settings') for value in tokens):
+            raise ValueError(f'{role}: session-v2 options are incompatible with this legacy campaign')
     values={'run_id':'check','lifetime_s':'60','lifetime_ms':'60000','secoc':'on','sensor_mode':'constant'}
     required=('attacker','health_c','ids_fetch')
     for role in required:
@@ -140,7 +151,7 @@ def run_case(settings,args,config,attack,root):
     lifetime=math.ceil(120+args.trials*(args.baseline+args.duration+args.post+25))
     values={'run_id':run_id,'lifetime_s':str(lifetime),'lifetime_ms':str(lifetime*1000),
             'sensor_mode':args.sensor_mode,'secoc':'off' if config==1 else 'on'}
-    manifest={'run_id':run_id,'environment':'physical','config':config,'ids_mode':'rules+if' if config==3 else 'off',
+    manifest={'run_id':run_id,'environment':'physical','protocol':'legacy-v1','config':config,'ids_mode':'rules+if' if config==3 else 'off',
               'attacks':[attack],'start_trial':args.start_trial,'trials_per_attack':args.trials,
               'settings_sha256':sha256(args.settings),'controller':'PC','attacker':'keyless CAN worker',
               'recoverable':False,'cleanup_confirmed':False}
@@ -162,8 +173,8 @@ def run_case(settings,args,config,attack,root):
             ids=actors.start(render_command(settings['ids'],values),root,'ids-console');ids_started=True
             ids.ready(run_id,timeout=60)
             ready=next(r for r in ids.snapshot() if r.get('result')=='READY')
-            if getattr(args,'attack_profile','mixed-v1')=='isolated-v1' and ready.get('classification_version')!='evidence-v2':
-                raise ValueError('update ECU IDS: evidence-v2 required')
+            if getattr(args,'attack_profile','mixed-v1')=='isolated-v1' and ready.get('classification_version')!='evidence-v3':
+                raise ValueError('update ECU IDS: evidence-v3 required')
             if ready.get('mode')!='rules+if' or not ready.get('send_alerts'):raise ValueError('IDS mode mismatch')
         attacker=actors.start(render_command(settings['attacker'],values),root,'attacker')
         attacker.ready(run_id)

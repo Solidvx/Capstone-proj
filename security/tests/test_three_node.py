@@ -80,7 +80,8 @@ class ThreeNodeTests(unittest.TestCase):
                     detector.observe(Observation(.1,0x100,BMS))
                     events=detector.observe(Observation(.102,0x102,auth(0)))
                 else:
-                    for i in range(110 if attack=='flooding' else 1):
+                    # Fuzzing needs ID diversity; one random frame is unattributed.
+                    for i in range(110 if attack=='flooding' else 3 if attack=='fuzzy' else 1):
                         cid,data=factory(attack,rng)
                         events+=detector.observe(Observation(.1+i*.001,cid,data))
                 matching=[e for e in events if e.attack_type==code]
