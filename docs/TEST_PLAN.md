@@ -834,3 +834,7 @@ CAN/Qt 제품 연결의 인수: 발행기의1메시지/1프레임 pump·새 세�
 TC-CI-003: 별도 `cross-arm64` job에서 실제 x86-64 compiler host→ARM64 ECU/IVI를 구성한다. ELF machine183·host62·실제 emulator 접두사·전체 등록28/21·비장비 C++ 선택24/18 및 JUnit failure/error/skip0을 확인한다. native 전체28/44와 coverage를 이 선택 목록으로 대체하지 않는다. 로컬 이미지/실행과 GitHub 원격 인수는 구분한다.
 
 TC-CI-005/006: [배포 안전 절차](development/playbooks/deployment-safety.md)와 `tools/deployment/tests`의 임시 release 전환/rollback·중단 복구·위변조·timeout 자식 회수 검증을 사용한다. `health_product.py`는 실제 일반 ECU/IVI 가상 CAN에서 정확한 실행본과 현재 인증 게시를 검사하며, 송신이 끊긴 채 수신 프로세스만 살아 있는 경우를 반드시 실패시킨다. 명시 시험값3000ms/30초를 운영값으로 간주하지 않는다. main SSH 배포·실제 서비스/장비·재부팅 인수는 미실행이다. 키·카운터·계산 checkpoint·이력의 rollback/초기화는 금지한다.
+
+### 2026-11-17 CHG-031 독립 취득 개발 검증
+
+FR-BMS-001/002와 입력/복구 요구의 확장을 준비하는 독립 취득·적분 시험이다. 기존 TC의 물리 SOC/SOH 정확도·단셀 보호·화면 인수를 대신하지 않는다. INA219 byte/부호/설정·overflow·실제0A/실패, DS18B20 CRC/retained/분해능/85C 모호함, 독립 읽기 timeout/취소/소유자 사망 회수, 실제 CLI의 공개파일/I2C syscall fixture를 검사한다. 단셀 meter는 실제 시간·중복·관찰 공백·양방향Ah·동일 모델 복원·초기SOC 미산정을 검증한다. ECU strict 목록은28개 기존+5개 새 시험=33개이며 IVI44개는 보존한다. cross의 INA/DS/meter C++27개를 실행하고 Python CLI·Linux fork 수명 시험은 이유를 명시해 native33개에서 실행한다. [현재 근거](aidlc/changes/CHG-031/aidlc-state.md).

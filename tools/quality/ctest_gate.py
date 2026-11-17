@@ -11,7 +11,8 @@ EXPECTED = {
                 'hardware_sample_feed can_publisher ekf_soc soh_estimator failsafe_sm '
                 'watchdog_manager task_recovery secoc can_session_candidate can_session_exchange '
                 'can_session_receiver can_diagnostic ids_diagnostic_socket can_session_vcan '
-                'ecu_session_product can_receive_lifecycle failsafe_profile bms_calculation_task soc_profile_product').split()),
+                'ecu_session_product can_receive_lifecycle failsafe_profile bms_calculation_task soc_profile_product '
+                'ina219_acquirer ds18b20_acquirer physical_battery_meter bounded_sensor_read physical_capture_cli').split()),
     'ivi': set(('can_frame_validator can_parser receive_retry_policy secoc_verifier '
                 'vehicle_data_service vehicle_data_service_security vehicle_data_service_state '
                 'secoc_runtime unprotected_test_receiver socketcan_receiver dashboard_security '

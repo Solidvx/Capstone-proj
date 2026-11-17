@@ -64,6 +64,15 @@ add_library(ecu_core
 target_include_directories(ecu_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/../common)
 target_link_libraries(ecu_core PUBLIC OpenSSL::Crypto Threads::Threads)
 
+# Isolated acquisition tools; the ECU main keeps its existing input modes.
+add_library(physical_sensor_core
+    src/app/physical_battery_meter.cpp
+    src/bsw/ina219_acquirer.cpp
+    src/bsw/ds18b20_acquirer.cpp
+    src/bsw/bounded_sensor_read.cpp)
+target_include_directories(physical_sensor_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(physical_sensor_core PUBLIC Threads::Threads)
+
 add_executable(adaptive_ecu main.cpp)
 target_link_libraries(adaptive_ecu PRIVATE ecu_core)
 
@@ -72,6 +81,8 @@ add_executable(evaluate_soc_profile tools/evaluate_soc_profile.cpp)
 target_link_libraries(evaluate_soc_profile PRIVATE ecu_core)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_executable(physical_battery_capture tools/physical_battery_capture.cpp)
+    target_link_libraries(physical_battery_capture PRIVATE physical_sensor_core ecu_core)
     add_executable(ads1115_can_smoke tools/ads1115_can_smoke.cpp)
     target_link_libraries(ads1115_can_smoke PRIVATE ecu_core)
     add_executable(ads1115_capture tools/ads1115_capture.cpp)
@@ -86,6 +97,16 @@ if(ECU_BUILD_TESTS)
     target_link_libraries(profile_loader_fixture PRIVATE ecu_core)
     find_package(Python3 QUIET COMPONENTS Interpreter)
     if(Python3_Interpreter_FOUND)
+        if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+            add_executable(physical_capture_fixture tools/physical_battery_capture.cpp test/ina219_i2c_fixture.cpp)
+            target_link_libraries(physical_capture_fixture PRIVATE physical_sensor_core ecu_core)
+            target_link_options(physical_capture_fixture PRIVATE "-Wl,--wrap=ioctl" "-Wl,--wrap=write")
+            add_test(NAME test_physical_capture_cli COMMAND ${Python3_EXECUTABLE}
+                ${CMAKE_CURRENT_SOURCE_DIR}/test/test_physical_capture_cli.py
+                --capture $<TARGET_FILE:physical_battery_capture>
+                --fixture $<TARGET_FILE:physical_capture_fixture>)
+            set_tests_properties(test_physical_capture_cli PROPERTIES TIMEOUT 20)
+        endif()
         add_test(NAME test_soc_profile_product COMMAND ${Python3_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/../common/test_soc_profile_product.py
             --evaluator $<TARGET_FILE:evaluate_soc_profile>
@@ -195,6 +216,20 @@ if(ECU_BUILD_TESTS)
             target_link_libraries(${test_name} PRIVATE GTest::GTest GTest::Main)
         endif()
         target_compile_definitions(${test_name} PRIVATE ECU_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+        add_test(NAME ${test_name} COMMAND ${test_name})
+    endforeach()
+    set(PHYSICAL_SENSOR_TESTS test_ina219_acquirer test_ds18b20_acquirer test_physical_battery_meter)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        list(APPEND PHYSICAL_SENSOR_TESTS test_bounded_sensor_read)
+    endif()
+    foreach(test_name IN LISTS PHYSICAL_SENSOR_TESTS)
+        add_executable(${test_name} test/${test_name}.cpp)
+        target_link_libraries(${test_name} PRIVATE physical_sensor_core)
+        if(TARGET GTest::gtest_main)
+            target_link_libraries(${test_name} PRIVATE GTest::gtest_main)
+        else()
+            target_link_libraries(${test_name} PRIVATE GTest::GTest GTest::Main)
+        endif()
         add_test(NAME ${test_name} COMMAND ${test_name})
     endforeach()
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")

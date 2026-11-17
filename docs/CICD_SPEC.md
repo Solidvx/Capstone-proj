@@ -137,3 +137,6 @@ S-8=B로 공식 기준을 C++ 실행 가능 소스 줄 커버리지 80% 이상�
 
 
 2026-09-08: 오래된 전체 실행 골격을 공식 인수 명세와 단일 plan 정본 링크로 대체했다. 바이너리/옵션·job 이미지·CTest 경로·coverage 무효 처리·배포 권한/health 차이를 정정했다. 제품 CI는 여전히 미구현이다.
+
+
+2026-11-17 CHG-031: ECU strict 시험 목록은 새 취득/적분5개를 더한33개이며 IVI제품44개는 유지한다. 별도 cross는 C++ ECU27/IVI18을 요구한다. physical_capture_cli와 bounded_sensor_read는 각각 Python/Linux 파일·프로세스, native fork/회수·소유자 사망 검증으로 native job에 둔다. 기존28/24 수치는 첫 PR 이전 기준선의 이력이다. skip/coverage 문턱은 완화하지 않는다.

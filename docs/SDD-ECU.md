@@ -773,3 +773,7 @@ R02 센서 추가 검사는 알려진 합성 프로필과 native 관측을 비�
 live IDS의 OrderedSocketCan은 커널 수신시각 자체를 바꾸지 않고 최대4096개/1ms의 제한된 재정렬 구간에서 순서를 정리한다. 뒤늦은 프레임이 이미 공개한 watermark보다 앞서면 상세 시각/ID와 함께 epoch 오류로 처리하고, 용량 초과도 관찰 공백으로 남긴다. 기존10ms realtime→monotonic 매핑 변화·잘린 프레임·드롭/처리 지연 검사는 유지한다. 1ms는 로컬 순서 정리 예산이지 물리Pi 운용값 인수나 시계 오류 허용치 완화가 아니다. 실제Pi는 별도 검증한다.
 
 FailSafeStateMachine의 시간 단위 변환만 로컬 noexcept 함수로 분리한다. 계산/임계·상태 전이·냉각5초·콜백 예외 전파를 유지하며 전체 FSM 함수를 noexcept로 바꾸지 않는다. gcov 예외 필터/분모 제외 없이 새 객체로 커버리지를 검증한다. [진행](aidlc/changes/CHG-030/aidlc-state.md).
+
+### 2026-11-17 선택형 단셀 실측 준비 — CHG-031
+
+기존 main의 입력 모드/10셀 가상 모델/ADS1115 경로는 보존한다. 별도 physical_sensor_core와 physical_battery_capture가 INA219 triggered bus/shunt/current·명시 calibration, DS18B20 현재 CRC/scratchpad, 제한된 단독 reader 프로세스를 연결한다. 온도/전류를 새 값으로 꾸미는 fallback은 없다. 물리 취득 시간으로 Ah/Wh를 적분하는 독립 PhysicalBatteryMeter는 명시 초기SOC가 없으면 미산정을 유지하며, 다른 모델/보정 저장 상태·관찰 공백을 분리한다. 기존 checkpoint/main·CAN/IVI 연동은 아직 구현되지 않았다. [정의/진행](aidlc/changes/CHG-031/aidlc-state.md)·[사용/한계](aidlc/changes/CHG-031/capture-guide.md).
