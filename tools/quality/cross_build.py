@@ -24,6 +24,8 @@ EXCLUDED = {
     'ecu': {'soc_profile_product': 'Python native integration gate',
             'physical_capture_cli': 'Python/Linux file and process integration gate',
             'bounded_sensor_read': 'Linux native fork/waitpid/owner-death lifecycle gate',
+            'physical_sensor_runtime': 'Native spawn/exec/Python IPC and owned-process lifecycle gate',
+            'physical_ecu_product': 'Native owned sensor worker and authenticated virtual CAN product gate',
             'can_session_vcan': 'native virtual CAN gate',
             'ecu_session_product': 'native virtual CAN product gate',
             'can_receive_lifecycle': 'native virtual CAN driver lifecycle gate'},
@@ -65,8 +67,9 @@ def input_hashes(repo):
                 if path.suffix in ('.cpp', '.h', '.qml', '.py', '.csv', '.conf', '.ttf'):
                     if path.is_symlink():raise ValueError('symlink cross source rejected')
                     result[str(path.relative_to(repo))] = sha(path)
-    for path in (repo/'docs/aidlc/changes/CHG-029').glob('*.tsv'):
-        result[str(path.relative_to(repo))] = sha(path)
+    for change in ('CHG-029', 'CHG-031'):
+        for path in (repo/'docs/aidlc/changes'/change).glob('*.tsv'):
+            result[str(path.relative_to(repo))] = sha(path)
     return result
 
 

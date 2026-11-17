@@ -20,7 +20,8 @@ public:
         CONSTANT,
         PROFILE_CSV,
         RANDOM_WALK,
-        ADS1115_HARDWARE
+        ADS1115_HARDWARE,
+        PHYSICAL_HARDWARE // runtime feed owns all data; next() is forbidden
     };
 
     // Virtual values used with ADS1115_HARDWARE: the potentiometer drives

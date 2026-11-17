@@ -20,7 +20,7 @@ def test_arm64_and_host_elf_are_distinct_and_malformed_files_rejected(tmp_path):
 
 
 def test_cross_profile_preserves_native_inventory_and_declares_all_nonemulated_tests():
-    assert len(EXPECTED['ecu']) == 33 and len(EXPECTED['ivi']) == 21
+    assert len(EXPECTED['ecu']) == 35 and len(EXPECTED['ivi']) == 21
     assert len(EXPECTED['ivi-integrated']) == 44
     assert len(EXPECTED['ecu']-EXCLUDED['ecu'].keys()) == 27
     assert len(EXPECTED['ivi']-EXCLUDED['ivi'].keys()) == 18
@@ -57,3 +57,6 @@ def test_cross_input_snapshot_detects_added_removed_and_changed_source(tmp_path)
     after = input_hashes(tmp_path);assert after != before
     new.write_text('changed source');assert input_hashes(tmp_path) != after
     new.unlink();assert input_hashes(tmp_path) == before
+    vector=tmp_path/'docs/aidlc/changes/CHG-031/physical-v1-vectors.tsv'
+    vector.parent.mkdir(parents=True);vector.write_text('public physical contract vector')
+    assert input_hashes(tmp_path) != before

@@ -154,6 +154,26 @@ void run() {
     EXPECT_TRUE(history->property("contentY").toDouble()>0);
     EXPECT_TRUE(tabs->isVisible());
     EXPECT_TRUE(socGauge->property("stale").toBool());
+    // The same product QML displays physical channels independently of SOC/SOH.
+    ivi::VehicleSnapshot physical;physical.physical_measurement=capstone::session_v2::PhysicalMeasurement{};
+    physical.physical_measurement->sequence=3;physical.vehicle.valid=true;physical.vehicle.stale=false;
+    physical.vehicle.voltage_v=3.8531;physical.vehicle.current_a=-.3711;physical.vehicle.temperature_c=20.125;
+    physical.physical_valid={true,true,true,false,false};
+    model.updateSnapshot(physical);model.dismissPopup();root->setProperty("currentPage",0);flush();
+    EXPECT_FALSE(socGauge->property("available").toBool());EXPECT_EQ(soh->property("text").toString(),QStringLiteral("--"));
+    auto* voltage=root->findChild<QObject*>("voltageMetric");auto* current=root->findChild<QObject*>("currentMetric");
+    auto* temperature=root->findChild<QObject*>("temperatureMetric");
+    EXPECT_TRUE(voltage&&current&&temperature);
+    EXPECT_EQ(voltage->property("title").toString(),QStringLiteral("셀 전압"));
+    EXPECT_EQ(voltage->property("value").toString(),QStringLiteral("3.853 V"));
+    EXPECT_EQ(current->property("value").toString(),QStringLiteral("-0.371 A"));
+    EXPECT_EQ(temperature->property("value").toString(),QStringLiteral("20.1 °C"));
+    EXPECT_TRUE(window->grabWindow().save("dashboard-physical.png"));
+    physical.physical_valid[2]=false;model.updateSnapshot(physical);flush();
+    EXPECT_EQ(temperature->property("value").toString(),QStringLiteral("--"));
+    EXPECT_EQ(voltage->property("value").toString(),QStringLiteral("3.853 V"));
+    EXPECT_TRUE(model.popupVisible());EXPECT_TRUE(window->grabWindow().save("dashboard-physical-partial.png"));
+    physical.physical_valid[2]=true;model.updateSnapshot(physical);flush();EXPECT_FALSE(model.popupVisible());
 }
 int main(int argc,char** argv) {
     QGuiApplication app(argc,argv);

@@ -96,7 +96,7 @@ ApplicationWindow {
                                             objectName: "socGauge"
                                             Layout.preferredWidth: 190; Layout.fillHeight: true
                                             value: root.vehicleModel.soc
-                                            available: root.vehicleModel.measurementsAvailable
+                                            available: root.vehicleModel.socAvailable
                                             stale: root.vehicleModel.stale || root.vehicleModel.sensorUsesLastGood
                                             highColor: root.green; mediumColor: root.orange; lowColor: root.red
                                             mutedColor: root.muted; panelColor: root.panel
@@ -106,19 +106,19 @@ ApplicationWindow {
                                             Layout.fillWidth: true
                                             Text {
                                                 Layout.fillWidth: true
-                                                text: !root.vehicleModel.measurementsAvailable ? "배터리 정보 대기" : root.vehicleModel.soc < 20 ? "충전이 필요합니다" : "잔량이 충분합니다"
+                                                text: !root.vehicleModel.socAvailable ? (root.vehicleModel.physicalMode ? "잔량 추정 준비 중" : "배터리 정보 대기") : root.vehicleModel.physicalMode ? (root.vehicleModel.physicalObservationGap ? "측정 공백이 있는 잔량 추정" : "배터리 잔량 추정 중") : root.vehicleModel.soc < 20 ? "충전이 필요합니다" : "잔량이 충분합니다"
                                                 color: root.ink; font.pixelSize: 18; font.bold: true
                                                 wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight
                                             }
                                             Text {
                                                 Layout.fillWidth: true
-                                                text: root.vehicleModel.stale || root.vehicleModel.sensorUsesLastGood ? "마지막으로 확인한 값입니다." : "배터리 건강도(SOH)"
+                                                text: root.vehicleModel.physicalMode ? (root.vehicleModel.sohAvailable ? "배터리 건강도(SOH) · 용량 시험값 기준" : "배터리 건강도(SOH) · 용량 측정 전") : root.vehicleModel.stale || root.vehicleModel.sensorUsesLastGood ? "마지막으로 확인한 값입니다." : "배터리 건강도(SOH)"
                                                 color: root.muted; font.pixelSize: 12
                                                 wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight
                                             }
                                             Text {
                                                 objectName: "sohValue"
-                                                text: root.vehicleModel.measurementsAvailable ? root.vehicleModel.soh.toFixed(1) + "%" : "--"
+                                                text: root.vehicleModel.sohAvailable ? root.vehicleModel.soh.toFixed(1) + "%" : "--"
                                                 color: root.ink; font.pixelSize: 30; font.bold: true
                                             }
                                             Text { text: "배터리 건강도(SOH)"; visible: root.vehicleModel.stale || root.vehicleModel.sensorUsesLastGood; color: root.muted; font.pixelSize: 12 }
@@ -128,9 +128,9 @@ ApplicationWindow {
                                 RowLayout {
                                     Layout.fillWidth: true; Layout.preferredHeight: 62; Layout.minimumHeight: 62; Layout.maximumHeight: 62
                                     spacing: 8
-                                    Metric { title: "팩 전압"; value: root.vehicleModel.measurementsAvailable ? root.vehicleModel.voltage.toFixed(2) + " V" : "--" }
-                                    Metric { title: "전류"; value: root.vehicleModel.measurementsAvailable ? root.vehicleModel.current.toFixed(1) + " A" : "--" }
-                                    Metric { title: "온도"; value: root.vehicleModel.measurementsAvailable ? root.vehicleModel.temperature.toFixed(0) + " °C" : "--" }
+                                    Metric { objectName: "voltageMetric"; title: root.vehicleModel.physicalMode ? "셀 전압" : "팩 전압"; value: root.vehicleModel.voltageAvailable ? root.vehicleModel.voltage.toFixed(root.vehicleModel.physicalMode ? 3 : 2) + " V" : "--" }
+                                    Metric { objectName: "currentMetric"; title: "전류"; value: root.vehicleModel.currentAvailable ? root.vehicleModel.current.toFixed(root.vehicleModel.physicalMode ? 3 : 1) + " A" : "--" }
+                                    Metric { objectName: "temperatureMetric"; title: "온도"; value: root.vehicleModel.temperatureAvailable ? root.vehicleModel.temperature.toFixed(root.vehicleModel.physicalMode ? 1 : 0) + " °C" : "--" }
                                 }
                             }
                             ColumnLayout {

@@ -1,5 +1,7 @@
 > **계약 프로파일 경계(2026-11-11)**: §1~2의 고정키·인증 ID별 counter/래핑은 `legacy-v1` 실험 재현 프로파일이다. 사용자 승인된 제품 전환 계약 `session-v2`는 [인증 세션](ICD-CAN-SESSION.md) 및 [CAN 진단](ICD-CAN-DIAGNOSTIC.md)을 함께 따른다. 기존0x100~103/200 배치는 유지하지만 키/counter 의미는 비호환이다. 프로파일을 명시하고 자동 downgrade하지 않는다. 제품 양쪽 연결은 [CHG-029](aidlc/changes/CHG-029/aidlc-state.md)에서 진행 중이며 승인만으로 배포/물리 인수가 완료된 것이 아니다. §3은 현재 C++ Service API이며 확장 연동도 같은 변경 단위로 진행한다. §8 sensorState byte7을 이번에 임의 활성화하지 않고 입력 준비/오류는 인증 NodeStatus로 전달한다.
 
+> **선택형 단셀 실측(2026-11-17)**: 승인된 [CAN 진단 종류9](ICD-CAN-DIAGNOSTIC.md)는 기존0x100~105/200의 배치를 보존하고0x302로 실측값·미산정·품질을 전달한다. `physical` 모드는 종류9로 표시하며0x100/102에 미산정값을 채우지 않는다. 아래100ms 가상 BMS 계약과 구분한다. 현재 C++ Service API는 `VehicleSnapshot::physical_measurement` 및 채널별 `physical_valid`를 확장하며 기존 소비자는 새 모드의 정상 BMS로 간주하지 않는다. 기존 checkpoint/가상 보호를 실셀에 자동 적용하지 않는다.
+
 > **문서명**: Interface Control Document (ICD)  
 > **버전**: v1.7 (session-v2 전환 포함) | **작성일**: 2026-03-01 | **최종 수정**: 2026-11-11
 > **작성자**: 팀원A + 팀원B (공동 — 인터페이스 확정 후 각자 독립 개발 시작)  

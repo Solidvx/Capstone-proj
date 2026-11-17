@@ -21,6 +21,13 @@ class DashboardViewModel : public QObject {
     Q_PROPERTY(double current READ current NOTIFY dataChanged)
     Q_PROPERTY(double temperature READ temperature NOTIFY dataChanged)
     Q_PROPERTY(bool measurementsAvailable READ measurementsAvailable NOTIFY dataChanged)
+    Q_PROPERTY(bool physicalMode READ physicalMode NOTIFY dataChanged)
+    Q_PROPERTY(bool physicalObservationGap READ physicalObservationGap NOTIFY dataChanged)
+    Q_PROPERTY(bool socAvailable READ socAvailable NOTIFY dataChanged)
+    Q_PROPERTY(bool sohAvailable READ sohAvailable NOTIFY dataChanged)
+    Q_PROPERTY(bool voltageAvailable READ voltageAvailable NOTIFY dataChanged)
+    Q_PROPERTY(bool currentAvailable READ currentAvailable NOTIFY dataChanged)
+    Q_PROPERTY(bool temperatureAvailable READ temperatureAvailable NOTIFY dataChanged)
     Q_PROPERTY(QString sensorState READ sensorState NOTIFY dataChanged)
     Q_PROPERTY(bool sensorStateWarning READ sensorStateWarning NOTIFY dataChanged)
     Q_PROPERTY(bool sensorUsesLastGood READ sensorUsesLastGood NOTIFY dataChanged)
@@ -95,6 +102,13 @@ public:
     double current() const;
     double temperature() const;
     bool measurementsAvailable() const;
+    bool physicalMode()const{return snapshot_.physical_measurement.has_value();}
+    bool physicalObservationGap()const{return physicalMode()&&snapshot_.physical_measurement->observation_gap;}
+    bool socAvailable()const{return physicalMode()?snapshot_.physical_valid[3]:measurementsAvailable();}
+    bool sohAvailable()const{return physicalMode()?snapshot_.physical_valid[4]:measurementsAvailable();}
+    bool voltageAvailable()const{return physicalMode()?snapshot_.physical_valid[0]:measurementsAvailable();}
+    bool currentAvailable()const{return physicalMode()?snapshot_.physical_valid[1]:measurementsAvailable();}
+    bool temperatureAvailable()const{return physicalMode()?snapshot_.physical_valid[2]:measurementsAvailable();}
     QString sensorState() const;
     bool sensorStateWarning() const;
     bool sensorUsesLastGood() const;
@@ -130,7 +144,7 @@ private:
     void recordProtectionUpdate();
     QJsonObject protectionLink(const QJsonObject& current)const;
     void recordEvent(const QString& text,const QString& category=QStringLiteral("event"));
-    enum class PopupDomain { General, Battery, Security, Storage };
+    enum class PopupDomain { General, Battery, Security, Storage, Sensor };
     void presentPopup(const QString& title, const QString& description, const QString& kind, int priority,PopupDomain domain=PopupDomain::General);
     bool dark_mode_ = true;
     bool fail_safe_known_ = false;

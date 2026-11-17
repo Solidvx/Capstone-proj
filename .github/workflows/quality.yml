@@ -113,7 +113,7 @@ jobs:
           useradd --create-home --uid 10001 capstone-test
           chown -R capstone-test:capstone-test build-quality-ecu build-quality-ivi quality-reports
           runuser -u capstone-test -- id
-      - name: ECU tests (all 33 required, no skips)
+      - name: ECU tests (all 35 required, no skips)
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: |
           runuser -u capstone-test -- python3 tools/quality/ctest_gate.py --build build-quality-ecu --component ecu

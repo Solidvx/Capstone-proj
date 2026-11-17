@@ -60,6 +60,7 @@ std::string inputLineageJson(const std::string& instance,const std::string& inte
     case SensorSimulator::Mode::PROFILE_CSV:name="profile_csv";break;
     case SensorSimulator::Mode::RANDOM_WALK:name="random_walk";break;
     case SensorSimulator::Mode::ADS1115_HARDWARE:name="ads1115";break;
+    case SensorSimulator::Mode::PHYSICAL_HARDWARE:throw std::invalid_argument("physical mode uses its own sensor/model lineage");
     }
     if (!name || (mode==SensorSimulator::Mode::PROFILE_CSV && !sensor.profileInput()))
         throw std::invalid_argument("input lineage requires a loaded source");

@@ -82,6 +82,7 @@ if(IVI_BUILD_TESTS)
     target_include_directories(test_can_diagnostic PRIVATE ../adaptive_ecu/include)
     target_link_libraries(test_can_diagnostic PRIVATE OpenSSL::Crypto)
     target_compile_definitions(test_can_diagnostic PRIVATE
+        PHYSICAL_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../docs/aidlc/changes/CHG-031/physical-v1-vectors.tsv"
         DIAGNOSTIC_INPUT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../docs/aidlc/changes/CHG-029/diagnostic-inputs.tsv"
         DIAGNOSTIC_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../docs/aidlc/changes/CHG-029/diagnostic-v1-vectors.tsv"
         PROTECTION_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../docs/aidlc/changes/CHG-029/protection-v1-vectors.tsv")

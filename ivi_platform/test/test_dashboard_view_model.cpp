@@ -43,6 +43,21 @@ class DashboardViewModelTest : public QObject {
     }
 
 private slots:
+    void physicalUnknownSocAndPartialSensorFailure(){
+        DashboardViewModel model;ivi::VehicleSnapshot s;s.physical_measurement=capstone::session_v2::PhysicalMeasurement{};
+        s.physical_measurement->sequence=3;s.vehicle.valid=true;s.vehicle.stale=false;
+        s.vehicle.voltage_v=3.8531;s.vehicle.current_a=-.3711;s.vehicle.temperature_c=20.125;
+        s.physical_valid={true,true,true,false,false};model.updateSnapshot(s);
+        QVERIFY(model.physicalMode());QVERIFY(model.measurementsAvailable());QVERIFY(!model.socAvailable());QVERIFY(!model.sohAvailable());
+        QVERIFY(model.voltageAvailable());QVERIFY(model.temperatureAvailable());QCOMPARE(model.voltage(),3.8531);
+        QCOMPARE(model.socBand(),QStringLiteral("unavailable"));QVERIFY(!model.failSafeKnown());
+        QCOMPARE(model.statusTitle(),QStringLiteral("실제 배터리 측정 중"));
+        s.physical_valid[2]=false;model.updateSnapshot(s);QVERIFY(model.voltageAvailable());QVERIFY(!model.temperatureAvailable());
+        QCOMPARE(model.statusTitle(),QStringLiteral("일부 센서 확인 필요"));
+        s.physical_valid.fill(false);s.vehicle.valid=false;s.vehicle.stale=true;model.updateSnapshot(s);
+        QVERIFY(!model.measurementsAvailable());QVERIFY(!model.socAvailable());
+        QCOMPARE(model.statusTitle(),QStringLiteral("센서·연결 확인 필요"));
+    }
     void committedRecordingGapPersistsAcrossNewProtectionIncidents(){
         using namespace capstone::session_v2;
         const auto instance=diagnosticUuid(),lineage=diagnosticUuid(),context=diagnosticUuid();

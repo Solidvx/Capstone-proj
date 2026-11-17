@@ -776,6 +776,16 @@ FailSafeStateMachine의 시간 단위 변환만 로컬 noexcept 함수로 분리
 
 ### 2026-11-17 선택형 단셀 실측 준비 — CHG-031
 
-기존 main의 입력 모드/10셀 가상 모델/ADS1115 경로는 보존한다. 별도 physical_sensor_core와 physical_battery_capture가 INA219 triggered bus/shunt/current·명시 calibration, DS18B20 현재 CRC/scratchpad, 제한된 단독 reader 프로세스를 연결한다. 온도/전류를 새 값으로 꾸미는 fallback은 없다. 물리 취득 시간으로 Ah/Wh를 적분하는 독립 PhysicalBatteryMeter는 명시 초기SOC가 없으면 미산정을 유지하며, 다른 모델/보정 저장 상태·관찰 공백을 분리한다. 기존 checkpoint/main·CAN/IVI 연동은 아직 구현되지 않았다. [정의/진행](aidlc/changes/CHG-031/aidlc-state.md)·[사용/한계](aidlc/changes/CHG-031/capture-guide.md).
+첫 준비 단계는 별도 physical_sensor_core·physical_battery_capture와 독립 PhysicalBatteryMeter였다. INA219 triggered bus/shunt/current·명시 calibration, DS18B20 현재 CRC/scratchpad, 제한된 단독 reader를 연결했다. 이후 승인된 제품 표시 연결은 아래를 따른다. [정의/진행](aidlc/changes/CHG-031/aidlc-state.md)·[원시 취득](aidlc/changes/CHG-031/capture-guide.md).
 
-후속으로 캡처v2의 실행 UUID·Linux boot 시계·시행/채널별 구간을 명시하고 Python 검증기가 동일 실행/보정·순서·유효성을 대조한다. evaluate_physical_capture는 같은 C++ SOC/SOH 코어를 사용하는 오프라인 숫자 어댑터다. 물리 정확도는 미검증이고 SOH 외부 용량은 사용자 확인 근거로 따로 기록한다. 실시간 main/CAN/IVI·보호 판단을 우회 연결하지 않는다. [절차/형식](aidlc/changes/CHG-031/measurement-to-estimate.md).
+캡처v2의 실행 UUID·Linux boot 시계·시행/채널별 구간은 Python 검증기가 동일 실행/보정·순서·유효성을 대조한다. evaluate_physical_capture는 같은 C++ SOC/SOH 코어를 사용하는 오프라인 어댑터다. 물리 정확도는 미검증이고 SOH 외부 용량은 사용자 확인 근거로 따로 기록한다. [절차/형식](aidlc/changes/CHG-031/measurement-to-estimate.md).
+
+### CHG-031 후속 — 실시간 실측 입력·인증 CAN 표시
+
+FR-BMS-009의 `--sensor-mode physical --physical-config FILE`은 설정 원문의SHA256로 센서/보정/용량/초기값/시간을 묶는다. INA219/DS18B20 원시 취득은 sibling `physical_battery_worker`를posix_spawn/exec로 시작하며 표준입출력 이외 상속fd를 닫는다. fork 제한 reader는 이 단일 스레드 프로세스 안에서만 사용한다. ECU owner는 최대8개84B 패킷을 비차단 처리하고 프로세스/설정 혼합을 거부한다. 중단은 소유 그룹SIGTERM 뒤200ms, 이어SIGKILL 뒤200ms 회수 상한이다. 미회수 상태에 새 취득자를 겹치지 않는다.
+
+PhysicalSampleFeed는 채널별 새3회 정상 확인·신선도·오류/복귀를 관리한다. 같은 순번을 다시 적분하지 않고 전기 오류/공백은 적분 기준점을 끊는다. 온도 오류만으로 정상 전류 적분을 끊지 않는다. 명시 초기SOC와 별도 용량시험 입력은 다른 근거로 처리한다. 같은 설정에서 누적 전기 관찰 공백은 지우지 않는다.
+
+main은 기존 가상 계산/PubSub BMS 분기를 건너뛰고 인증 진단 종류9를1초 간격으로 최신 제안한다. 대기1개/펌프6프레임/명시 진단 기한으로 제한하고 CAN/IDS owner 처리를 계속한다. 로그는 근거별null·누적Ah/Wh·품질/공백·미보정 상태를 남긴다. FR-BMS-008 기존100ms BMS 경로는 변경하지 않는다.
+
+현재 physical 모드의 보호 판단은 미구성이므로 NodeStatus 위험FF를 보낸다. 기존 가상55/60°C/5초나50Ah/EKF 값을 실셀에 적용하지 않는다. 기존 checkpoint/recovery 옵션·SOH CSV·legacy/off 인증과의 혼합은 초기 설정 오류로 거부하며 자동 fresh fallback을 하지 않는다. 물리 모드의 보존/복구와 셀 보호 정책은 후속이다. 설치는 worker를 함께 패키징하되 서비스/키를 자동 변경하지 않는다.

@@ -196,6 +196,12 @@ void DashboardViewModel::recordEvent(const QString& text,const QString& category
             {"received_monotonic_ms",QString::number(message.received_ms)}};
     };
     using namespace capstone::session_v2;
+    if(snapshot_.physical_measurement){
+        const auto& m=*snapshot_.physical_measurement;
+        event.insert("physical_source",QJsonObject{{"sequence",QString::number(m.sequence)},
+            {"configuration_id",hex(m.configuration,0,16)},{"soc_basis",m.soc_basis},{"soh_basis",m.soh_basis},
+            {"observation_gap",m.observation_gap},{"physical_accuracy_verified",false}});
+    }
     if(snapshot_.ecu_node_status && snapshot_.ecu_node_status->kind==DiagnosticKind::NodeStatus &&
        validDiagnosticBody(0x302,DiagnosticKind::NodeStatus,snapshot_.ecu_node_status->body)){
         const auto& node=*snapshot_.ecu_node_status;const auto& body=node.body;
@@ -247,6 +253,11 @@ void DashboardViewModel::dismissPopup() {
 }
 
 QString DashboardViewModel::statusTitle() const {
+    if(physicalMode()){
+        if(!snapshot_.physical_measurement->sequence)return QStringLiteral("센서 준비 중");
+        if(!measurementsAvailable())return QStringLiteral("센서·연결 확인 필요");
+        return voltageAvailable()&&currentAvailable()&&temperatureAvailable() ? QStringLiteral("실제 배터리 측정 중") : QStringLiteral("일부 센서 확인 필요");
+    }
     if (snapshot_.vehicle.fail_safe_state == 3) {
         if(snapshot_.vehicle.valid && !snapshot_.vehicle.stale && !sensorStateWarning() && snapshot_.vehicle.temperature_c<=55)
             return QStringLiteral("온도 회복 확인 중");
@@ -331,6 +342,9 @@ QString DashboardViewModel::securityDescription()const{
 }
 
 QString DashboardViewModel::statusDescription() const {
+    if(physicalMode())return physicalObservationGap() ?
+        QStringLiteral("측정이 끊긴 구간이 있어 잔량 추정에 오차가 있을 수 있습니다. 자동 부하 차단은 지원하지 않습니다.") :
+        QStringLiteral("실측 상태를 확인하는 모드입니다. 자동 부하 차단은 지원하지 않습니다.");
     switch (snapshot_.vehicle.fail_safe_reason) {
     case 1: if (snapshot_.vehicle.fail_safe_state) return QStringLiteral("배터리 잔량이 부족합니다. 충전이 필요합니다."); break;
     case 2: if (snapshot_.vehicle.fail_safe_state) return QStringLiteral("잔량이 매우 낮습니다. 배터리를 점검해 주세요."); break;
@@ -356,7 +370,7 @@ bool DashboardViewModel::valid() const { return snapshot_.vehicle.valid; }
 bool DashboardViewModel::stale() const { return snapshot_.vehicle.stale; }
 double DashboardViewModel::soc() const { return snapshot_.vehicle.soc_percent; }
 QString DashboardViewModel::socBand() const {
-    if (!measurementsAvailable()) {
+    if (!socAvailable()) {
         return QStringLiteral("unavailable");
     }
     if (snapshot_.vehicle.soc_percent < 20.0) {
@@ -372,11 +386,14 @@ double DashboardViewModel::voltage() const { return snapshot_.vehicle.voltage_v;
 double DashboardViewModel::current() const { return snapshot_.vehicle.current_a; }
 double DashboardViewModel::temperature() const { return snapshot_.vehicle.temperature_c; }
 bool DashboardViewModel::measurementsAvailable() const {
+    if(physicalMode())return snapshot_.physical_valid[0]||snapshot_.physical_valid[1]||snapshot_.physical_valid[2];
     const auto sensor_state = snapshot_.vehicle.sensor_state;
     return snapshot_.vehicle.valid && sensor_state != 1U && sensor_state != 3U &&
            sensor_state != 5U && sensor_state <= 6U;
 }
 QString DashboardViewModel::sensorState() const {
+    if(physicalMode())return voltageAvailable()&&currentAvailable()&&temperatureAvailable() ?
+        QStringLiteral("실제 센서 측정 중") : QStringLiteral("센서 준비·상태 확인 중");
     switch(snapshot_.vehicle.sensor_state){
     case 1:return QStringLiteral("센서 준비 중");
     case 2:return QStringLiteral("정상 측정 중");
@@ -388,9 +405,11 @@ QString DashboardViewModel::sensorState() const {
     }
 }
 bool DashboardViewModel::sensorStateWarning() const {
+    if(physicalMode())return !voltageAvailable()||!currentAvailable()||!temperatureAvailable();
     return snapshot_.vehicle.sensor_state > 0U && snapshot_.vehicle.sensor_state != 2U;
 }
 bool DashboardViewModel::sensorUsesLastGood() const {
+    if(physicalMode())return false; // invalid physical channels display --
     return snapshot_.vehicle.valid && (snapshot_.vehicle.sensor_state == 4U || snapshot_.vehicle.sensor_state == 6U);
 }
 qulonglong DashboardViewModel::lastGoodAgeMs() const {
@@ -405,6 +424,7 @@ QString DashboardViewModel::failSafeReason() const {
     return QString::fromLatin1(ivi::failSafeReasonName(snapshot_.vehicle.fail_safe_reason));
 }
 bool DashboardViewModel::failSafeOverlayActive() const {
+    if(physicalMode())return false;
     return snapshot_.vehicle.fail_safe_state >= 2U;
 }
 
@@ -471,15 +491,35 @@ void DashboardViewModel::updateSnapshot(const ivi::VehicleSnapshot& snapshot) {
         !std::equal(snapshot.ecu_restart_plan->body.begin(),snapshot.ecu_restart_plan->body.begin()+32,
                     previous.ecu_restart_plan->body.begin())))
         recordEvent(QStringLiteral("ECU 재시작 예고 수신"),QStringLiteral("ecu-restart-planned"));
-    if(snapshot.fail_safe_known)fail_safe_known_=true;
+    if(snapshot.physical_measurement)fail_safe_known_=false;
+    else if(snapshot.fail_safe_known)fail_safe_known_=true;
+    if(snapshot.physical_measurement&&previous.physical_measurement){
+        QStringList missing;
+        const QStringList channels{QStringLiteral("전압"),QStringLiteral("전류"),QStringLiteral("온도")};
+        bool lost=false,recovered=false;
+        for(unsigned i=0;i<3;++i){
+            if(previous.physical_valid[i]&&!snapshot.physical_valid[i])lost=true;
+            if(!previous.physical_valid[i]&&snapshot.physical_valid[i])recovered=true;
+            if(!snapshot.physical_valid[i])missing.append(channels[i]);
+        }
+        if(lost){
+            recordEvent(missing.join(QStringLiteral("·"))+QStringLiteral(" 측정 확인 필요"),QStringLiteral("sensor-input-lost"));
+            presentPopup(QStringLiteral("센서를 확인해 주세요"),missing.join(QStringLiteral("·"))+
+                QStringLiteral("의 새 측정값을 확인하지 못했습니다. 연결과 센서 상태를 확인해 주세요."),
+                QStringLiteral("warning"),50,PopupDomain::Sensor);
+        }else if(recovered&&missing.empty()){
+            recordEvent(QStringLiteral("센서 측정 회복 확인"),QStringLiteral("sensor-input-recovered"));
+            if(popup_visible_&&popup_domain_==PopupDomain::Sensor)dismissPopup();
+        }
+    }
     for(unsigned i=0;i<4;++i)if(snapshot.incident_rejection_ids[i] && snapshot.incident_rejection_ids[i]!=previous.incident_rejection_ids[i]){
         const auto text=QString::fromLatin1(ivi::attackTypeName(i+1))+QStringLiteral(" · 관련 데이터의 수신 거부 확인");
         recordEvent(text,QStringLiteral("incident-data-refusal"));
         presentPopup(text,QStringLiteral("확인된 위험 데이터가 화면에 반영되지 않도록 처리했습니다. 정상 데이터는 계속 확인합니다."),QStringLiteral("success"),70,PopupDomain::Security);
     }
-    const bool new_fail_safe = previous.vehicle.fail_safe_state != snapshot.vehicle.fail_safe_state ||
+    const bool new_fail_safe = !physicalMode() && (previous.vehicle.fail_safe_state != snapshot.vehicle.fail_safe_state ||
         previous.vehicle.fail_safe_reason != snapshot.vehicle.fail_safe_reason ||
-        (!fail_safe_known_ && snapshot.last_message == "Authenticated Fail-safe event published");
+        (!fail_safe_known_ && snapshot.last_message == "Authenticated Fail-safe event published"));
     const bool fresh_risk=snapshot.fail_safe_known&&snapshot.last_secoc_verified&&snapshot.vehicle.valid&&!snapshot.vehicle.stale&&
         (!snapshot.session_protocol||snapshot.session_bms_ready);
     if(popup_visible_&&popup_domain_==PopupDomain::Battery&&fresh_risk&&snapshot.vehicle.fail_safe_state<popup_battery_state_){

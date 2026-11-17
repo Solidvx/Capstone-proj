@@ -39,6 +39,42 @@ struct Rig{
     }
     void send(const std::vector<wire::Frame>& frames){enqueue(false,frames);pump();advance(5);}
 };
+void physicalMeasurementTests(){
+    const auto instance=wire::diagnosticUuid();
+    auto node=[&]{std::vector<std::uint8_t> b(56,0);std::copy(instance.begin(),instance.end(),b.begin());
+        b[32]=2;b[33]=1;b[34]=2;b[35]=0xff;b[53]=1;return b;};
+    wire::PhysicalMeasurement m;m.instance=instance;m.configuration[0]=1;m.nominal_capacity_mah=2550;m.max_interval_ms=3000;
+    m.sequence=3;m.voltage_v=3.85;m.current_a=-.3711;m.temperature_c=20.125;
+    m.ina_quality=m.temperature_quality=2;m.ina_age_ms=800;m.temperature_age_ms=0;
+    auto send=[](Rig& r,const wire::PhysicalMeasurement& value){
+        r.send(r.ecu.makeDiagnostic(wire::DiagnosticKind::PhysicalMeasurement,wire::encodePhysicalMeasurement(value))->frames);
+    };
+    Rig rig;rig.open();
+    send(rig,m);EXPECT_TRUE(!rig.service.latest().physical_measurement); // no identity before NodeStatus
+    rig.send(rig.ecu.makeDiagnostic(wire::DiagnosticKind::NodeStatus,node())->frames);
+    send(rig,m);auto s=rig.service.latest();EXPECT_TRUE(s.physical_measurement.has_value());
+    EXPECT_TRUE(s.physical_valid[0]&&s.physical_valid[1]&&s.physical_valid[2]);
+    EXPECT_TRUE(!s.physical_valid[3]&&!s.physical_valid[4]);EXPECT_TRUE(!s.fail_safe_known);
+    EXPECT_TRUE(std::abs(s.vehicle.current_a+.3711)<1e-9);EXPECT_TRUE(s.connection_stage=="connected");
+    const auto generation=s.session_generation;
+    rig.advance(1000);s=rig.service.latest();EXPECT_EQ(s.session_generation,generation);EXPECT_TRUE(s.physical_valid[0]);
+    auto stale=m;stale.sequence=2;send(rig,stale);EXPECT_EQ(rig.service.latest().physical_measurement->sequence,3u);
+    auto mixed=m;mixed.configuration[0]=2;mixed.sequence=4;send(rig,mixed);
+    EXPECT_EQ(rig.service.latest().physical_measurement->configuration[0],1u);
+    auto same=m;same.ina_age_ms=900;same.temperature_age_ms=100;send(rig,same);
+    auto regressed=m;send(rig,regressed);EXPECT_EQ(rig.service.latest().physical_measurement->ina_age_ms,900u);
+    m.sequence=4;m.temperature_c.reset();m.temperature_quality=4;send(rig,m);s=rig.service.latest();
+    EXPECT_TRUE(s.physical_valid[0]&&!s.physical_valid[2]);
+    auto old_valid=m;old_valid.temperature_c=20.125;old_valid.temperature_quality=2;send(rig,old_valid);
+    EXPECT_TRUE(!rig.service.latest().physical_valid[2]); // same sample cannot revive a failed channel
+    m.sequence=5;m.soc_basis=1;m.soc_percent=0;m.soh_basis=1;m.soh_percent=90;
+    // A basis change requires a new instance/config, so reject it here.
+    send(rig,m);EXPECT_TRUE(!rig.service.latest().physical_valid[3]);
+    rig.send(rig.ecu.makeDiagnostic(wire::DiagnosticKind::NodeStatus,node())->frames);
+    rig.advance(2200);s=rig.service.latest();EXPECT_TRUE(!s.physical_valid[0]&&!s.physical_valid[2]);
+    // An authenticated foreign-instance message cannot revive stale measurements.
+    m.instance=wire::diagnosticUuid();send(rig,m);EXPECT_TRUE(!rig.service.latest().physical_valid[0]);
+}
 void protectionLinkTests(){
     const auto instance=wire::diagnosticUuid(),lineage=wire::diagnosticUuid(),incident=wire::diagnosticUuid();
     auto node=[&](unsigned risk=0,unsigned reason=0,bool resume=false){
@@ -119,6 +155,7 @@ void protectionLinkTests(){
     }
 }
 void tests(){
+    physicalMeasurementTests();
     protectionLinkTests();
     {
         Rig rig;rig.open();rig.send(rig.bms());

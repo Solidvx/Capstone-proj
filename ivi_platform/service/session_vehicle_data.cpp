@@ -78,7 +78,7 @@ SessionServiceResult VehicleDataService::updateSession(const wire::Frame* frame,
         const auto since=snapshot_.session_bms_ready ? last_good_bms_at_ : session_opened_at_;
         const auto& node=snapshot_.ecu_node_status;
         const bool input_paused=node && millis(now)>=node->received_ms &&
-            millis(now)-node->received_ms<(node->body[34]!=2 || node->body[32]==3 || node->body[32]==5 ? kNodeReportFreshMs : 300u);
+            millis(now)-node->received_ms<(snapshot_.physical_measurement || node->body[34]!=2 || node->body[32]==3 || node->body[32]==5 ? kNodeReportFreshMs : 300u);
         if(phase==wire::Phase::Open && !input_paused && since && now>=*since && now-*since>=kStaleTimeout){
             auto frames=session_->start(millis(now));
             const bool began=!frames.empty();
@@ -100,6 +100,8 @@ bool VehicleDataService::applySessionLocked(Clock::time_point now,SessionService
         incident_links_=wire::IncidentRejectionLink{};snapshot_.incident_rejection_ids={};
         if(rejection_reports_)rejection_reports_->clear();
         snapshot_.session_generation=generation;snapshot_.session_bms_ready=false;
+        if(snapshot_.physical_measurement)snapshot_.vehicle.valid=false;
+        snapshot_.physical_measurement.reset();snapshot_.physical_received_ms=0;snapshot_.physical_valid.fill(false);
         snapshot_.authenticated_bms.reset();snapshot_.authenticated_bms_context.reset();
         snapshot_.vehicle.stale=true;snapshot_.vehicle.sensor_state=0;
         snapshot_.authenticated_diagnostic.reset();snapshot_.ecu_node_status.reset();snapshot_.ecu_metrics.reset();snapshot_.ecu_metrics_fresh=false;session_opened_at_.reset();changed=true;
@@ -133,6 +135,7 @@ bool VehicleDataService::applySessionLocked(Clock::time_point now,SessionService
     for(const auto& message:outcome.applied){
         if(message.generation!=generation)continue;
         if(message.id==0x100){
+            if(snapshot_.physical_measurement)continue; // never mix pack BMS with this physical instance
             const auto parsed=parseBmsStatus(message.payload);if(!parsed)throw std::logic_error("session receiver published invalid BMS");
             snapshot_.authenticated_bms=message;
             snapshot_.authenticated_bms_context=session_->lastReceiveContext() ?
@@ -252,7 +255,37 @@ bool VehicleDataService::applySessionLocked(Clock::time_point now,SessionService
             snapshot_.ecu_node_status=diagnostic.message;
             const auto& body=diagnostic.message->body;
             snapshot_.vehicle.sensor_state=body[34];
+            if(snapshot_.physical_measurement && !std::equal(body.begin(),body.begin()+16,snapshot_.physical_measurement->instance.begin())){
+                snapshot_.physical_measurement.reset();snapshot_.physical_valid.fill(false);
+                snapshot_.vehicle.valid=false;snapshot_.session_bms_ready=false;
+            }
             if(body[34]!=2 || body[32]==3 || body[32]==5)snapshot_.vehicle.stale=true;
+        }
+        if(diagnostic.message->kind==wire::DiagnosticKind::PhysicalMeasurement && snapshot_.ecu_node_status){
+            const auto& node=*snapshot_.ecu_node_status;const auto& message=*diagnostic.message;
+            auto measurement=wire::decodePhysicalMeasurement(message.body);
+            const bool node_current=millis(now)>=node.received_ms&&millis(now)-node.received_ms<kNodeReportFreshMs&&
+                node.session_id==message.session_id&&node.body[35]==0xff;
+            bool accept=measurement&&node_current&&std::equal(node.body.begin(),node.body.begin()+16,measurement->instance.begin());
+            if(accept&&snapshot_.physical_measurement){
+                const auto& old=*snapshot_.physical_measurement;const auto& next=*measurement;
+                accept=next.instance==old.instance&&next.configuration==old.configuration&&next.sequence>=old.sequence&&
+                    (!old.observation_gap||next.observation_gap)&&next.nominal_capacity_mah==old.nominal_capacity_mah&&
+                    next.max_interval_ms==old.max_interval_ms&&next.soc_basis==old.soc_basis&&next.soh_basis==old.soh_basis;
+                if(accept&&next.sequence==old.sequence){
+                    auto unchanged=[](const auto& a,const auto& b){return !a||(b&&a==b);};
+                    accept=unchanged(next.voltage_v,old.voltage_v)&&unchanged(next.current_a,old.current_a)&&
+                        unchanged(next.temperature_c,old.temperature_c)&&unchanged(next.soc_percent,old.soc_percent)&&
+                        next.soh_percent==old.soh_percent&&next.ina_age_ms>=old.ina_age_ms&&next.temperature_age_ms>=old.temperature_age_ms;
+                }
+            }
+            if(accept){
+                snapshot_.physical_measurement=std::move(measurement);snapshot_.physical_received_ms=message.received_ms;
+                snapshot_.fail_safe_known=false;snapshot_.session_bms_ready=false;
+                snapshot_.last_secoc_verified=true;snapshot_.consecutive_secoc_failure_count=0;
+                snapshot_.last_message="Authenticated physical sensor report received";
+                result.result=ProcessResult::kPublished;
+            }
         }
         if(diagnostic.message->kind==wire::DiagnosticKind::ProtectionStatus &&
            (!protection_sequence_ || diagnostic.message->sequence>*protection_sequence_)){
@@ -291,6 +324,29 @@ bool VehicleDataService::applySessionLocked(Clock::time_point now,SessionService
        (millis(now)<snapshot_.ecu_metrics->received_ms || millis(now)-snapshot_.ecu_metrics->received_ms>=3000)){
         snapshot_.ecu_metrics_fresh=false;changed=true;
     }
+    if(snapshot_.physical_measurement){
+        const auto& m=*snapshot_.physical_measurement;const auto ms=millis(now);
+        const auto& node=snapshot_.ecu_node_status;
+        const bool current=session_->dataOpen()&&node&&ms>=node->received_ms&&ms-node->received_ms<kNodeReportFreshMs&&
+            node->body[32]==2&&node->body[35]==0xff&&std::equal(node->body.begin(),node->body.begin()+16,m.instance.begin())&&
+            ms>=snapshot_.physical_received_ms;
+        const auto elapsed=ms>=snapshot_.physical_received_ms?ms-snapshot_.physical_received_ms:std::uint64_t(-1);
+        const bool report_fresh=current&&elapsed<m.max_interval_ms;
+        auto fresh=[&](std::uint32_t age){return report_fresh&&age!=0xffffffffu&&elapsed<m.max_interval_ms&&
+            age<m.max_interval_ms-elapsed;};
+        std::array<bool,5> valid{m.voltage_v.has_value()&&fresh(m.ina_age_ms),m.current_a.has_value()&&fresh(m.ina_age_ms),
+            m.temperature_c.has_value()&&fresh(m.temperature_age_ms),m.soc_percent.has_value()&&fresh(m.ina_age_ms),
+            m.soh_percent.has_value()&&report_fresh};
+        const bool available=valid[0]||valid[1]||valid[2];
+        if(snapshot_.physical_valid!=valid||snapshot_.vehicle.valid!=available){changed=true;snapshot_.physical_valid=valid;}
+        snapshot_.vehicle.valid=available;snapshot_.vehicle.stale=!available;
+        snapshot_.fail_safe_known=false;
+        if(valid[0])snapshot_.vehicle.voltage_v=*m.voltage_v;
+        if(valid[1])snapshot_.vehicle.current_a=*m.current_a;
+        if(valid[2])snapshot_.vehicle.temperature_c=*m.temperature_c;
+        if(valid[3])snapshot_.vehicle.soc_percent=*m.soc_percent;
+        if(valid[4])snapshot_.vehicle.soh_percent=*m.soh_percent;
+    }
     if(rejection_reports_ && session_->dataOpen() && session_->activeContext()){
         rejection_reports_->pump(wire::contextId(*session_->activeContext()),millis(now),[&](const wire::Frame& frame){
             result.outgoing.push_back(frame);return true; // local adapter handoff, not remote delivery proof
@@ -325,7 +381,7 @@ bool VehicleDataService::applySessionLocked(Clock::time_point now,SessionService
     case wire::Phase::WaitOffer:case wire::Phase::WaitConfirm:case wire::Phase::WaitAck:case wire::Phase::WaitReady:stage="authenticating";break;
     case wire::Phase::WaitState:case wire::Phase::WaitReceipt:stage="synchronizing";break;
     case wire::Phase::Failed:stage="fault";break;
-    case wire::Phase::Open:stage=snapshot_.session_bms_ready && !snapshot_.vehicle.stale ? "connected" : "waiting-data";break;
+    case wire::Phase::Open:stage=(snapshot_.session_bms_ready || snapshot_.physical_measurement) && snapshot_.vehicle.valid && !snapshot_.vehicle.stale ? "connected" : "waiting-data";break;
     }
     // A received plan announces intent; absence alone never proves a restart.
     // Only a new authenticated instance with restored state and fresh input/data

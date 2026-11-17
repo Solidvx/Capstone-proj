@@ -263,6 +263,14 @@ session-v2의 로컬 `SESSION_PUBLICATION` 관찰에는 현재 확인된 `sessio
 R02 센서 추가 검사는 알려진 합성 프로필과 native 관측을 비교하는 상세 로그 도구로 우선 구현한다. 자유 조작 ADS/실제 배터리의 운영 임계나 CAN 공격 분류를 추가하지 않는다. R03은 IVI 동일 boot/monotonic 시계에서 식별 가능한 최초 공격 관찰부터 새 사건의 완전한 인증·의미 검증까지 평가하며 목표3초·화면 지연 별도를 유지한다. MAC/본문 인증과 사건 revision/관찰 순서 수용을 구분하고 의미 수용 플래그·완료 시각을 제품 관찰 로그에 남긴다. R05는 동일 QML/실행본 분리를 유지하고 데스크톱 소유권·협조 종료·PC stdin 수명의 실험 lease·단일 Wayland 화면·종료 후 기존 앱 복원을 연결한다. 관리되지 않은 앱이나 회수/복원 불명은 성공으로 처리하지 않는다. 계약 바이트는 변경하지 않는다. 정의/합격 기준은 [TC-PERF-003](TEST_PLAN.md#tc-perf-003-ids-탐지-응답-시간), 운영 절차는 [session campaign](development/playbooks/session-campaign.md)을 따른다.
 
 
+### CHG-031 단셀 실측 표시 — 2026-11-17
+
+FR-IVI-009에 따라 기존 앱의 VehicleSnapshot에 선택적PhysicalMeasurement와5개채널 유효여부를 추가한다. Service가 인증 진단 종류9·현재 세션·신선한NodeStatus의동일instance·설정 fingerprint·취득순번을 확인한다. 다른 설정/역순/동일표본 값 변경·나이 역행·오류 표본 재생은 화면을 갱신하지 못한다. 새 세션/instance에서 이전 실측 유효표시를 비운다.
+
+전압/전류와 온도는 독립적으로 ECU내 나이+IVI 수신후 경과를 계산한다. 명시한 최대 적분구간을 IVI의보수적 채널/보고 최대나이로도 적용하며, NodeStatus기한3000ms와별개다. 2초 취득에 legacy의300ms BMS timeout을 그대로 적용하지 않는다. 이전세션/오래된값을 새로운 정상값으로 재게시하지 않고 채널별 `--`를 표시한다. 기존 가변저항·가상 BMS의300ms 계약은 유지한다.
+
+동일 QML은 physicalMode/socAvailable/sohAvailable/voltageAvailable/currentAvailable/temperatureAvailable을 사용한다. SOC미산정은 회색`--`·잔량 추정 준비, SOH미측정은`--`·용량 측정 전으로 표시한다. 실제 전압은 셀 전압/3자리, 전류3자리·온도1자리다. 관찰 공백은 추정 화면에 남기며 채널 오류/회복을 이벤트/중앙 알림에 연결한다. 세션의 초기NORMAL을 실제 셀 보호로 보이지 않게 하고, 실셀 보호/자동차단 미구성 상태를 구분한다. 보안 화면·가상 위험·기존 사건/이력 기능은 유지한다. [계약](ICD-CAN-DIAGNOSTIC.md)·[실행 안내](aidlc/changes/CHG-031/physical-runtime-guide.md).
+
 ### 2026-11-17 Replay 응답 계측 근거
 
 관찰용 LOCAL_REJECTION_RECORD에 run_id·Linux boot clock_id·기록 시각 recorded_monotonic_ns를 추가한다. 기존 네트워크 RejectionRecord 바이트/인증과 UI 동작은 유지한다. 평가기는 같은 세션의 MAC 검증된 COUNTER_REPLAY 전체 참조·이전 원본/auth 관찰·이후 첫 반복auth를 대조해 식별 가능한 IVI 관찰 시작점을 정한다. SESSION_PUBLICATION에는 실제 적용된 BMS 원본/auth bytes·context·수신시각을 기록하고 새 세션에서 이 근거를 비운다. 이전 원본의 실제 인증/적용 완료가 첫 반복auth보다 앞서는지도 대조한다. 원본raw 송신 시각이나 PC/다른 노드의 시각을 대신 쓰지 않는다. 종료는 기존 새 IncidentStatus의 인증/의미 수용 완료다. 근거 누락·다른run/clock/context·원본 미관찰은 지연 성공이 아니다. [시험 기준](TEST_PLAN.md)·[진행](aidlc/changes/CHG-030/aidlc-state.md).

@@ -6,7 +6,7 @@
 
 namespace capstone::session_v2 {
 enum class DiagnosticKind : std::uint8_t { NodeStatus=1, RestartPlan, RestartReceipt,
-    IncidentStatus, Rejection, Metrics, Observation, ProtectionStatus };
+    IncidentStatus, Rejection, Metrics, Observation, ProtectionStatus, PhysicalMeasurement };
 bool validDiagnosticBody(std::uint16_t sender_id,DiagnosticKind kind,
                          const std::vector<std::uint8_t>& body);
 struct DiagnosticPacket { std::uint32_t sequence;Nonce session_id;std::vector<Frame> frames; };

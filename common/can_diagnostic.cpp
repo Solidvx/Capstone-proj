@@ -1,4 +1,5 @@
 #include "can_diagnostic.h"
+#include "physical_measurement.h"
 
 #include <openssl/crypto.h>
 #include <openssl/sha.h>
@@ -18,7 +19,7 @@ std::optional<std::vector<std::uint8_t>> restartReceiptBody(const DiagnosticResu
 }
 namespace {
 using Bytes=std::vector<std::uint8_t>;
-constexpr std::array<unsigned,9> lengths{0,56,56,40,104,80,52,52,56};
+constexpr std::array<unsigned,10> lengths{0,56,56,40,104,80,52,52,56,80};
 std::uint32_t u32(const Bytes& b,unsigned at){
     std::uint32_t value=0;for(unsigned i=0;i<4;++i)value=(value<<8)|b[at+i];return value;
 }
@@ -31,7 +32,7 @@ bool maybeUuid(const Bytes& b,unsigned at){return zero(b,at,16)||uuid(b,at);}
 bool direction(std::uint16_t sender,unsigned kind){
     if(sender!=0x302 && sender!=0x303)return false;
     if(kind==6)return true;
-    return sender==0x302 ? kind==1 || kind==2 || kind==4 || kind==7 || kind==8 : kind==3 || kind==5;
+    return sender==0x302 ? kind==1 || kind==2 || kind==4 || kind==7 || kind==8 || kind==9 : kind==3 || kind==5;
 }
 bool reference(const Bytes& b,unsigned at){
     const auto kind=b[at];
@@ -54,6 +55,7 @@ void be32(Bytes& bytes,std::uint32_t value){
 bool validDiagnosticBody(std::uint16_t sender,DiagnosticKind kind,const Bytes& b){
     const auto n=static_cast<unsigned>(kind);
     if(!direction(sender,n)||!length(kind)||b.size()!=length(kind))return false;
+    if(n==9)return decodePhysicalMeasurement(b).has_value();
     if(n==1){
         if(!uuid(b,0)||!maybeUuid(b,16)||b[32]<1||b[32]>5||b[33]<1||b[33]>2||
            b[34]<1||b[34]>6||b[38]>3||b[39]||b[55]||b[52]>1||b[53]>1||b[54]>1)return false;

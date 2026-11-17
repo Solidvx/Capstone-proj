@@ -1,0 +1,20 @@
+# Local-only example. Replace the dummy probe ID and confirm the actual shunt.
+# Values reflect the short diagnostic setup, not verified Pi operating limits.
+i2c_device=/dev/i2c-1
+ina_address=64
+shunt_ohm=0.1
+current_lsb_a=0.0001
+battery_current_sign=-1
+current_zero_a=0
+terminal_offset_v=0
+temperature_device=28-000000000000
+w1_root=/sys/bus/w1/devices
+calibration_id=R100-UNCALIBRATED
+period_ms=2000
+read_timeout_ms=5000
+freshness_ms=5000
+max_interval_ms=3000
+nominal_capacity_ah=2.55
+initial_soc_percent=unknown
+measured_capacity_ah=unknown
+capacity_test_id=unknown

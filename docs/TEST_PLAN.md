@@ -835,6 +835,21 @@ TC-CI-003: 별도 `cross-arm64` job에서 실제 x86-64 compiler host→ARM64 EC
 
 TC-CI-005/006: [배포 안전 절차](development/playbooks/deployment-safety.md)와 `tools/deployment/tests`의 임시 release 전환/rollback·중단 복구·위변조·timeout 자식 회수 검증을 사용한다. `health_product.py`는 실제 일반 ECU/IVI 가상 CAN에서 정확한 실행본과 현재 인증 게시를 검사하며, 송신이 끊긴 채 수신 프로세스만 살아 있는 경우를 반드시 실패시킨다. 명시 시험값3000ms/30초를 운영값으로 간주하지 않는다. main SSH 배포·실제 서비스/장비·재부팅 인수는 미실행이다. 키·카운터·계산 checkpoint·이력의 rollback/초기화는 금지한다.
 
+### 2026-11-17 CHG-031 실시간 표시 연결 검증
+
+기존 독립 취득33개에실시간 feed/process·제품 CAN 시험2개를 추가하여 ECU strict 목록35개, IVI는기존44개를 유지한다. 아래 시험은 FR-BMS-009/FR-IVI-009의 소프트웨어 인수다. 실제 셀의 정확도/보호 인수와 구분한다.
+
+| ID | 확인 대상 | 합격 기준·구현 시험 |
+|---|---|---|
+|TC-PHYS-001|명시 설정·분리취득·수명|잘못된/중복 설정 거부, 부분IPC 조립, 상속fd닫기·오류/취소/회수. test_physical_sensor_runtime 및 기존 bounded_sensor_read|
+|TC-PHYS-002|채널 품질·적분|새3회 확인, 중복적분 금지, stale/역순/다른설정 거부, 온도오류 중 전기적분 유지, 전기오류 후 기준점 재설정|
+|TC-PHYS-003|CAN 계약·인증|공개4벡터에서 C++/Python의30프레임이 바이트 일치, 방향/잘못된필드/128태그변조/패딩 거부, 기존종류1~8 벡터 보존|
+|TC-PHYS-004|실제 Service/QML|현재세션/instance/설정/순번/나이 검사, SOC/SOH미산정과유효0% 구분, 오류채널`--`·정상채널 유지·중앙알림/회복,800×480화면 캡처. test_vehicle_data_session/test_dashboard_view_model/test_dashboard_security|
+|TC-PHYS-005|실제 ECU 실행 경로|실제 ECU와별도취득worker→vcan 인증수신. 정상/온도오류/전기오류/명시SOC·외부SOH/수신복구실패의5사례. 가짜0x100 BMS·가상입력0x101 경고 미송신·정상종료. 수신실패는NodeStatus점검단계5/위험미상FF로구분. test_physical_ecu_product. 입력은공개 I²C syscall/file 모의값|
+|TC-PHYS-006|실제 Pi·배터리|동일시점/기준점 DMM·전류/온도대조, 이전저전압표시오류 재현원인, 센서단절/회복, 실제7인치/CAN 표시·종료. 별도 장비 인수이며 현재미완료|
+
+가상 BMS360회나과거IF 정상자료를 실측모드의 성능·오탐률로 재사용하지 않는다. 실측모드 checkpoint 자동복구·셀보호/물리부하차단은후속범위다. 검증 결과/형상은 [CHG-031 진행표](aidlc/changes/CHG-031/aidlc-state.md)에서 확인한다.
+
 ### 2026-11-17 CHG-031 독립 취득 개발 검증
 
 FR-BMS-001/002와 입력/복구 요구의 확장을 준비하는 독립 취득·적분 시험이다. 기존 TC의 물리 SOC/SOH 정확도·단셀 보호·화면 인수를 대신하지 않는다. INA219 byte/부호/설정·overflow·실제0A/실패, DS18B20 CRC/retained/분해능/85C 모호함, 독립 읽기 timeout/취소/소유자 사망 회수, 실제 CLI의 공개파일/I2C syscall fixture를 검사한다. 단셀 meter는 실제 시간·중복·관찰 공백·양방향Ah·동일 모델 복원·초기SOC 미산정을 검증한다. ECU strict 목록은28개 기존+5개 새 시험=33개이며 IVI44개는 보존한다. cross의 INA/DS/meter C++27개를 실행하고 Python CLI·Linux fork 수명 시험은 이유를 명시해 native33개에서 실행한다. [현재 근거](aidlc/changes/CHG-031/aidlc-state.md).

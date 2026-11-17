@@ -7,6 +7,7 @@
 #include "can_session_exchange.h"
 #include "can_restart_notice.h"
 #include "protection_publisher.h"
+#include "physical_measurement.h"
 
 #include <algorithm>
 #include <fstream>
@@ -473,6 +474,22 @@ int main(int argc,char** argv){
             auto changed=identity;changed[0]^=1;
             queue.pump(changed,105,[&](const Frame&){++sent;return true;});
             require(sent==3 && queue.pending()==0,"old session packet sent");
+        }
+        {
+            std::ifstream file(PHYSICAL_FIXTURE_PATH);require(bool(file),"physical public vector file missing");
+            std::string name,body_hex,frames_hex;std::uint32_t sequence;unsigned count=0;
+            while(file>>name>>sequence>>body_hex>>frames_hex){
+                const auto body=unhex(body_hex);require(decodePhysicalMeasurement(body).has_value(),"physical body rejected");
+                const auto packet=encodeDiagnostic(*keys(),context(),0x302,sequence,DiagnosticKind::PhysicalMeasurement,body);
+                std::string actual;for(const auto& frame:packet.frames)actual+=hex(frame.data);
+                require(actual==frames_hex&&packet.frames.size()==30,"C++/Python physical frame mismatch");
+                DiagnosticReceiver receiver(keys(),context(),0x302,{1000,100,4,128},0);
+                DiagnosticResult result;
+                for(unsigned i=0;i<packet.frames.size();++i)result=receiver.receive(packet.frames[i],i+1);
+                require(result.code==DiagnosticResultCode::Message&&result.message->body==body,"physical authenticated receive failed");
+                require(!validDiagnosticBody(0x303,DiagnosticKind::PhysicalMeasurement,body),"physical reverse direction accepted");++count;
+            }
+            require(count==4,"physical vector count");
         }
         allKindsRoundTripAndDuplicate();tagBitsAndReflection();reassemblyLimitsAndExpiry();badMetadataPaddingAndTimestamp();
         replayWindowConflictAndDataIsolation();schemaAndSenderSequence();macBudgetDoesNotConsumeSequence();
