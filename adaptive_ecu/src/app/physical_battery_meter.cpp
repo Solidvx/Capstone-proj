@@ -66,3 +66,26 @@ bool PhysicalBatteryMeter::restore(const PhysicalMeterState& saved) {
     // A prior host time/sample cannot bridge the process's unobserved downtime.
     unavailable();highest_sequence_=0;return true;
 }
+
+PhysicalSohEstimate estimatePhysicalSoh(const PhysicalMeterState& start,
+    const PhysicalMeterState& end,bool endpoints_confirmed) {
+    auto absent=[](PhysicalSohStatus status){return PhysicalSohEstimate{status,{},{},{}};};
+    const auto& a=start.config;const auto& b=end.config;
+    if(start.version!=1||end.version!=1||a.model_calibration_id.empty()||
+       a.model_calibration_id!=b.model_calibration_id||a.nominal_capacity_ah!=b.nominal_capacity_ah||
+       a.initial_soc!=b.initial_soc||a.max_interval_ms!=b.max_interval_ms)
+        return absent(PhysicalSohStatus::IncompatibleModel);
+    if(!std::isfinite(a.nominal_capacity_ah)||a.nominal_capacity_ah<=0||
+       !std::isfinite(start.charged_ah)||start.charged_ah<0||!std::isfinite(end.charged_ah)||
+       end.charged_ah<start.charged_ah||!std::isfinite(start.discharged_ah)||start.discharged_ah<0||
+       !std::isfinite(end.discharged_ah)||end.discharged_ah<start.discharged_ah)
+        return absent(PhysicalSohStatus::InvalidCapacity);
+    if(start.observation_gap||end.observation_gap)return absent(PhysicalSohStatus::ObservationGap);
+    if(!endpoints_confirmed)return absent(PhysicalSohStatus::AwaitingCapacityTest);
+    // A charge interruption is not the declared continuous full-discharge test.
+    const double capacity=end.discharged_ah-start.discharged_ah;
+    const double ratio=capacity/a.nominal_capacity_ah;
+    if(end.charged_ah!=start.charged_ah||capacity<=0||!std::isfinite(ratio))
+        return absent(PhysicalSohStatus::InvalidCapacity);
+    return {PhysicalSohStatus::Estimated,capacity,ratio,std::clamp(ratio,0.,1.)*100};
+}

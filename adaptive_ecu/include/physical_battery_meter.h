@@ -21,8 +21,25 @@ struct PhysicalMeterState {
 };
 enum class PhysicalMeterResult { Anchored, Integrated, Duplicate, Rejected, Gap };
 
+enum class PhysicalSohStatus { Estimated, AwaitingCapacityTest, ObservationGap,
+                               IncompatibleModel, InvalidCapacity };
+struct PhysicalSohEstimate {
+    PhysicalSohStatus status;
+    std::optional<double> usable_capacity_ah;
+    std::optional<double> capacity_ratio;  // measured/reference, may exceed 1
+    std::optional<double> display_percent; // bounded 0..100, retain raw ratio above
+};
+
+// Capacity-based SOH estimate from an independently confirmed full discharge
+// interval. Never infer full endpoints from the coulomb SOC computed using the
+// same nominal capacity: that circular calculation would always return 100%.
+// Confirmation of actual start/end/temperature/load conditions belongs to the
+// capacity test operator, not to the current/voltage trace alone.
+PhysicalSohEstimate estimatePhysicalSoh(const PhysicalMeterState& start,
+    const PhysicalMeterState& end,bool full_discharge_endpoints_confirmed);
+
 // Integrates accepted INA voltage/current samples before CAN quantization.
-// Positive current means charging. No OCV claim, no automatic capacity/SOH fit.
+// Positive current means charging. No OCV claim or automatic full-cycle detection.
 class PhysicalBatteryMeter {
 public:
     explicit PhysicalBatteryMeter(PhysicalMeterConfig config);

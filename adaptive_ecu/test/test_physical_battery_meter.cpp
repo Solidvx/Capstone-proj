@@ -56,3 +56,57 @@ TEST(PhysicalMeter, InvalidModelAndPriorAreRejected){
     for(double value:{-.1,1.1,std::numeric_limits<double>::infinity()}){auto c=config();c.initial_soc=value;EXPECT_THROW(PhysicalBatteryMeter{c},std::invalid_argument);}
     auto c=config();c.max_interval_ms=0;EXPECT_THROW(PhysicalBatteryMeter{c},std::invalid_argument);
 }
+
+TEST(PhysicalSoh, ConfirmedCapacityIntervalEstimatesNinetyPercentWithoutUsingSoc){
+    PhysicalBatteryMeter meter(config());auto start=meter.state();start.discharged_ah=.1;
+    auto end=start;end.discharged_ah=.1+2.295;
+    // Deliberately unknown SOC: the capacity result must be independent of it.
+    start.estimated_soc.reset();end.estimated_soc.reset();
+    const auto result=estimatePhysicalSoh(start,end,true);
+    ASSERT_EQ(result.status,PhysicalSohStatus::Estimated);ASSERT_TRUE(result.display_percent);
+    EXPECT_NEAR(*result.usable_capacity_ah,2.295,1e-12);EXPECT_NEAR(*result.capacity_ratio,.9,1e-12);
+    EXPECT_NEAR(*result.display_percent,90,1e-12);
+}
+TEST(PhysicalSoh, PartialOrMissingCapacityDoesNotInventOneHundredPercent){
+    PhysicalBatteryMeter meter(config());auto start=meter.state();auto end=start;end.discharged_ah=.001;
+    const auto result=estimatePhysicalSoh(start,end,false);
+    EXPECT_EQ(result.status,PhysicalSohStatus::AwaitingCapacityTest);EXPECT_FALSE(result.display_percent);
+    EXPECT_FALSE(result.usable_capacity_ah);EXPECT_FALSE(result.capacity_ratio);
+    EXPECT_EQ(estimatePhysicalSoh(start,start,true).status,PhysicalSohStatus::InvalidCapacity);
+}
+TEST(PhysicalSoh, GapChargeReversalAndDifferentModelCannotQualifyCapacity){
+    PhysicalBatteryMeter meter(config());auto start=meter.state();auto end=start;end.discharged_ah=2.295;
+    end.observation_gap=true;EXPECT_EQ(estimatePhysicalSoh(start,end,true).status,PhysicalSohStatus::ObservationGap);
+    end.observation_gap=false;end.charged_ah=.01;EXPECT_EQ(estimatePhysicalSoh(start,end,true).status,PhysicalSohStatus::InvalidCapacity);
+    end.charged_ah=0;end.config.nominal_capacity_ah=50;EXPECT_EQ(estimatePhysicalSoh(start,end,true).status,PhysicalSohStatus::IncompatibleModel);
+    end.config=start.config;end.config.model_calibration_id="OTHER";
+    EXPECT_EQ(estimatePhysicalSoh(start,end,true).status,PhysicalSohStatus::IncompatibleModel);
+}
+TEST(PhysicalSoh, RealCapacityAboveNominalRetainsRawRatioAndBoundsUiPercentage){
+    PhysicalBatteryMeter meter(config());auto start=meter.state();auto end=start;end.discharged_ah=2.6;
+    const auto result=estimatePhysicalSoh(start,end,true);ASSERT_TRUE(result.capacity_ratio);
+    EXPECT_GT(*result.capacity_ratio,1);EXPECT_DOUBLE_EQ(*result.display_percent,100);
+    EXPECT_DOUBLE_EQ(*result.usable_capacity_ah,2.6);
+}
+TEST(PhysicalSoh, NonfiniteOrRolledBackAccumulationHasNoEstimate){
+    PhysicalBatteryMeter meter(config());auto start=meter.state();auto end=start;
+    for(double invalid:{-1.,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::quiet_NaN()}){
+        end.discharged_ah=invalid;EXPECT_EQ(estimatePhysicalSoh(start,end,true).status,PhysicalSohStatus::InvalidCapacity);
+    }
+    end=start;start.discharged_ah=1;end.discharged_ah=.5;
+    EXPECT_EQ(estimatePhysicalSoh(start,end,true).status,PhysicalSohStatus::InvalidCapacity);
+}
+TEST(PhysicalEstimation, OneHourCurrentTraceChangesSocAndProducesIndependentCapacitySoh){
+    PhysicalBatteryMeter soc_meter({"PUBLIC-SOC",2.55,.8,1000});
+    soc_meter.accept(1,1000,3.7,-.255);
+    for(std::uint64_t i=2;i<=3601;++i)soc_meter.accept(i,i*1000,3.7,-.255);
+    ASSERT_TRUE(soc_meter.state().estimated_soc);
+    EXPECT_NEAR(*soc_meter.state().estimated_soc,.7,1e-10);
+    PhysicalBatteryMeter capacity_meter({"PUBLIC-CAPACITY",2.55,std::nullopt,1000});
+    const auto start=capacity_meter.state();
+    capacity_meter.accept(1,1000,3.7,-2.295);
+    for(std::uint64_t i=2;i<=3601;++i)capacity_meter.accept(i,i*1000,3.7,-2.295);
+    EXPECT_FALSE(capacity_meter.state().estimated_soc);
+    const auto estimate=estimatePhysicalSoh(start,capacity_meter.state(),true);
+    ASSERT_TRUE(estimate.display_percent);EXPECT_NEAR(*estimate.display_percent,90,1e-9);
+}
