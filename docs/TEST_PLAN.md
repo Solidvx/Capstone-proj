@@ -838,3 +838,5 @@ TC-CI-005/006: [배포 안전 절차](development/playbooks/deployment-safety.md
 ### 2026-11-17 CHG-031 독립 취득 개발 검증
 
 FR-BMS-001/002와 입력/복구 요구의 확장을 준비하는 독립 취득·적분 시험이다. 기존 TC의 물리 SOC/SOH 정확도·단셀 보호·화면 인수를 대신하지 않는다. INA219 byte/부호/설정·overflow·실제0A/실패, DS18B20 CRC/retained/분해능/85C 모호함, 독립 읽기 timeout/취소/소유자 사망 회수, 실제 CLI의 공개파일/I2C syscall fixture를 검사한다. 단셀 meter는 실제 시간·중복·관찰 공백·양방향Ah·동일 모델 복원·초기SOC 미산정을 검증한다. ECU strict 목록은28개 기존+5개 새 시험=33개이며 IVI44개는 보존한다. cross의 INA/DS/meter C++27개를 실행하고 Python CLI·Linux fork 수명 시험은 이유를 명시해 native33개에서 실행한다. [현재 근거](aidlc/changes/CHG-031/aidlc-state.md).
+
+동일 test_physical_capture_cli에 캡처v2→엄격한 파일 검증기→같은C++계산기의 정상/공백/온도오류/외부용량근거/미산정/덮어쓰기 경계를 추가했다. Python 회귀는 실행·시계·보정 혼합, 잘못된구간, 누락sequence, NaN/비정상calibration, 잘린/중복JSON 필드를 거부한다. 샘플 수·식별/hash를 물리 정확도 또는 전체 수집 무손실의 증거로 확대하지 않는다. 실제 장비 인수는 [별도 절차](aidlc/changes/CHG-031/measurement-to-estimate.md)를 따른다.

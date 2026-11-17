@@ -72,6 +72,8 @@ add_library(physical_sensor_core
     src/bsw/bounded_sensor_read.cpp)
 target_include_directories(physical_sensor_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(physical_sensor_core PUBLIC Threads::Threads)
+add_executable(evaluate_physical_capture tools/evaluate_physical_capture.cpp)
+target_link_libraries(evaluate_physical_capture PRIVATE physical_sensor_core)
 
 add_executable(adaptive_ecu main.cpp)
 target_link_libraries(adaptive_ecu PRIVATE ecu_core)
@@ -104,7 +106,8 @@ if(ECU_BUILD_TESTS)
             add_test(NAME test_physical_capture_cli COMMAND ${Python3_EXECUTABLE}
                 ${CMAKE_CURRENT_SOURCE_DIR}/test/test_physical_capture_cli.py
                 --capture $<TARGET_FILE:physical_battery_capture>
-                --fixture $<TARGET_FILE:physical_capture_fixture>)
+                --fixture $<TARGET_FILE:physical_capture_fixture>
+                --evaluator $<TARGET_FILE:evaluate_physical_capture>)
             set_tests_properties(test_physical_capture_cli PROPERTIES TIMEOUT 20)
         endif()
         add_test(NAME test_soc_profile_product COMMAND ${Python3_EXECUTABLE}

@@ -777,3 +777,5 @@ FailSafeStateMachine의 시간 단위 변환만 로컬 noexcept 함수로 분리
 ### 2026-11-17 선택형 단셀 실측 준비 — CHG-031
 
 기존 main의 입력 모드/10셀 가상 모델/ADS1115 경로는 보존한다. 별도 physical_sensor_core와 physical_battery_capture가 INA219 triggered bus/shunt/current·명시 calibration, DS18B20 현재 CRC/scratchpad, 제한된 단독 reader 프로세스를 연결한다. 온도/전류를 새 값으로 꾸미는 fallback은 없다. 물리 취득 시간으로 Ah/Wh를 적분하는 독립 PhysicalBatteryMeter는 명시 초기SOC가 없으면 미산정을 유지하며, 다른 모델/보정 저장 상태·관찰 공백을 분리한다. 기존 checkpoint/main·CAN/IVI 연동은 아직 구현되지 않았다. [정의/진행](aidlc/changes/CHG-031/aidlc-state.md)·[사용/한계](aidlc/changes/CHG-031/capture-guide.md).
+
+후속으로 캡처v2의 실행 UUID·Linux boot 시계·시행/채널별 구간을 명시하고 Python 검증기가 동일 실행/보정·순서·유효성을 대조한다. evaluate_physical_capture는 같은 C++ SOC/SOH 코어를 사용하는 오프라인 숫자 어댑터다. 물리 정확도는 미검증이고 SOH 외부 용량은 사용자 확인 근거로 따로 기록한다. 실시간 main/CAN/IVI·보호 판단을 우회 연결하지 않는다. [절차/형식](aidlc/changes/CHG-031/measurement-to-estimate.md).

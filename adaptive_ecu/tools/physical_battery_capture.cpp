@@ -42,6 +42,12 @@ unsigned integer(const std::string& value,unsigned max){
     if(result>max)throw std::invalid_argument("integer option out of range");
     return static_cast<unsigned>(result);
 }
+std::string publicIdentity(const char* path){
+    std::ifstream input(path);std::string value;input>>value;
+    if(!input||!std::regex_match(value,std::regex("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")))
+        throw std::runtime_error("public Linux capture/clock identity unavailable");
+    return value;
+}
 }
 int main(int argc,char** argv){
     std::string device,w1root="/sys/bus/w1/devices",sensor,calibration_id;
@@ -87,10 +93,13 @@ int main(int argc,char** argv){
             bool readRegister(std::uint8_t,std::uint8_t*,std::size_t)override{return false;}
         } no_io;
         Ina219Acquirer validated(no_io,config);
+        const auto capture_id=publicIdentity("/proc/sys/kernel/random/uuid");
+        const auto clock_id=publicIdentity("/proc/sys/kernel/random/boot_id");
         std::signal(SIGINT,stop);std::signal(SIGTERM,stop);
         bool failed=false;
         for(unsigned i=0;i<count && running;++i){
             const auto start=Clock::now();
+            const auto sample_started_ms=nowMs();
             auto ina=readSensorBounded([&]{
                 const auto begin=nowMs();LinuxI2cTransport bus(device,static_cast<std::uint8_t>(address));
                 if(!bus.ready())return std::string("{\"status\":\"OPEN_ERROR\",\"measurement\":null}");
@@ -99,7 +108,7 @@ int main(int argc,char** argv){
                 Ina219Result result{Ina219Status::Waiting,{}};
                 do{result=reader.poll();if(result.status==Ina219Status::Waiting)std::this_thread::sleep_for(std::chrono::milliseconds(1));}
                 while(result.status==Ina219Status::Waiting);
-                std::ostringstream out;out<<std::setprecision(12)<<"{\"status\":\""<<ina219StatusName(result.status)
+                std::ostringstream out;out<<std::setprecision(17)<<"{\"status\":\""<<ina219StatusName(result.status)
                     <<"\",\"started_ms\":"<<begin<<",\"completed_ms\":"<<nowMs()<<",\"measurement\":";
                 if(result.measurement){const auto& m=*result.measurement;
                     out<<"{\"bus_raw\":"<<m.bus_raw<<",\"shunt_raw\":"<<m.shunt_raw<<",\"current_raw\":"<<m.current_raw
@@ -116,7 +125,7 @@ int main(int argc,char** argv){
                 while(input.get(c)){text+=c;if(text.size()>1024)break;}
                 if(input.bad())return std::string("{\"status\":\"IO_ERROR\",\"measurement\":null}");
                 auto result=parseDs18b20(text);std::ostringstream out;
-                out<<std::setprecision(12)<<"{\"status\":\""<<ds18b20StatusName(result.status)
+                out<<std::setprecision(17)<<"{\"status\":\""<<ds18b20StatusName(result.status)
                     <<"\",\"started_ms\":"<<begin<<",\"completed_ms\":"<<nowMs()<<",\"measurement\":";
                 if(result.temperature_c)out<<"{\"temperature_c\":"<<*result.temperature_c<<'}';else out<<"null";
                 out<<",\"scratchpad\":\""<<std::hex<<std::setfill('0');
@@ -127,7 +136,9 @@ int main(int argc,char** argv){
             const auto a=body(ina),b=body(temp);
             const bool ok=a.find("\"status\":\"OK\"")!=std::string::npos&&b.find("\"status\":\"OK\"")!=std::string::npos;
             failed|=!ok;
-            std::cout<<std::setprecision(12)<<"{\"schema\":\"physical-sensor-v1\",\"sample\":"<<i
+            std::cout<<std::setprecision(17)<<"{\"schema\":\"physical-sensor-v2\",\"sample\":"<<i
+                <<",\"capture_id\":\""<<capture_id<<"\",\"clock_id\":\""<<clock_id
+                <<"\",\"sample_started_ms\":"<<sample_started_ms<<",\"sample_completed_ms\":"<<nowMs()
                 <<",\"clock\":\"host-monotonic-ms\",\"physical_accuracy_verified\":false,\"calibration_id\":\""<<calibration_id
                 <<"\",\"shunt_ohm\":"<<config.shunt_ohm<<",\"requested_current_lsb_a\":"<<config.requested_current_lsb_a
                 <<",\"calibration_register\":"<<validated.calibration()<<",\"effective_current_lsb_a\":"<<validated.effectiveCurrentLsbA()
