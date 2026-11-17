@@ -19,21 +19,19 @@ SOURCE_ROOTS = (
 SUFFIXES = {'.cpp', '.h', '.py', '.qml'}
 EXCLUDED = {'build', 'logs', 'models', 'data', '__pycache__', '.venv', 'venv', 'env', '.git'}
 EXTRAS = (
-    'adaptive_ecu/CMakeLists.txt', 'adaptive_ecu/main.cpp',
-    'adaptive_ecu/data/battery_profile.csv', 'adaptive_ecu/data/failsafe_demo.csv',
-    'adaptive_ecu/data/failsafe_demo.manifest.json', 'ivi_platform/CMakeLists.txt',
-    'security/requirements.txt', 'ivi_platform/scripts/prepare_pi_handoff.py',
+    'adaptive_ecu/CMakeLists.txt',
+    'adaptive_ecu/main.cpp',
+    'adaptive_ecu/data/battery_profile.csv',
+    'adaptive_ecu/data/failsafe_demo.csv',
+    'adaptive_ecu/data/failsafe_demo.manifest.json',
+    'ivi_platform/CMakeLists.txt',
+    'security/requirements.txt',
+    'ivi_platform/scripts/prepare_pi_handoff.py',
     'ivi_platform/scripts/collect_pi_preflight.py',
-    'ivi_platform/scripts/analyze_period.py', 'ivi_platform/scripts/normalize_candump_period.py',
-    'docs/development/playbooks/pi-manual-handoff.md',
-    'docs/development/playbooks/security-can-integration.md',
-    'docs/development/playbooks/m5-ablation-runner.md',
-    'docs/development/playbooks/experiment-analysis.md',
+    'ivi_platform/scripts/analyze_period.py',
+    'ivi_platform/scripts/normalize_candump_period.py',
     'security/experiments/m5-settings.template.json',
-    'security/experiments/ids-captures.template.json', '임시_할일.md',
-    'security/ids/README.md', 'security/ids/how_to_train.md',
-    'docs/development/playbooks/pre-hardware-readiness.md',
-    'docs/ICD.md', 'docs/SRS.md', 'docs/TEST_PLAN.md',
+    'security/experiments/ids-captures.template.json',
 )
 
 

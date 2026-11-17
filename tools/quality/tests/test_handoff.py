@@ -43,8 +43,11 @@ def test_valid_snapshot_extracts_only_to_new_directory_with_hash_check(tmp_path)
 
 
 def test_public_inventory_does_not_include_runtime_material_or_recursive_source_archives():
-    assert '질문리스트.md' in handoff.EXTRAS
-    assert not allowed('docs/aidlc/changes/CHG-029/artifacts/20261114-software-handoff.tar.gz')
+    assert '질문리스트.md' not in handoff.EXTRAS
+    assert not allowed('질문리스트.md')
+    assert not allowed('AGENTS.md')
+    assert not allowed('docs/private-notes.md')
+    assert not allowed('common/testdata/artifacts/20261114-software-handoff.tar.gz')
     assert not allowed('plan/_archive/IVI.md')
     assert not allowed('adaptive_ecu/build/adaptive_ecu')
     assert allowed('.env.example')

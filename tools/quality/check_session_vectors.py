@@ -42,7 +42,7 @@ def main() -> None:
         from security.tests.test_can_session_candidate import dummy_vectors
     expected = dummy_vectors()
     fixture_name = "diagnostic-v1-vectors.tsv" if args.protocol == "diagnostic" else "session-v2-vectors.tsv"
-    fixture = ROOT / "docs/aidlc/changes/CHG-029" / fixture_name
+    fixture = ROOT / "common/testdata" / fixture_name
     if parse_rows(fixture.read_text()) != expected:
         raise RuntimeError("frozen fixture differs from Python reference")
     builds = {}
@@ -72,11 +72,11 @@ def main() -> None:
                "common/can_session_frames.h", "common/can_session_frames.cpp",
                "common/test_can_session_candidate.cpp", "security/can_session.py",
                "security/tests/test_can_session_candidate.py", "tools/quality/check_session_vectors.py",
-               "docs/aidlc/changes/CHG-029/" + fixture_name]
+               "common/testdata/" + fixture_name]
     if args.protocol == "diagnostic":
         sources += ["common/can_diagnostic.h", "common/can_diagnostic.cpp", "common/test_can_diagnostic.cpp",
                     "security/can_diagnostic.py", "security/tests/diagnostic_fixtures.py", "security/tests/test_can_diagnostic.py",
-                    "docs/aidlc/changes/CHG-029/diagnostic-inputs.tsv"]
+                    "common/testdata/diagnostic-inputs.tsv"]
     result = {"status": "PASS", "scope": "candidate host crypto and framing only; no active product session",
               "protocol": args.protocol,
               "runner": "lima" if args.lima_instance else "native",

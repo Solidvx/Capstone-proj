@@ -1,6 +1,6 @@
 # CAN 인증 진단 계약 — diagnostic-v1
 
-2026-11-11 사용자 승인으로 [session-v2](ICD-CAN-SESSION.md)에 포함된 상세 CAN 진단 계약이다. [ICD](ICD.md)와 함께 적용한다. 승인된 형식과 실제 제품 구현/물리 인수 완료는 구분하며 현재 구현 상태는 [CHG-029](aidlc/changes/CHG-029/aidlc-state.md)를 따른다.
+2026-11-11 사용자 승인으로 [session-v2](ICD-CAN-SESSION.md)에 포함된 상세 CAN 진단 계약이다. [ICD](ICD.md)와 함께 적용한다. 승인된 형식과 실제 제품 구현/물리 인수 완료는 구분하며 현재 구현 상태는 CHG-029를 따른다.
 
 ## 전달 경로와 영향
 
@@ -158,4 +158,4 @@ IVI는 현재 인증 세션의 NodeStatus instance·ProtectionStatus instance/�
 
 ## 구현/인수 경계
 
-후보 C++/Python과 Linux ARM64/vcan 시험은 [실행 증거](aidlc/changes/CHG-029/diagnostic-evidence.md)를 참조한다. 실제 앱 소비/송신 속도 제한·사건/거부 귀속·프로세스 복구·장기 기록·Qt/물리 장비 인수는 별도 완료 증거가 필요하다.
+후보 C++/Python과 Linux ARM64/vcan 시험은 실행 증거를 참조한다. 실제 앱 소비/송신 속도 제한·사건/거부 귀속·프로세스 복구·장기 기록·Qt/물리 장비 인수는 별도 완료 증거가 필요하다.

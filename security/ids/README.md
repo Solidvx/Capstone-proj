@@ -8,7 +8,7 @@
 
 기존 경계는 `metrics_at: score >= threshold`, 오프라인 `analyze_roc: score > threshold`로 서로 다르며 보존했다. 모델/임계 버전과 함께 해석하고 수치만 합치지 않는다. live 유형 MATCH·시행 탐지율·프레임 차단율·정상 윈도우FPR도 분모가 다르다.
 
-`python security/experiments/run_eval.py`는 합성 학습90창·별도 정상 보정60창·평가210창(정상60/공격150)의 예시다. 과거 평가 정상 점수로 임계를 고르던 경로를 분리했다. 기존 학습/평가 draw는 유지하고 별도 draw의 정상 점수만 임계에 사용한다. 고정1%는 합성 보정 목표로서 실제 보정/평가FPR 보장이 아니다. 실제 capture·공격 family holdout·물리 IF 효과의 인수가 아니며, live runtime의 규칙/IF 보정·CAN 계약은 바뀌지 않는다. [원수/두 단계 비교/회귀](../../docs/aidlc/changes/CHG-029/n06-metrics-20261113.json)를 따른다.
+`python security/experiments/run_eval.py`는 합성 학습90창·별도 정상 보정60창·평가210창(정상60/공격150)의 예시다. 과거 평가 정상 점수로 임계를 고르던 경로를 분리했다. 기존 학습/평가 draw는 유지하고 별도 draw의 정상 점수만 임계에 사용한다. 고정1%는 합성 보정 목표로서 실제 보정/평가FPR 보장이 아니다. 실제 capture·공격 family holdout·물리 IF 효과의 인수가 아니며, live runtime의 규칙/IF 보정·CAN 계약은 바뀌지 않는다. 원수/두 단계 비교/회귀를 따른다.
 
 ## 선택형 CPU·메모리·처리량 계측
 
@@ -36,7 +36,7 @@ python3 -m security.experiments.summarize_resources --events NEW-EVENTS.jsonl \
   --out NEW-RESOURCE-REPORT.json
 ```
 
-분석은 한 세대의 고정 파일 budget/64KiB 행·세대/시각/원수·단위·입력 변경/hash를 검사한다. 기본 budget은 기존 수집과 같은64MiB이며 명시적 스트리밍 수집을 선택한 경우 분석의 `--max-bytes`도 같은 예산으로 지정한다. partial/미계측 결과의 CLI exit1은0%나PASS가 아니다. PC session collect_ids는 선택 계측을 확인하면 같은 파일을 분석한 `ids-GENERATION-resources.json`을 해당 case manifest/hash에 포함한다. 시행 구간/공격 유형별 수치로 임의 분배하지 않는다. [실제 vcan 세대/IF 재생·검증/한계](../../docs/aidlc/changes/CHG-029/n07-resources-20261113.json)를 따른다.
+분석은 한 세대의 고정 파일 budget/64KiB 행·세대/시각/원수·단위·입력 변경/hash를 검사한다. 기본 budget은 기존 수집과 같은64MiB이며 명시적 스트리밍 수집을 선택한 경우 분석의 `--max-bytes`도 같은 예산으로 지정한다. partial/미계측 결과의 CLI exit1은0%나PASS가 아니다. PC session collect_ids는 선택 계측을 확인하면 같은 파일을 분석한 `ids-GENERATION-resources.json`을 해당 case manifest/hash에 포함한다. 시행 구간/공격 유형별 수치로 임의 분배하지 않는다. 실제 vcan 세대/IF 재생·검증/한계를 따른다.
 
 ## 입력과 모드
 
@@ -118,11 +118,11 @@ python -m security.ids.runtime --interface vcan0 --train-normal normal.jsonl --n
 
 ## 완료 범위
 
-2026-10-03 후속: EXQ-11의 규칙 기본 임계는 SDD-ECU §3.9.5에 확정 기록됐고 합성 정상 오탐은 CHG-013에 보존했다. 위 "시험용 초기 정책"은 최초 구현 당시 설명이며 실물 보정이 완료됐다는 뜻은 아니다. 당시 도구/실행 근거는 [CHG-014](../../docs/aidlc/changes/CHG-014/aidlc-state.md)에 보존했다. 현행 session-v2 수집·IF 검증/자동 실험은 [session 실행 절차](../../docs/development/playbooks/session-campaign.md)를 따른다.
+2026-10-03 후속: EXQ-11의 규칙 기본 임계는 SDD-ECU §3.9.5에 확정 기록됐고 합성 정상 오탐은 CHG-013에 보존했다. 위 "시험용 초기 정책"은 최초 구현 당시 설명이며 실물 보정이 완료됐다는 뜻은 아니다. 당시 도구/실행 근거는 CHG-014에 보존했다. 현행 session-v2 수집·IF 검증/자동 실험은 session 실행 절차를 따른다.
 
 현재 학습·평가·오탐률/ROC·반복 절차는 [how_to_train.md](how_to_train.md)를 따른다. READY에는 `send_alerts`를 명시해 수신-only를 경보 모드로 오인하지 않는다. CHG-014~016의 vcan/분석 검증은 아래 원래 CHG-007 소프트웨어 범위를 보완하며 물리 합격을 대신하지 않는다.
 
-과거 [CHG-007](../../docs/aidlc/changes/CHG-007/audit.md) 이후 vcan 및 실장비 결과는 [CHG-014](../../docs/aidlc/changes/CHG-014/aidlc-state.md)에 있다. 최신 통합 코드의 회귀·미검증 범위는 [CHG-019](../../docs/aidlc/changes/CHG-019/aidlc-state.md)를 따른다. 전체 M4/M5 인수, 물리 화면·CPU/RAM·새 세션 완료를 뜻하지 않는다.
+과거 CHG-007 이후 vcan 및 실장비 결과는 CHG-014에 있다. 최신 통합 코드의 회귀·미검증 범위는 CHG-019를 따른다. 전체 M4/M5 인수, 물리 화면·CPU/RAM·새 세션 완료를 뜻하지 않는다.
 
 실험 실행기가 지정하는 `--parent-pid`는 실제 부모 PID와 일치해야 하며, 이 모드에서는 duration 대신 부모 수명과 cleanup으로 종료한다. 독립 실행의 duration은 유지한다.
 
@@ -146,7 +146,7 @@ live는 실제 SocketCan에 붙인 detector의 ID를 READY.finding_source_id에 
 - legacy counter 규칙은 MAC 검사 이전이므로 not_checked다. session의 태그 확인 뒤 Replay/인증 충돌은 verified다. pair 기한 만료/후보·검증 예산 초과는 MAC 실패나 IVI 차단으로 표시하지 않는다.
 - ModelEvaluation은 실제 anomaly와7특징을 기록한다. msg_rate의 실제 값은 frames_in_window, payload_change는 changed_bytes_per_pair다. IF_ANOMALY의 정규화 값과 anomaly를 구분하며 추가 추론/특징 기여도/네 공격 정답을 만들지 않는다.
 
-기존 규칙의 출력 보완 범위다. 추가 freeze/plausibility·severity calibration·규칙/IF 결합 효과는 별도 과제다. [실제6제품/전체Python/변경 전후 근거](../../docs/aidlc/changes/CHG-029/rule-findings-20261112.json)를 따른다. 실제 Pi 성능·긴 연속 로그의 용량 보장은 이 결과와 다르다. 특히 기존 세대 수집의64MiB 파일/64KiB 행 상한과30/100시행 로그 크기를 검증하기 전 공식 campaign 준비 완료로 표시하지 않는다.
+기존 규칙의 출력 보완 범위다. 추가 freeze/plausibility·severity calibration·규칙/IF 결합 효과는 별도 과제다. 실제6제품/전체Python/변경 전후 근거를 따른다. 실제 Pi 성능·긴 연속 로그의 용량 보장은 이 결과와 다르다. 특히 기존 세대 수집의64MiB 파일/64KiB 행 상한과30/100시행 로그 크기를 검증하기 전 공식 campaign 준비 완료로 표시하지 않는다.
 
 
 ### 제한된 live 수신 순서 정리 — 2026-11-17

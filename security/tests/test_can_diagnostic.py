@@ -6,7 +6,7 @@ from security.can_diagnostic import decode, encode, valid_body
 from security.tests.diagnostic_fixtures import dummy_vectors, fixtures, put
 
 ROOT = Path(__file__).resolve().parents[2]
-RECORD = ROOT / "docs/aidlc/changes/CHG-029"
+RECORD = ROOT / "common/testdata"
 
 
 def test_frozen_public_vectors_and_inputs():

@@ -7,7 +7,7 @@ from security.can_session import (SessionContext, _derive32, control_tag, data_m
                                   derive_keys, fragment, state_receipt_tag, tag_matches)
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-FIXTURE = ROOT / "docs/aidlc/changes/CHG-029/session-v2-vectors.tsv"
+FIXTURE = ROOT / "common/testdata/session-v2-vectors.tsv"
 
 
 def dummy_vectors():

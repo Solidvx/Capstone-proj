@@ -63,7 +63,7 @@ if(IVI_BUILD_TESTS)
         ../common/can_session_crypto.cpp ../common/can_session_frames.cpp)
     target_link_libraries(test_can_session_candidate PRIVATE OpenSSL::Crypto)
     target_compile_definitions(test_can_session_candidate PRIVATE
-        SESSION_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../docs/aidlc/changes/CHG-029/session-v2-vectors.tsv")
+        SESSION_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../common/testdata/session-v2-vectors.tsv")
     add_test(NAME test_can_session_candidate COMMAND test_can_session_candidate)
     add_executable(test_can_session_exchange
         ../common/test_can_session_exchange.cpp ../common/can_session_exchange.cpp
@@ -82,9 +82,9 @@ if(IVI_BUILD_TESTS)
     target_include_directories(test_can_diagnostic PRIVATE ../adaptive_ecu/include)
     target_link_libraries(test_can_diagnostic PRIVATE OpenSSL::Crypto)
     target_compile_definitions(test_can_diagnostic PRIVATE
-        DIAGNOSTIC_INPUT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../docs/aidlc/changes/CHG-029/diagnostic-inputs.tsv"
-        DIAGNOSTIC_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../docs/aidlc/changes/CHG-029/diagnostic-v1-vectors.tsv"
-        PROTECTION_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../docs/aidlc/changes/CHG-029/protection-v1-vectors.tsv")
+        DIAGNOSTIC_INPUT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../common/testdata/diagnostic-inputs.tsv"
+        DIAGNOSTIC_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../common/testdata/diagnostic-v1-vectors.tsv"
+        PROTECTION_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../common/testdata/protection-v1-vectors.tsv")
     add_test(NAME test_can_diagnostic COMMAND test_can_diagnostic)
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         add_executable(test_can_session_vcan

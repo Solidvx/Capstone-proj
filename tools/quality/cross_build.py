@@ -60,11 +60,9 @@ def input_hashes(repo):
                           name not in ('__pycache__', 'logs', 'models')]
             for name in names:
                 path = Path(current)/name
-                if path.suffix in ('.cpp', '.h', '.qml', '.py', '.csv', '.conf', '.ttf'):
+                if path.suffix in ('.cpp', '.h', '.qml', '.py', '.csv', '.conf', '.ttf', '.tsv'):
                     if path.is_symlink():raise ValueError('symlink cross source rejected')
                     result[str(path.relative_to(repo))] = sha(path)
-    for path in (repo/'docs/aidlc/changes/CHG-029').glob('*.tsv'):
-        result[str(path.relative_to(repo))] = sha(path)
     return result
 
 

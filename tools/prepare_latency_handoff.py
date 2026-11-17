@@ -10,7 +10,6 @@ import tarfile
 OVERLAYS = (
     'ivi_platform/CMakeLists.txt', 'ivi_platform/ui_qml/main.cpp',
     'ivi_platform/ui_qml/latency_recorder.h', 'ivi_platform/test/test_latency_recorder.cpp',
-    'docs/development/playbooks/ivi-performance-handoff.md',
 )
 
 

@@ -223,3 +223,23 @@ temp/
 *.candump
 *.pcap
 *.pcapng
+
+# Local-only personal/AI records and experiment outputs
+/.agents/
+/.claude/
+/.codex/
+/docs/aidlc/
+/docs/development/
+/docs/archive/
+/handoff/
+/하드웨어 정보/
+/plan/
+/1110할일.md
+/AGENTS.md
+/CLAUDE.md
+/CODEX.md
+/SKILL.md
+/tools/workflow/README.md
+/tools/workflow/tests/README.md
+/질문리스트.md
+/프로젝트구조개선.md
