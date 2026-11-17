@@ -89,6 +89,24 @@ TEST(PhysicalRuntime,ExplicitSocAndIndependentCapacityStaySeparate){
     const auto v=feed.values(6800);ASSERT_TRUE(v.soc_percent);ASSERT_TRUE(v.soh_percent);
     EXPECT_NEAR(*v.soc_percent,80.-(.37*4/3600.)/2.55*100,1e-10);EXPECT_NEAR(*v.soh_percent,90.,1e-10);
 }
+TEST(PhysicalRuntime,AutomaticModelIsExplicitAndPublishesOnlyAfterFreshRestSamples){
+    Temp temp;auto text=configText();const auto at=text.find("initial_soc_percent=unknown");
+    text.replace(at,std::string("initial_soc_percent=unknown").size(),
+        std::string("initial_soc_percent=")+PhysicalSocEkf::kModel);
+    const auto path=temp.directory/"auto.conf";std::ofstream(path)<<text;
+    auto c=loadPhysicalRuntimeConfig(path.string());ASSERT_TRUE(c.meter.automatic_soc);
+    EXPECT_FALSE(c.meter.initial_soc);EXPECT_NE(c.fingerprint,config().fingerprint);
+    PhysicalSampleFeed feed(c);
+    for(unsigned n=1;n<=61;++n){
+        auto s=sample(c,n,n*1000);s.voltage_v=3.820965;s.current_a=0;
+        ASSERT_TRUE(feed.accept(s,s.completed_ms));
+        if(n<61)EXPECT_FALSE(feed.values(s.completed_ms).soc_percent);
+    }
+    auto v=feed.values(61800);ASSERT_TRUE(v.soc_percent);EXPECT_NEAR(*v.soc_percent,50,1e-9);
+    EXPECT_EQ(feed.socBasis(),2u);EXPECT_FALSE(v.soh_percent);
+    EXPECT_FALSE(feed.values(100000).soc_percent); // stale input still invalidates SOC
+    EXPECT_TRUE(feed.meterState().observation_gap);
+}
 TEST(PhysicalRuntime,AuthenticatedBodyKeepsUnknownDistinctFromZero){
     using namespace capstone::session_v2;PhysicalMeasurement m;
     m.instance[6]=0x40;m.instance[8]=0x80;m.configuration[0]=1;m.nominal_capacity_mah=2550;m.max_interval_ms=3000;

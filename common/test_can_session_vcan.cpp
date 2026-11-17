@@ -70,6 +70,7 @@ int receivePhysicalEcu(const std::string& iface,const std::string& selected){
     Exchange ivi(Endpoint::Ivi,dummy,bounds);const auto start=milliseconds();
     std::optional<Nonce> instance;bool passed=false,inject=false;
     const bool receive_fault=selected=="--ivi-physical-receive-error";
+    const bool automatic_rest=selected=="--ivi-physical-auto-rest";
     auto observe=[&]{
         for(const auto& m:ivi.lastReceiveOutcome().applied){
             require(m.id!=0x100,"physical mode fabricated a legacy pack BMS");
@@ -90,18 +91,22 @@ int receivePhysicalEcu(const std::string& iface,const std::string& selected){
         const bool no_temperature=selected=="--ivi-physical-temperature-error";
         if(!no_electrical&&(!m->voltage_v||!m->current_a))return;
         if(!no_temperature&&!m->temperature_c)return;
-        require(no_electrical?!m->voltage_v:std::abs(*m->voltage_v-3.737)<1e-6,"physical voltage mismatch");
-        require(no_electrical?!m->current_a:std::abs(*m->current_a+.37)<1e-6,"physical current mismatch");
+        require(no_electrical?!m->voltage_v:std::abs(*m->voltage_v-(automatic_rest?3.7:3.737))<1e-6,"physical voltage mismatch");
+        require(no_electrical?!m->current_a:std::abs(*m->current_a+(automatic_rest?0:.37))<1e-6,"physical current mismatch");
         require(no_temperature?!m->temperature_c:std::abs(*m->temperature_c-19.75)<1e-6,"physical temperature mismatch");
         if(selected=="--ivi-physical-known"){
             require(m->soc_percent&&*m->soc_percent>79&&*m->soc_percent<=80,"explicit SOC prior not integrated");
             require(m->soh_percent&&std::abs(*m->soh_percent-90)<1e-6,"independent capacity SOH mismatch");
+        }else if(automatic_rest){
+            require(m->soc_basis==2&&!m->soh_percent,"automatic SOC basis/SOH mismatch");
+            if(!m->soc_percent)return;
+            require(*m->soc_percent>10&&*m->soc_percent<15,"automatic reference SOC mismatch");
         }else require(!m->soc_percent&&!m->soh_percent,"unknown physical SOC/SOH fabricated");
         require(m->nominal_capacity_mah==2550,"single-cell nominal capacity lost");
         if(receive_fault)inject=true;else passed=true;
     };
     while(!passed){
-        require(milliseconds()-start<(receive_fault?25000u:8000u),"physical ECU authentication/data deadline");
+        require(milliseconds()-start<(automatic_rest?80000u:receive_fault?25000u:8000u),"physical ECU authentication/data deadline");
         if(inject)socket.send({Frame{0x123,{}}});
         while(auto frame=socket.receive()){const auto at=milliseconds();socket.send(ivi.receive(*frame,at,at));observe();}
         socket.send(ivi.poll(milliseconds()));observe();std::this_thread::sleep_for(std::chrono::milliseconds(1));

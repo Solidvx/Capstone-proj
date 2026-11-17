@@ -38,7 +38,7 @@ def main():
         device.write_bytes(b"")
         probe = root / "28-000000000000"
         probe.mkdir()
-        for case in ("normal", "temperature-error", "electrical-error", "known", "receive-error"):
+        for case in ("normal", "temperature-error", "electrical-error", "known", "receive-error", "unknown", "auto-rest"):
             shutil.copyfile(args.rx_fixture if case == "receive-error" else args.ecu, ecu)
             (probe / "w1_slave").write_text("3c 01 7f 80 7f ff 04 10 cf : crc=cf YES\n"
                 "3c 01 7f 80 7f ff 04 10 cf t=19750\n" if case != "temperature-error" else "NO\n")
@@ -48,16 +48,20 @@ def main():
                           w1_root=str(root), period_ms="100", read_timeout_ms="1000", freshness_ms="1000", max_interval_ms="1000")
             if case == "known":
                 values.update(initial_soc_percent="80", measured_capacity_ah="2.295", capacity_test_id="PUBLIC-TEST-ONLY")
+            elif case == "unknown":
+                values.update(initial_soc_percent="unknown")
             config = root / "physical.conf"
             config.write_text("".join(f"{k}={v}\n" for k, v in values.items()))
             log = out / (case + ".log")
             with log.open("w+") as stream:
                 child = subprocess.Popen([str(ecu), "--interface", interface, "--sensor-mode", "physical",
                     "--physical-config", str(config), "--protocol", "session-v2", "--session-policy", str(args.policy),
-                    "--key", str(key)], stdout=stream, stderr=subprocess.STDOUT)
+                    "--key", str(key)], stdout=stream, stderr=subprocess.STDOUT,
+                    env=dict(os.environ, CAPSTONE_TEST_INA_ZERO_CURRENT="1" if case == "auto-rest" else "0"))
                 try:
                     option = "--ivi-physical" if case == "normal" else "--ivi-physical-" + case
-                    result = subprocess.run([str(args.peer), option], capture_output=True, text=True, timeout=28)
+                    result = subprocess.run([str(args.peer), option], capture_output=True, text=True,
+                                            timeout=85 if case == "auto-rest" else 28)
                     (out / (case + "-peer.log")).write_text(result.stdout + result.stderr)
                     assert result.returncode == 0, result.stdout + result.stderr
                     assert child.poll() is None
@@ -76,9 +80,13 @@ def main():
             samples = [json.loads(line) for line in text.splitlines() if line.startswith('{"result":"PHYSICAL_SAMPLE"')]
             assert len(samples) >= 3, text
             last = samples[-1]
-            assert (last["soc_estimate_percent"] is not None) == (case == "known")
+            assert (last["soc_estimate_percent"] is not None) == (case in ("known", "auto-rest"))
             assert (last["soh_estimate_percent"] is not None) == (case == "known")
             assert "SOH virtual capacity" not in text
+            assert last["soc_basis"] == (1 if case == "known" else 0 if case == "unknown" else 2)
+            if case == "auto-rest":
+                assert any(row["soc_update"] == "initialized" for row in samples)
+                assert 10 < last["soc_estimate_percent"] < 15
             if case == "receive-error":
                 assert "ERR_WATCHDOG_MAX_RESTART task=can-rx" in text
                 assert "Fail-safe transition:" not in text

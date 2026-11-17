@@ -24,7 +24,7 @@ def test_public_vectors_cross_language_contract():
     ctx, keys, _ = fixtures()
     path = Path(__file__).resolve().parents[2] / "common/testdata/physical-v1-vectors.tsv"
     rows = path.read_text().splitlines()
-    assert len(rows) == 4
+    assert len(rows) == 6
     for line in rows:
         name, sequence, body_hex, frames_hex = line.split("\t")
         value = bytes.fromhex(body_hex)
@@ -48,7 +48,7 @@ def test_authenticated_roundtrip_and_zero_is_not_unknown():
     assert valid_body(0x302, 9, b)  # explicit valid 0% has a different flag/basis
 
 
-@pytest.mark.parametrize("at,value", [(6, 0), (8, 0), (64, 2), (65, 1), (66, 2), (67, 1),
+@pytest.mark.parametrize("at,value", [(6, 0), (8, 0), (64, 2), (65, 1), (66, 3), (67, 1),
                                      (68, 3), (69, 3), (70, 2), (71, 1), (52, 1)])
 def test_noncanonical_and_inconsistent_fields_rejected(at, value):
     b = body()
@@ -62,6 +62,19 @@ def test_invalid_sensor_fields_are_absent_and_temperature_is_independent():
     b[48:52] = bytes(4)
     assert valid_body(0x302, 9, b)
     b[48] = 1
+    assert not valid_body(0x302, 9, b)
+
+
+def test_automatic_ekf_basis_preserves_pending_and_valid_zero():
+    ctx, keys, _ = fixtures()
+    b = body()
+    b[66] = 2
+    assert valid_body(0x302, 9, b)  # selected, still waiting for a resting window
+    b[65] |= 8
+    assert valid_body(0x302, 9, b)  # initialized, valid 0% is distinct
+    frames = encode(keys, ctx, 0x302, 124, 9, bytes(b))
+    assert decode(keys, ctx, 0x302, frames) == (124, 9, bytes(b))
+    b[66] = 0
     assert not valid_body(0x302, 9, b)
 
 

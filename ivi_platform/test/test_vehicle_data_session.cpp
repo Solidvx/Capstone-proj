@@ -95,6 +95,17 @@ void physicalMeasurementTests(){
         timing.advance(1000);EXPECT_TRUE(timing.service.latest().physical_valid[0]);
         EXPECT_TRUE(timing.service.latest().physical_valid[2]);
     }
+    Rig automatic;automatic.open();
+    automatic.send(automatic.ecu.makeDiagnostic(wire::DiagnosticKind::NodeStatus,node())->frames);
+    m.sequence=3;m.soc_basis=2;m.soc_percent.reset();send(automatic,m);
+    EXPECT_FALSE(automatic.service.latest().physical_valid[3]);
+    m.sequence++;m.soc_percent=0;send(automatic,m);
+    EXPECT_TRUE(automatic.service.latest().physical_valid[3]);
+    EXPECT_EQ(automatic.service.latest().vehicle.soc_percent,0.0);
+    // A late/manual-basis report cannot change the model within this lineage.
+    m.sequence++;m.soc_basis=1;m.soc_percent=80;send(automatic,m);
+    EXPECT_EQ(automatic.service.latest().physical_measurement->soc_basis,2u);
+    EXPECT_EQ(automatic.service.latest().vehicle.soc_percent,0.0);
 }
 void protectionLinkTests(){
     const auto instance=wire::diagnosticUuid(),lineage=wire::diagnosticUuid(),incident=wire::diagnosticUuid();

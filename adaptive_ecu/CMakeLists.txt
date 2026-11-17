@@ -66,6 +66,7 @@ target_link_libraries(ecu_core PUBLIC OpenSSL::Crypto Threads::Threads)
 
 # Physical acquisition/calculation is separate from the virtual pack model.
 add_library(physical_sensor_core
+    src/app/physical_soc_ekf.cpp
     src/app/physical_battery_meter.cpp
     src/app/physical_sensor_runtime.cpp
     src/bsw/physical_sensor_process.cpp
@@ -200,7 +201,7 @@ if(ECU_BUILD_TESTS)
                 --policy ${CMAKE_CURRENT_SOURCE_DIR}/data/session-v2-development.conf
                 --config-example ${CMAKE_CURRENT_SOURCE_DIR}/data/physical-battery.conf.example
                 --out-parent ${CMAKE_CURRENT_BINARY_DIR}/physical-product-results)
-            set_tests_properties(test_physical_ecu_product PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 60 RUN_SERIAL TRUE)
+            set_tests_properties(test_physical_ecu_product PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 150 RUN_SERIAL TRUE)
         endif()
     endif()
     find_package(GTest REQUIRED)

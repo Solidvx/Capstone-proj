@@ -39,7 +39,7 @@ Linux CAN 통합 시험은 설정된 가상 CAN 환경이 필요하다. 소스 �
 
 ## 선택형 단셀 실측 표시
 
-ECU의 `adaptive_ecu`와 `physical_battery_worker`를 같은 `bin/`에 유지한다. 배포 예시 설정을 로컬 복사해 본인 DS18B20 번호·실물 션트값을 확인한다. 초기 SOC·용량 시험 근거가 없으면 예시의 `unknown`을 유지한다. IVI는 같은 형상의 일반 `ivi_dashboard`를 사용한다.
+ECU의 `adaptive_ecu`와 `physical_battery_worker`를 같은 `bin/`에 유지한다. 배포 예시 설정을 로컬 복사해 본인 DS18B20 번호·실물 션트값을 확인한다. 초기 SOC를 직접 지정하지 않을 때는 `unknown` 또는 아래의 명시적 참고 EKF 모드를 선택한다. 독립 용량 시험 근거가 없으면 SOH 설정은 `unknown`을 유지한다. IVI는 같은 형상의 일반 `ivi_dashboard`를 사용한다.
 
 ```sh
 # ECU 패키지를 푼 폴더에서 실행
@@ -61,3 +61,62 @@ QT_QPA_PLATFORM=wayland ./bin/ivi_dashboard --interface can0 \
 실행 예시의 취득 주기는 `period_ms=1000`, 전류 적분/수신 나이 상한은 `max_interval_ms=3000`이다. 기존 2초 취득 설정은 온도 변환 대기와 1초 보고 간격이 겹쳐 정상 표본도 다음 보고 전에 3초 상한을 넘길 수 있다. 기존 로컬 설정은 패키지를 갱신해도 자동 변경되지 않으므로 백업 후 취득 주기를 수정하고 ECU 프로그램을 재시작한다. 느린 읽기·전송 지연에 대한 장비 인수는 별도로 필요하다.
 
 중앙 팝업은 배터리 탭에서만 표시한다. 보안·이벤트·설정 탭에서는 조작을 막지 않는 상단 알림을 6초간 표시한다. 알림을 닫거나 상단 알림이 사라져도 상태와 이벤트 기록은 유지한다.
+
+
+## 단셀 SOC 자동 초기화·참고 EKF
+
+`config/physical-battery.conf`의 `initial_soc_percent=auto-ekf-adi-liion-v1`로 선택한다. 기존 로컬 설정은 자동 변경하지 않으며 숫자0~100(명시 초기값+전류 누적), `unknown`(SOC미산정)도 유지한다. 새 SOC근거2를 사용하는 ECU·IVI는 같은 형상으로 함께 갱신해야 한다.
+
+자동 모드는 공개된 [Analog Devices typical Li-ion 예제곡선 Table 1](https://www.analog.com/en/resources/design-notes/characterizing-a-lithiumion-li-cell-for-use-with-an-opencircuitvoltage-ocv-based-fuel-gauge.html)을 사용하는 단셀1상태 EKF다. 우리 셀의 특성 측정값이나 가장 유사하다고 검증한 곡선이 아니며 정확도는 미검증이다. 센서 전압·전류·온도는 계속 실측값을 사용한다. 기존 가상10직렬/50Ah EKF와 분리한다.
+
+처음에는 센서 측정 배선을 유지한 채 저항 부하를 분리하고 전압이 안정되도록 기다린다. |전류|≤20mA·전압 변동폭≤10mV가60초 이상 이어지면 초기 SOC를 추정한다. 이 후보 조건이 충분한 실제 OCV 휴지시간이라는 보장은 없으며 변동/공백이 있으면 안정 확인을 다시 시작한다. 전압3.0~4.25V는 후보 모델의 입력 범위이며 보호 임계가 아니다. 모델 입력 범위를 벗어나면 SOC를 미산정으로 내리고 안정 확인부터 다시 시작한다. 곡선 끝점의0/100% 표시도 실제 방전/완충 확인이 아니다.
+
+IVI는 초기 잔량 확인 중 안내를 표시하고, 초기화 후에는 잔량 게이지를 표시한다. 그 뒤 저항을 연결해 방전하면서 실측 전류를 누적한 예측을 확인할 수 있다. 전압 보정은 다음 안정 창에서만 적용하고 부하 중 전압을 그대로 OCV로 사용하지 않는다. ECU 로그의 `soc_basis=2`, `soc_update`(waiting-rest/initialized/predicted/corrected/held-gap), `soc_covariance`로 실행 경로를 구분한다. 이 공분산은 후보 모델의 내부 상태이며 실셀 SOC 오차 보증값이 아니다.
+
+프로그램을 재시작하면 다시 자동 초기화한다. 실측 EKF 영속 복구·셀 교체 자동 인식·온도/내부저항 보정·부하 차단은 포함하지 않는다. SOH는 별도의 용량 시험 근거가 있어야 표시한다. 프로그램 정지와 실제 저항 부하 분리는 별개다.
+
+## 센서 알림·회복을 직접 확인하기
+
+현재 실측 전달 경로에서는 센서 입력 오류/회복과 연결 대기/재연결을 확인한다. 실제 셀의 과열/저잔량 보호는 아직 미구성이므로 실셀을 가열하거나 방전 끝까지 보내 UI 경고를 유도하지 않는다. 보안 프로그램/공격 노드의 실제 탐지·거부 인수도 별도로 구분한다.
+
+배선을 바꾸는 대신, 실제 센서로 이어지는 **시험용 읽기 경로**를 잠시 숨겨 동일 ECU 프로세스의 오류/회복을 확인할 수 있다. 아래는 ECU 런타임 폴더에서 기존 ECU를 종료한 뒤 사용한다. 기존 설정·시스템 장치·키는 수정하지 않는다. 시험 폴더가 이미 있으면 덮어쓰지 않으며 다른 이름을 사용한다.
+
+```sh
+python3 - <<'PY'
+from pathlib import Path
+root = Path.cwd()
+source = root / 'config/physical-battery.conf'
+lines = source.read_text().splitlines()
+values = dict(line.split('=', 1) for line in lines if line and not line.startswith('#'))
+test = root / 'tmp/ui-sensor-check'
+test.mkdir(parents=True, exist_ok=False)
+(test / 'temperature').symlink_to(values['w1_root'], target_is_directory=True)
+(test / 'electrical').symlink_to(values['i2c_device'])
+replacements = {'w1_root': str(test / 'temperature'), 'i2c_device': str(test / 'electrical')}
+config = test / 'physical.conf'
+config.write_text('\n'.join(key + '=' + replacements[key] if key in replacements else line
+    for line in lines for key in [line.partition('=')[0]]) + '\n')
+print('시험 설정:', config)
+PY
+
+./bin/adaptive_ecu --interface can0 --sensor-mode physical \
+  --physical-config "$PWD/tmp/ui-sensor-check/physical.conf" \
+  --protocol session-v2 --session-policy config/session-v2-development.conf \
+  --key /etc/secoc/key.bin
+```
+
+IVI는 일반 실측 수신으로 켜둔다. 정상 전압·전류·온도를 확인한 뒤 **다른 ECU 터미널의 같은 런타임 폴더**에서 아래 두 명령을 하나씩 실행한다. 첫 명령 후 알림을 확인하고 나서 두 번째를 실행한다.
+
+```sh
+# 온도 읽기 실패: 2초 지속 확인 뒤 센서 알림, 온도는 --
+mv tmp/ui-sensor-check/temperature tmp/ui-sensor-check/temperature.off
+
+# 실제 온도 읽기 복구: 새 3회 확인 + 5초 연속 정상 뒤 회복 기록
+mv tmp/ui-sensor-check/temperature.off tmp/ui-sensor-check/temperature
+```
+
+배터리 탭에서 알림을 닫지 않았다면 회복 문구로 바뀐 뒤 닫을 수 있어야 한다. 오류 중 닫았다면 같은 오류에서 다시 열리지 않고 회복은 이벤트에 기록돼야 한다. 회복 후 이벤트 탭에서 같은 시험을 반복하면 중앙 팝업 대신 6초 상단 알림이 나타나고 스크롤·탭 조작이 가능해야 한다. 전압/전류 읽기는 같은 방식으로 `electrical`↔`electrical.off`를 변경해 확인한다. 이 시험은 실제 측정값을 읽다가 경로만 끊으며 가상 측정값을 만들지 않는다. 실제 배선 단선 인수와는 구분한다. 종료할 때 두 경로를 복구하고 ECU를 중지한 뒤 원래 설정으로 다시 실행한다.
+
+ECU 프로그램을 중지했다 다시 실행하면 연결 대기→새 인증 연결→새 측정값 확인을 별도로 볼 수 있다. 단순 재연결을 센서 회복이나 실제 배터리 정상 복귀로 해석하지 않는다.
+
+화면 모양만 확인하는 기존 `./bin/ivi_dashboard --demo SCENARIO`에는 `normal`, `warning`(작업 복구 실패 경고), `critical`(저잔량 위험), `shutdown`(과열 보호), `ids`(Flooding)가 있다. IVI에서 실행 중인 일반 대시보드를 종료한 뒤 같은 Wayland 환경에서 사용하며, 상단에 **화면 시연 · 가상 데이터**로 표시한다. 이 고정 화면은 센서/CAN/보호 알고리즘·회복 전이를 검증하지 않는다. 같은 앱 실행 중 실제 입력 오류→회복은 위 시험, 가상 배터리 보호 전이는 해당 단위/제품 시험으로 확인한다.

@@ -489,7 +489,7 @@ int main(int argc,char** argv){
                 require(result.code==DiagnosticResultCode::Message&&result.message->body==body,"physical authenticated receive failed");
                 require(!validDiagnosticBody(0x303,DiagnosticKind::PhysicalMeasurement,body),"physical reverse direction accepted");++count;
             }
-            require(count==4,"physical vector count");
+            require(count==6,"physical vector count");
         }
         allKindsRoundTripAndDuplicate();tagBitsAndReflection();reassemblyLimitsAndExpiry();badMetadataPaddingAndTimestamp();
         replayWindowConflictAndDataIsolation();schemaAndSenderSequence();macBudgetDoesNotConsumeSequence();

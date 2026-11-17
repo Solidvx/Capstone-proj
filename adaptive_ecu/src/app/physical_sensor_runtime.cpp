@@ -83,7 +83,8 @@ PhysicalRuntimeConfig loadPhysicalRuntimeConfig(const std::string& path){
     result.meter.nominal_capacity_ah=number(take("nominal_capacity_ah"));
     if(result.meter.nominal_capacity_ah>4294967.)throw std::invalid_argument("capacity cannot be represented");
     const auto prior=take("initial_soc_percent");
-    if(prior!="unknown")result.meter.initial_soc=number(prior)/100.;
+    if(prior==PhysicalSocEkf::kModel)result.meter.automatic_soc=true;
+    else if(prior!="unknown")result.meter.initial_soc=number(prior)/100.;
     const auto measured=take("measured_capacity_ah");result.capacity_test_id=take("capacity_test_id");
     if(measured!="unknown"){
         result.measured_capacity_ah=number(measured);

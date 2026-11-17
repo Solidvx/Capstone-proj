@@ -513,7 +513,8 @@ int runDashboard(int argc, char* argv[]) {
     }
 
     QQmlApplicationEngine engine;
-    engine.setInitialProperties({{"vehicleModel", QVariant::fromValue(&view_model)}});
+    engine.setInitialProperties({{"vehicleModel", QVariant::fromValue(&view_model)},
+                                 {"demonstration",demo_mode}});
     engine.load(QUrl(QStringLiteral(
         "qrc:/qt/qml/IviDashboard/ui_qml/qml/Main.qml")));
     if (engine.rootObjects().isEmpty()) {

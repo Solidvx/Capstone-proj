@@ -3,6 +3,7 @@
 #include <cstdarg>
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 #include <sys/types.h>
@@ -15,7 +16,12 @@ extern "C" ssize_t __real_write(int,const void*,std::size_t);
 extern "C" int __wrap_ioctl(int fd,unsigned long request,...) {
     if(request==I2C_SLAVE)return fd==device ? 0 : -1;
     va_list args;va_start(args,request);auto* value=va_arg(args,void*);va_end(args);
-    if(request==I2C_FUNCS){device=fd;*static_cast<unsigned long*>(value)=I2C_FUNC_I2C;return 0;}
+    if(request==I2C_FUNCS){
+        device=fd;
+        const auto* zero=std::getenv("CAPSTONE_TEST_INA_ZERO_CURRENT");
+        if(zero&&zero[0]=='1'&&zero[1]=='\0')words[1]=words[4]=0;
+        *static_cast<unsigned long*>(value)=I2C_FUNC_I2C;return 0;
+    }
     if(request!=I2C_RDWR||fd!=device)return -1;
     auto* transfer=static_cast<i2c_rdwr_ioctl_data*>(value);
     if(transfer->nmsgs!=2||transfer->msgs[0].len!=1||transfer->msgs[1].len!=2||

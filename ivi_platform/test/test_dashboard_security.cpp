@@ -204,6 +204,23 @@ void run() {
     while(toast->isVisible()&&notificationWait.elapsed()<7000)flush();
     EXPECT_FALSE(toast->isVisible());EXPECT_FALSE(model.popupVisible());
     root->setProperty("currentPage",0);flush();EXPECT_FALSE(overlay->isVisible());
+    physical.physical_measurement->soc_basis=2;physical.physical_measurement->soc_percent.reset();
+    physical.physical_valid={true,true,true,false,false};model.updateSnapshot(physical);flush();
+    auto* initializationHint=root->findChild<QQuickItem*>("socInitializationHint");
+    EXPECT_TRUE(initializationHint && initializationHint->isVisible());
+    EXPECT_FALSE(socGauge->property("available").toBool());
+    const auto hintRect=initializationHint->mapRectToItem(canvas,initializationHint->boundingRect());
+    EXPECT_TRUE(hintRect.top()>=0 && hintRect.bottom()<tabs->mapRectToItem(canvas,tabs->boundingRect()).top());
+    EXPECT_TRUE(window->grabWindow().save("dashboard-physical-soc-initializing.png"));
+    physical.physical_measurement->sequence++;physical.physical_measurement->soc_percent=50;
+    physical.physical_valid[3]=true;physical.vehicle.soc_percent=50;model.updateSnapshot(physical);flush();
+    EXPECT_FALSE(initializationHint->isVisible());EXPECT_TRUE(socGauge->property("available").toBool());
+    EXPECT_EQ(socGauge->property("value").toDouble(),50.0);EXPECT_EQ(soh->property("text").toString(),QStringLiteral("--"));
+    EXPECT_TRUE(window->grabWindow().save("dashboard-physical-soc-estimated.png"));
+    root->setProperty("demonstration",true);flush();
+    auto* connection=root->findChild<QObject*>("connectionStatusLabel");
+    EXPECT_TRUE(connection && connection->property("text").toString().contains(QStringLiteral("가상 데이터")));
+    root->setProperty("demonstration",false);flush();
 }
 int main(int argc,char** argv) {
     QGuiApplication app(argc,argv);

@@ -43,6 +43,22 @@ class DashboardViewModelTest : public QObject {
     }
 
 private slots:
+    void automaticSocInitializationIsDifferentFromUnknownOrLostInput(){
+        DashboardViewModel model;ivi::VehicleSnapshot s;
+        s.physical_measurement=capstone::session_v2::PhysicalMeasurement{};
+        s.physical_measurement->soc_basis=2;s.physical_measurement->sequence=3;
+        s.physical_valid={true,true,true,false,false};s.vehicle.valid=true;
+        model.updateSnapshot(s);QVERIFY(model.physicalSocInitializing());QVERIFY(!model.socAvailable());
+        s.physical_measurement->sequence++;
+        s.physical_measurement->soc_percent=0;s.physical_valid[3]=true;s.vehicle.soc_percent=0;
+        model.updateSnapshot(s);QVERIFY(!model.physicalSocInitializing());QVERIFY(model.socAvailable());
+        QCOMPARE(model.soc(),0.0);QVERIFY(!model.sohAvailable());
+        s.physical_valid[0]=s.physical_valid[1]=s.physical_valid[3]=false;
+        model.updateSnapshot(s);QVERIFY(!model.physicalSocInitializing());QVERIFY(!model.socAvailable());
+        s.physical_measurement->soc_basis=0;s.physical_measurement->soc_percent.reset();
+        s.physical_valid[0]=s.physical_valid[1]=true;model.updateSnapshot(s);
+        QVERIFY(!model.physicalSocInitializing());
+    }
     void physicalSensorNoticesDebounceAndKeepOneIncidentUntilStableRecovery(){
         DashboardViewModel model;QSignalSpy records(&model,&DashboardViewModel::eventRecorded);
         auto count=[&](const QString& category){

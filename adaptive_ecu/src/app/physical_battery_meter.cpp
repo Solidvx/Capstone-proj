@@ -9,12 +9,19 @@ PhysicalBatteryMeter::PhysicalBatteryMeter(PhysicalMeterConfig config) {
     if(config.model_calibration_id.empty()||config.model_calibration_id.size()>128||
        !std::isfinite(config.nominal_capacity_ah)||config.nominal_capacity_ah<=0||
        !config.max_interval_ms||config.max_interval_ms>60000||
+       (config.automatic_soc&&config.initial_soc)||
        (config.initial_soc && (!std::isfinite(*config.initial_soc)||*config.initial_soc<0||*config.initial_soc>1)))
         throw std::invalid_argument("explicit model/capacity/time and optional valid SOC prior required");
     state_.config=std::move(config);state_.estimated_soc=state_.config.initial_soc;
+    if(state_.config.automatic_soc)automatic_soc_.emplace(state_.config.nominal_capacity_ah);
+}
+void PhysicalBatteryMeter::updateAutomaticSoc(std::uint64_t at,double seconds,double delta_ah,double voltage,double current){
+    if(!automatic_soc_)return;
+    automatic_soc_->accept(at,seconds,delta_ah,voltage,current);state_.estimated_soc=automatic_soc_->soc();
 }
 void PhysicalBatteryMeter::unavailable() {
     previous_.reset();state_.observation_gap=true;
+    if(automatic_soc_)automatic_soc_->unavailable();
 }
 PhysicalMeterResult PhysicalBatteryMeter::accept(std::uint64_t sequence,std::uint64_t at,
     double voltage,double current) {
@@ -24,11 +31,14 @@ PhysicalMeterResult PhysicalBatteryMeter::accept(std::uint64_t sequence,std::uin
     if(sequence==highest_sequence_)return PhysicalMeterResult::Duplicate;
     if(sequence<highest_sequence_){unavailable();return PhysicalMeterResult::Rejected;}
     highest_sequence_=sequence;
-    if(!previous_){previous_=Previous{at,voltage,current};return PhysicalMeterResult::Anchored;}
+    if(!previous_){previous_=Previous{at,voltage,current};updateAutomaticSoc(at,0,0,voltage,current);return PhysicalMeterResult::Anchored;}
     const auto prior=*previous_;
     if(at<=prior.at){unavailable();return PhysicalMeterResult::Rejected;}
     previous_=Previous{at,voltage,current};
-    if(at-prior.at>state_.config.max_interval_ms){state_.observation_gap=true;return PhysicalMeterResult::Gap;}
+    if(at-prior.at>state_.config.max_interval_ms){
+        state_.observation_gap=true;if(automatic_soc_)automatic_soc_->unavailable();
+        updateAutomaticSoc(at,0,0,voltage,current);return PhysicalMeterResult::Gap;
+    }
     const double hours=double(at-prior.at)/3600000;
     double charge=0,discharge=0;
     // A zero-crossing interval is split into triangles, preserving both flows.
@@ -50,13 +60,16 @@ PhysicalMeterResult PhysicalBatteryMeter::accept(std::uint64_t sequence,std::uin
         unavailable();return PhysicalMeterResult::Rejected;
     }
     state_.charged_ah+=charge;state_.discharged_ah+=discharge;state_.signed_energy_wh+=energy;
-    if(state_.estimated_soc)
+    if(automatic_soc_)updateAutomaticSoc(at,double(at-prior.at)/1000,charge-discharge,voltage,current);
+    else if(state_.estimated_soc)
         state_.estimated_soc=std::clamp(*state_.estimated_soc+(charge-discharge)/state_.config.nominal_capacity_ah,0.,1.);
     return PhysicalMeterResult::Integrated;
 }
 bool PhysicalBatteryMeter::restore(const PhysicalMeterState& saved) {
     const auto& a=state_.config;const auto& b=saved.config;
-    if(saved.version!=1||a.model_calibration_id!=b.model_calibration_id||
+    // The physical application does not persist EKF/rest history yet. Never
+    // restore just its SOC and silently discard covariance/initialization state.
+    if(a.automatic_soc||b.automatic_soc||saved.version!=1||a.model_calibration_id!=b.model_calibration_id||
        a.nominal_capacity_ah!=b.nominal_capacity_ah||a.initial_soc!=b.initial_soc||
        a.max_interval_ms!=b.max_interval_ms||!std::isfinite(saved.charged_ah)||saved.charged_ah<0||
        !std::isfinite(saved.discharged_ah)||saved.discharged_ah<0||!std::isfinite(saved.signed_energy_wh)||
@@ -73,7 +86,7 @@ PhysicalSohEstimate estimatePhysicalSoh(const PhysicalMeterState& start,
     const auto& a=start.config;const auto& b=end.config;
     if(start.version!=1||end.version!=1||a.model_calibration_id.empty()||
        a.model_calibration_id!=b.model_calibration_id||a.nominal_capacity_ah!=b.nominal_capacity_ah||
-       a.initial_soc!=b.initial_soc||a.max_interval_ms!=b.max_interval_ms)
+       a.initial_soc!=b.initial_soc||a.max_interval_ms!=b.max_interval_ms||a.automatic_soc!=b.automatic_soc)
         return absent(PhysicalSohStatus::IncompatibleModel);
     if(!std::isfinite(a.nominal_capacity_ah)||a.nominal_capacity_ah<=0||
        !std::isfinite(start.charged_ah)||start.charged_ah<0||!std::isfinite(end.charged_ah)||

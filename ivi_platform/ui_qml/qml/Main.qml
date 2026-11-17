@@ -7,10 +7,11 @@ import QtQuick.Layouts
 ApplicationWindow {
     id: root
     required property var vehicleModel
+    property bool demonstration: false
     width: 800
     height: 480
     visible: true
-    title: "배터리 모니터"
+    title: demonstration ? "배터리 모니터 · 화면 시연" : "배터리 모니터"
     color: backgroundColor
     readonly property bool dark: vehicleModel.darkMode
     readonly property color backgroundColor: dark ? "#101722" : "#f4f6fa"
@@ -84,7 +85,8 @@ ApplicationWindow {
                     }
                     Item { Layout.fillWidth: true }
                     Text {
-                        text: root.vehicleModel.sessionProtocol ? root.vehicleModel.connectionLabel : !root.vehicleModel.valid ? "연결 대기" : root.vehicleModel.stale ? "마지막 확인값 · " + root.ageText(root.vehicleModel.lastGoodAgeMs) : "현재 수신값"
+                        objectName: "connectionStatusLabel"
+                        text: root.demonstration ? "화면 시연 · 가상 데이터" : root.vehicleModel.sessionProtocol ? root.vehicleModel.connectionLabel : !root.vehicleModel.valid ? "연결 대기" : root.vehicleModel.stale ? "마지막 확인값 · " + root.ageText(root.vehicleModel.lastGoodAgeMs) : "현재 수신값"
                         color: root.vehicleModel.stale ? root.orange : root.muted
                         font.pixelSize: 12
                     }
@@ -127,8 +129,16 @@ ApplicationWindow {
                                             Layout.fillWidth: true
                                             Text {
                                                 Layout.fillWidth: true
-                                                text: !root.vehicleModel.socAvailable ? (root.vehicleModel.physicalMode ? "잔량 추정 준비 중" : "배터리 정보 대기") : root.vehicleModel.physicalMode ? (root.vehicleModel.physicalObservationGap ? "측정 공백이 있는 잔량 추정" : "배터리 잔량 추정 중") : root.vehicleModel.soc < 20 ? "충전이 필요합니다" : "잔량이 충분합니다"
+                                                text: !root.vehicleModel.socAvailable ? (root.vehicleModel.physicalSocInitializing ? "초기 잔량 확인 중" : root.vehicleModel.physicalMode ? "잔량 추정 준비 중" : "배터리 정보 대기") : root.vehicleModel.physicalMode ? (root.vehicleModel.physicalObservationGap ? "측정 공백이 있는 잔량 추정" : "배터리 잔량 추정 중") : root.vehicleModel.soc < 20 ? "충전이 필요합니다" : "잔량이 충분합니다"
                                                 color: root.ink; font.pixelSize: 18; font.bold: true
+                                                wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight
+                                            }
+                                            Text {
+                                                objectName: "socInitializationHint"
+                                                Layout.fillWidth: true
+                                                visible: root.vehicleModel.physicalSocInitializing
+                                                text: "저항 부하를 분리한 상태로 전압 안정화를 기다려 주세요."
+                                                color: root.muted; font.pixelSize: 12
                                                 wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight
                                             }
                                             Text {

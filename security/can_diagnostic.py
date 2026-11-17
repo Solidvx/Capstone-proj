@@ -45,13 +45,13 @@ def valid_body(sender: int, kind: int, b: bytes) -> bool:
     if kind == 9:
         flags = b[65]
         if (not _uuid(b, 0) or _zero(b, 16, 16) or b[64] != 1 or flags > 31
-                or b[66] > 1 or b[67] > 1 or b[68] not in range(1, 7)
+                or b[66] > 2 or b[67] > 1 or b[68] not in range(1, 7)
                 or b[69] not in range(1, 7) or b[70] > 1 or b[71]
                 or not _u(b, 72) or not 1 <= _u(b, 76) <= 60000):
             return False
         if (flags & 3 not in (0, 3) or bool(flags & 3) != (b[68] == 2)
                 or bool(flags & 4) != (b[69] == 2)
-                or (flags & 8 and (not flags & 3 or b[66] != 1))
+                or (flags & 8 and (not flags & 3 or b[66] not in (1, 2)))
                 or bool(flags & 16) != (b[67] == 1)
                 or (flags & 3 and _u(b, 56) == 0xFFFFFFFF)
                 or (flags & 4 and _u(b, 60) == 0xFFFFFFFF)):

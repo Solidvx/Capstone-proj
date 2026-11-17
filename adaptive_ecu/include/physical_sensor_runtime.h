@@ -43,6 +43,9 @@ public:
     PhysicalLiveValues values(std::uint64_t now_ms);
     void unavailable();
     const PhysicalMeterState& meterState()const{return meter_.state();}
+    unsigned socBasis()const{return meter_.socBasis();}
+    const char* socUpdate()const{return meter_.socUpdate();}
+    std::optional<double> socCovariance()const{return meter_.socCovariance();}
 private:
     PhysicalRuntimeConfig config_;
     PhysicalBatteryMeter meter_;

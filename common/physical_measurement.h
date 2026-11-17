@@ -30,12 +30,12 @@ inline std::optional<PhysicalMeasurement> decodePhysicalMeasurement(const std::v
     using physical_detail::get;
     if(b.size()!=80||(b[6]&0xf0)!=0x40||(b[8]&0xc0)!=0x80||
        std::all_of(b.begin()+16,b.begin()+32,[](auto v){return v==0;})||
-       b[64]!=1||b[65]>31||b[66]>1||b[67]>1||b[68]<1||b[68]>6||b[69]<1||b[69]>6||b[70]>1||b[71]||
+       b[64]!=1||b[65]>31||b[66]>2||b[67]>1||b[68]<1||b[68]>6||b[69]<1||b[69]>6||b[70]>1||b[71]||
        !get(b,72,4)||!get(b,76,4)||get(b,76,4)>60000)return std::nullopt;
     const auto flags=b[65];
     if((flags&3)!=0&&(flags&3)!=3)return std::nullopt;
     if(bool(flags&3)!=(b[68]==2)||bool(flags&4)!=(b[69]==2)||
-       ((flags&8)&&(!(flags&3)||b[66]!=1))||bool(flags&16)!=(b[67]==1)||
+       ((flags&8)&&(!(flags&3)||!b[66]))||bool(flags&16)!=(b[67]==1)||
        ((flags&3)&&get(b,56,4)==0xffffffffu)||((flags&4)&&get(b,60,4)==0xffffffffu))return std::nullopt;
     if(!get(b,32,8)&&((flags&15)||(b[68]!=1&&b[68]!=3)||(b[69]!=1&&b[69]!=3)||get(b,56,4)!=0xffffffffu||get(b,60,4)!=0xffffffffu))return std::nullopt;
     PhysicalMeasurement m;std::copy_n(b.begin(),16,m.instance.begin());std::copy_n(b.begin()+16,16,m.configuration.begin());

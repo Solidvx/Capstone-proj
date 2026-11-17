@@ -274,3 +274,10 @@ FR-IVI-009에 따라 기존 앱의 VehicleSnapshot에 선택적PhysicalMeasureme
 ### 2026-11-17 Replay 응답 계측 근거
 
 관찰용 LOCAL_REJECTION_RECORD에 run_id·Linux boot clock_id·기록 시각 recorded_monotonic_ns를 추가한다. 기존 네트워크 RejectionRecord 바이트/인증과 UI 동작은 유지한다. 평가기는 같은 세션의 MAC 검증된 COUNTER_REPLAY 전체 참조·이전 원본/auth 관찰·이후 첫 반복auth를 대조해 식별 가능한 IVI 관찰 시작점을 정한다. SESSION_PUBLICATION에는 실제 적용된 BMS 원본/auth bytes·context·수신시각을 기록하고 새 세션에서 이 근거를 비운다. 이전 원본의 실제 인증/적용 완료가 첫 반복auth보다 앞서는지도 대조한다. 원본raw 송신 시각이나 PC/다른 노드의 시각을 대신 쓰지 않는다. 종료는 기존 새 IncidentStatus의 인증/의미 수용 완료다. 근거 누락·다른run/clock/context·원본 미관찰은 지연 성공이 아니다. [시험 기준](TEST_PLAN.md)·진행.
+
+
+### 실측 SOC 자동 초기화 표시 — 2026-11-18
+
+승인된 종류9의SOC근거2를 수신하되 ECU에서 계산한 값만 표시한다. 근거2·정상 전기 입력·SOC미산정이면 `초기 잔량 확인 중`과 저항 부하 분리/전압 안정 안내를 표시한다. SOC가 유효해지면 기존 잔량 게이지에 추정값을 표시하고 초기화 안내를 숨긴다.0%와미산정은 유효비트로 구분하고 근거 변경/재생/만료 검사는 유지한다. 실측SOH/보호 상태를 임의로 채우지 않는다. 이 모드는 실셀 정확도나 실측 EKF 영속 복구를 인수한 표시가 아니다.
+
+실측 센서 알림은 이상2초 지속 후1회, 전체 채널5초 정상과새취득 후 회복1회다. 짧은 반복은같은사건이며 닫은알림은같은사건에서재개하지않는다. 배터리 탭은중앙팝업, 다른탭은조작을막지않는6초상단알림이다. 채널무효화/SecOC판정은즉시유지한다. TC-PHYS-004의 ViewModel/QML 시험으로검증한다.

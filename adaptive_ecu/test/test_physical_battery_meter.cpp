@@ -57,6 +57,76 @@ TEST(PhysicalMeter, InvalidModelAndPriorAreRejected){
     auto c=config();c.max_interval_ms=0;EXPECT_THROW(PhysicalBatteryMeter{c},std::invalid_argument);
 }
 
+namespace {
+PhysicalMeterConfig automaticConfig(){auto c=config();c.initial_soc.reset();c.automatic_soc=true;return c;}
+void resting(PhysicalBatteryMeter& meter,double voltage,std::uint64_t first=1,unsigned count=61){
+    for(std::uint64_t n=first;n<first+count;++n)meter.accept(n,n*1000,voltage,0);
+}
+}
+TEST(PhysicalAutoSoc, StableRestInitializesFromReferenceWithoutInventingSoh){
+    PhysicalBatteryMeter meter(automaticConfig());
+    resting(meter,3.820965,1,60);EXPECT_FALSE(meter.state().estimated_soc);
+    meter.accept(61,61000,3.820965,0);
+    ASSERT_TRUE(meter.state().estimated_soc);EXPECT_NEAR(*meter.state().estimated_soc,.5,1e-12);
+    EXPECT_EQ(meter.socBasis(),2u);EXPECT_STREQ(meter.socUpdate(),"initialized");
+    ASSERT_TRUE(meter.socCovariance());EXPECT_GT(*meter.socCovariance(),0);
+    EXPECT_EQ(estimatePhysicalSoh(meter.state(),meter.state(),false).status,PhysicalSohStatus::AwaitingCapacityTest);
+    // A partial SOC-only restore cannot masquerade as complete EKF recovery.
+    PhysicalBatteryMeter restarted(automaticConfig());EXPECT_FALSE(restarted.restore(meter.state()));
+    EXPECT_FALSE(restarted.state().estimated_soc);
+}
+TEST(PhysicalAutoSoc, LoadedOrDriftingVoltageCannotInitialize){
+    PhysicalBatteryMeter meter(automaticConfig());
+    for(unsigned n=1;n<=80;++n)meter.accept(n,n*1000,3.820965,-.37);
+    EXPECT_FALSE(meter.state().estimated_soc);
+    for(unsigned n=81;n<=160;++n)meter.accept(n,n*1000,n%2?3.80:3.84,0);
+    EXPECT_FALSE(meter.state().estimated_soc);
+    resting(meter,3.820965,161);ASSERT_TRUE(meter.state().estimated_soc);
+    EXPECT_NEAR(*meter.state().estimated_soc,.5,1e-12);
+}
+TEST(PhysicalAutoSoc, PredictionUsesMeasuredChargeAndVoltageCorrectionNeedsAnotherRestWindow){
+    PhysicalBatteryMeter meter(automaticConfig());resting(meter,3.820965);
+    const auto initial_covariance=*meter.socCovariance();
+    // Loaded terminal voltage is deliberately inconsistent: it must not be
+    // mistaken for OCV or pull SOC toward zero during discharge.
+    for(std::uint64_t n=62;n<=3661;++n)meter.accept(n,n*1000,3.1,-.255);
+    const double predicted=.5-.255*3599.5/3600/2.55;
+    EXPECT_NEAR(*meter.state().estimated_soc,predicted,1e-10);
+    EXPECT_GT(*meter.socCovariance(),initial_covariance);EXPECT_STREQ(meter.socUpdate(),"predicted");
+    resting(meter,3.884009,3662,60);const auto before=*meter.state().estimated_soc;
+    meter.accept(3722,3722000,3.884009,0);
+    EXPECT_GT(*meter.state().estimated_soc,before);EXPECT_LE(*meter.state().estimated_soc,1);
+    EXPECT_LT(*meter.socCovariance(),initial_covariance);EXPECT_STREQ(meter.socUpdate(),"corrected");
+}
+TEST(PhysicalAutoSoc, GapAndDuplicateCannotFakeACompletedRestWindow){
+    PhysicalBatteryMeter meter(automaticConfig());resting(meter,3.820965,1,30);
+    EXPECT_EQ(meter.accept(30,100000,3.820965,0),PhysicalMeterResult::Duplicate);
+    EXPECT_FALSE(meter.state().estimated_soc);
+    EXPECT_EQ(meter.accept(31,100000,3.820965,0),PhysicalMeterResult::Gap);
+    EXPECT_FALSE(meter.state().estimated_soc);
+    meter.unavailable();
+    for(std::uint64_t n=32;n<92;++n)meter.accept(n,100000+(n-31)*1000,3.820965,0);
+    EXPECT_FALSE(meter.state().estimated_soc);
+    meter.accept(92,161000,3.820965,0);EXPECT_TRUE(meter.state().estimated_soc);
+}
+TEST(PhysicalAutoSoc, NoCellAndOutOfModelVoltagesStayUnknownAndEndpointsAreBounded){
+    for(double voltage:{0.,2.5,4.5}){
+        PhysicalBatteryMeter meter(automaticConfig());resting(meter,voltage);
+        EXPECT_FALSE(meter.state().estimated_soc);
+    }
+    for(double voltage:{3.,4.2}){
+        PhysicalBatteryMeter meter(automaticConfig());resting(meter,voltage);
+        ASSERT_TRUE(meter.state().estimated_soc);EXPECT_DOUBLE_EQ(*meter.state().estimated_soc,voltage==3.?0.:1.);
+    }
+    auto conflict=automaticConfig();conflict.initial_soc=.5;
+    EXPECT_THROW(PhysicalBatteryMeter{conflict},std::invalid_argument);
+    PhysicalBatteryMeter removed(automaticConfig());resting(removed,3.820965);
+    ASSERT_TRUE(removed.state().estimated_soc);
+    removed.accept(62,62000,0,0);EXPECT_FALSE(removed.state().estimated_soc);
+    resting(removed,3.820965,63,60);EXPECT_FALSE(removed.state().estimated_soc);
+    removed.accept(123,123000,3.820965,0);EXPECT_TRUE(removed.state().estimated_soc);
+}
+
 TEST(PhysicalSoh, ConfirmedCapacityIntervalEstimatesNinetyPercentWithoutUsingSoc){
     PhysicalBatteryMeter meter(config());auto start=meter.state();start.discharged_ah=.1;
     auto end=start;end.discharged_ah=.1+2.295;

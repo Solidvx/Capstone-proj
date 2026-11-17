@@ -17,6 +17,10 @@ read_timeout_ms=5000
 freshness_ms=5000
 max_interval_ms=3000
 nominal_capacity_ah=2.55
-initial_soc_percent=unknown
+# Explicit reference model (unverified for this cell): typical Li-ion OCV,
+# 1-cell EKF; initial voltage update needs >=60s, |I|<=20mA, spread<=10mV.
+# Keep 'unknown' for no SOC model, or supply 0..100 for explicit coulomb SOC.
+# No state restore or loaded-voltage correction; this is not a cutoff policy.
+initial_soc_percent=auto-ekf-adi-liion-v1
 measured_capacity_ah=unknown
 capacity_test_id=unknown

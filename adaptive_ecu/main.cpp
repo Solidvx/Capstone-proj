@@ -383,6 +383,8 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
     if(physical_config){
         std::cout<<"{\"result\":\"ECU_PHYSICAL_LINEAGE\",\"model_config_sha256\":\""<<physical_config->meter.model_calibration_id
                  <<"\",\"nominal_capacity_ah\":"<<physical_config->meter.nominal_capacity_ah
+                 <<",\"soc_model\":\""<<(physical_config->meter.automatic_soc?PhysicalSocEkf::kModel:
+                    physical_config->meter.initial_soc?"explicit-coulomb":"unknown")<<'"'
                  <<",\"physical_accuracy_verified\":false}"<<std::endl;
     }else std::cout<<inputLineageJson(input_instance.str(),recovery_requested?start_intent:"standalone",
         *mode,sensor,sensor.exportState(),soh_scenario,restored_soh_elapsed,
@@ -674,7 +676,7 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
         physical_process=std::make_unique<PhysicalSensorProcess>(executable.string(),physical_config_path,physical_config->fingerprint);
 #endif
         std::cout<<"Physical: INA219 voltage/current + DS18B20 temperature; no virtual BMS values. "
-                    "SOC needs an explicit prior; SOH needs an independent capacity test. "
+                    "SOC uses the explicitly selected prior/reference model; reference accuracy is unverified. SOH needs an independent capacity test. "
                     "Physical protection thresholds/cutoff and checkpoint recovery are not enabled.\n";
     }
 
@@ -775,7 +777,7 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
                 measurement.ina_age_ms=values.ina_age_ms;measurement.temperature_age_ms=values.temperature_age_ms;
                 measurement.ina_quality=static_cast<std::uint8_t>(values.ina_quality);
                 measurement.temperature_quality=static_cast<std::uint8_t>(values.temperature_quality);
-                measurement.soc_basis=physical_config->meter.initial_soc.has_value();
+                measurement.soc_basis=physical_feed->socBasis();
                 measurement.soh_basis=physical_config->measured_capacity_ah.has_value();
                 measurement.observation_gap=physical_feed->meterState().observation_gap;
                 measurement.nominal_capacity_mah=static_cast<std::uint32_t>(std::llround(physical_config->meter.nominal_capacity_ah*1000));
@@ -794,6 +796,11 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
                          <<",\"current_a\":"<<(values.current_a?std::to_string(*values.current_a):"null")
                          <<",\"temperature_c\":"<<(values.temperature_c?std::to_string(*values.temperature_c):"null")
                          <<",\"soc_estimate_percent\":"<<(values.soc_percent?std::to_string(*values.soc_percent):"null")
+                         <<",\"soc_basis\":"<<physical_feed->socBasis()
+                         <<",\"soc_update\":\""<<physical_feed->socUpdate()<<'"'
+                         <<",\"soc_covariance\":";
+                if(const auto covariance=physical_feed->socCovariance())std::cout<<*covariance;else std::cout<<"null";
+                std::cout
                          <<",\"soh_estimate_percent\":"<<(values.soh_percent?std::to_string(*values.soh_percent):"null")
                          <<",\"ina_quality\":"<<unsigned(values.ina_quality)<<",\"temperature_quality\":"<<unsigned(values.temperature_quality)
                          <<",\"charged_ah\":"<<state.charged_ah<<",\"discharged_ah\":"<<state.discharged_ah
