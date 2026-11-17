@@ -380,6 +380,8 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
     std::ostringstream input_instance;
     input_instance<<std::hex<<std::setfill('0');
     for (auto byte:instance) input_instance<<std::setw(2)<<static_cast<unsigned>(byte);
+    std::string physical_clock_id;
+    if(physical_config){std::ifstream clock("/proc/sys/kernel/random/boot_id");clock>>physical_clock_id;}
     if(physical_config){
         std::cout<<"{\"result\":\"ECU_PHYSICAL_LINEAGE\",\"model_config_sha256\":\""<<physical_config->meter.model_calibration_id
                  <<"\",\"nominal_capacity_ah\":"<<physical_config->meter.nominal_capacity_ah
@@ -792,6 +794,12 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
                 physical_logged_sequence=values.sequence;
                 const auto& state=physical_feed->meterState();
                 std::cout<<std::setprecision(12)<<"{\"result\":\"PHYSICAL_SAMPLE\",\"sequence\":"<<values.sequence
+                         <<",\"process_instance_id\":\""<<input_instance.str()<<'"'
+                         <<",\"clock_id\":\""<<physical_clock_id<<'"'
+                         <<",\"model_config_sha256\":\""<<physical_config->meter.model_calibration_id<<'"'
+                         <<",\"sample_monotonic_ms\":";
+                if(values.ina_age_ms!=0xffffffffu&&now>=values.ina_age_ms)std::cout<<now-values.ina_age_ms;else std::cout<<"null";
+                std::cout
                          <<",\"voltage_v\":"<<(values.voltage_v?std::to_string(*values.voltage_v):"null")
                          <<",\"current_a\":"<<(values.current_a?std::to_string(*values.current_a):"null")
                          <<",\"temperature_c\":"<<(values.temperature_c?std::to_string(*values.temperature_c):"null")

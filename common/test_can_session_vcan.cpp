@@ -87,6 +87,7 @@ int receivePhysicalEcu(const std::string& iface,const std::string& selected){
         if(message.kind!=DiagnosticKind::PhysicalMeasurement)return;
         const auto m=decodePhysicalMeasurement(message.body);require(m.has_value(),"invalid physical body");
         if(!instance||m->instance!=*instance||m->sequence<3)return;
+        if(selected=="--ivi-physical"&&m->sequence<8)return; // retain a real multi-sample meter interval
         const bool no_electrical=selected=="--ivi-physical-electrical-error";
         const bool no_temperature=selected=="--ivi-physical-temperature-error";
         if(!no_electrical&&(!m->voltage_v||!m->current_a))return;
@@ -97,6 +98,9 @@ int receivePhysicalEcu(const std::string& iface,const std::string& selected){
         if(selected=="--ivi-physical-known"){
             require(m->soc_percent&&*m->soc_percent>79&&*m->soc_percent<=80,"explicit SOC prior not integrated");
             require(m->soh_percent&&std::abs(*m->soh_percent-90)<1e-6,"independent capacity SOH mismatch");
+        }else if(selected=="--ivi-physical-measured"){
+            require(!m->soc_percent&&m->soh_percent&&*m->soh_percent>=0&&*m->soh_percent<.1,
+                    "measured short synthetic capacity not delivered independently of SOC");
         }else if(automatic_rest){
             require(m->soc_basis==2&&!m->soh_percent,"automatic SOC basis/SOH mismatch");
             if(!m->soc_percent)return;

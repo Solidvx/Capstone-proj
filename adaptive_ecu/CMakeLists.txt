@@ -275,6 +275,7 @@ endif()
 
 # Packaging only. Installing files never enables/starts a system service.
 install(TARGETS adaptive_ecu RUNTIME DESTINATION bin)
+install(PROGRAMS scripts/measure_physical_capacity.py DESTINATION bin)
 if(TARGET physical_battery_worker)
     install(TARGETS physical_battery_worker RUNTIME DESTINATION bin)
 endif()

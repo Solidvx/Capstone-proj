@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+import sys
 
 
 def main():
@@ -38,7 +39,8 @@ def main():
         device.write_bytes(b"")
         probe = root / "28-000000000000"
         probe.mkdir()
-        for case in ("normal", "temperature-error", "electrical-error", "known", "receive-error", "unknown", "auto-rest"):
+        measured_config = None
+        for case in ("normal", "measured", "temperature-error", "electrical-error", "known", "receive-error", "unknown", "auto-rest"):
             shutil.copyfile(args.rx_fixture if case == "receive-error" else args.ecu, ecu)
             (probe / "w1_slave").write_text("3c 01 7f 80 7f ff 04 10 cf : crc=cf YES\n"
                 "3c 01 7f 80 7f ff 04 10 cf t=19750\n" if case != "temperature-error" else "NO\n")
@@ -51,7 +53,7 @@ def main():
             elif case == "unknown":
                 values.update(initial_soc_percent="unknown")
             config = root / "physical.conf"
-            config.write_text("".join(f"{k}={v}\n" for k, v in values.items()))
+            config.write_text(measured_config if case == "measured" else "".join(f"{k}={v}\n" for k, v in values.items()))
             log = out / (case + ".log")
             with log.open("w+") as stream:
                 child = subprocess.Popen([str(ecu), "--interface", interface, "--sensor-mode", "physical",
@@ -81,12 +83,27 @@ def main():
             assert len(samples) >= 3, text
             last = samples[-1]
             assert (last["soc_estimate_percent"] is not None) == (case in ("known", "auto-rest"))
-            assert (last["soh_estimate_percent"] is not None) == (case == "known")
+            assert (last["soh_estimate_percent"] is not None) == (case in ("known", "measured"))
             assert "SOH virtual capacity" not in text
             assert last["soc_basis"] == (1 if case == "known" else 0 if case == "unknown" else 2)
             if case == "auto-rest":
                 assert any(row["soc_update"] == "initialized" for row in samples)
                 assert 10 < last["soc_estimate_percent"] < 15
+            if case == "normal":
+                valid = [row for row in samples if row['ina_quality'] == row['temperature_quality'] == 2 and row['voltage_v'] is not None]
+                assert len(valid) >= 3
+                capacity_script = Path(__file__).resolve().parents[1] / 'scripts/measure_physical_capacity.py'
+                result = subprocess.run([sys.executable, str(capacity_script), '--log', str(log), '--config', str(config),
+                    '--out', str(out / 'capacity'), '--start-sequence', str(valid[0]['sequence']),
+                    '--end-sequence', str(valid[-1]['sequence']), '--cell-id', 'PUBLIC-SYSCALL-FIXTURE',
+                    '--test-id', 'PUBLIC-SYNTHETIC-CAPACITY', '--endpoint-reference', 'PUBLIC-FIXTURE-NOT-PHYSICAL-ENDPOINTS',
+                    '--end-voltage-v', str(valid[-1]['voltage_v']), '--endpoint-tolerance-v', '0.001',
+                    '--charge-noise-tolerance-ah', '0', '--max-charge-current-a', '0', '--full-discharge-confirmed'],
+                    capture_output=True, text=True, timeout=5)
+                assert result.returncode == 0, result.stderr
+                measured_config = (out / 'capacity/physical-battery.with-soh.conf').read_text()
+                measured = json.loads((out / 'capacity/report.json').read_text())
+                assert measured['measured_capacity_ah'] > 0 and measured['physical_accuracy_verified'] is False
             if case == "receive-error":
                 assert "ERR_WATCHDOG_MAX_RESTART task=can-rx" in text
                 assert "Fail-safe transition:" not in text

@@ -32,7 +32,8 @@ def package(repo, build, role, revision, output, target):
             raise ValueError('runtime archive requires Release without coverage')
     selected = {'bin/adaptive_ecu': build / 'adaptive_ecu',
                 'bin/physical_battery_worker': build / 'physical_battery_worker',
-                'config/physical-battery.conf.example': repo / 'adaptive_ecu/data/physical-battery.conf.example'} if role == 'ecu' else {
+                'config/physical-battery.conf.example': repo / 'adaptive_ecu/data/physical-battery.conf.example',
+                'bin/measure_physical_capacity.py': repo / 'adaptive_ecu/scripts/measure_physical_capacity.py'} if role == 'ecu' else {
                     'bin/ivi_dashboard': build / 'ivi_dashboard',
                     'licenses/NanumGothic-OFL.txt': repo / 'ivi_platform/ui_qml/fonts/OFL.txt'}
     selected['config/session-v2-development.conf'] = repo / 'adaptive_ecu/data/session-v2-development.conf'
@@ -41,7 +42,7 @@ def package(repo, build, role, revision, output, target):
         if path.is_symlink() or not path.is_file() or path.stat().st_size > 64 * 1024 * 1024:
             raise ValueError('missing/unsafe runtime input: ' + name)
         data = path.read_bytes()
-        if name.startswith('bin/'):
+        if name.startswith('bin/') and not name.endswith('.py'):
             if len(data) < 20 or data[:6] != b'\x7fELF\x02\x01' or struct.unpack_from('<H', data, 18)[0] != 183:
                 raise ValueError('ARM64 ELF required: ' + name)
         contents[name] = (data, 0o755 if name.startswith('bin/') else 0o644)

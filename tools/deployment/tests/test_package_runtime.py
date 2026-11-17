@@ -26,6 +26,7 @@ def test_host_target_rejects_wrong_runtime_environment(monkeypatch):
 def source(tmp_path):
     repo = tmp_path / 'repo';build = tmp_path / 'build';build.mkdir()
     for name in ('adaptive_ecu/data/session-v2-development.conf', 'adaptive_ecu/data/physical-battery.conf.example',
+                 'adaptive_ecu/scripts/measure_physical_capacity.py',
                  'ivi_platform/ui_qml/fonts/OFL.txt', 'docs/unneeded.md', 'tests/unneeded.py', 'logs/unneeded.log'):
         path = repo / name;path.parent.mkdir(parents=True, exist_ok=True);path.write_text('public fixture\n')
     for name in ('adaptive_ecu', 'physical_battery_worker', 'ivi_dashboard', 'test_fake'):
@@ -35,7 +36,7 @@ def source(tmp_path):
     return repo, build
 
 
-@pytest.mark.parametrize('node,count', [('ecu', 5), ('ivi', 4)])
+@pytest.mark.parametrize('node,count', [('ecu', 6), ('ivi', 4)])
 def test_exact_runtime_inventory_and_hashes(tmp_path, node, count):
     repo, build = source(tmp_path);out = tmp_path / (node + '.tar.gz')
     m = package(repo, build, node, 'a' * 40, out, TARGET)
@@ -43,7 +44,8 @@ def test_exact_runtime_inventory_and_hashes(tmp_path, node, count):
         assert len(t.getmembers()) == count
         assert all(p.isfile() for p in t.getmembers())
         names = [p.name for p in t.getmembers()]
-        assert not any(n.endswith(('.md', '.py', '.log', '.key', '.png')) or '/test' in n for n in names)
+        assert not any(n.endswith(('.md', '.log', '.key', '.png')) or '/test' in n for n in names)
+        assert [n for n in names if n.endswith('.py')] == (['capstone-ecu-runtime/bin/measure_physical_capacity.py'] if node == 'ecu' else [])
         for name, meta in m['files'].items():
             data = t.extractfile('capstone-' + node + '-runtime/' + name).read()
             assert hashlib.sha256(data).hexdigest() == meta['sha256']
