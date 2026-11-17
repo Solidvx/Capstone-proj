@@ -25,6 +25,7 @@ class DashboardViewModel : public QObject {
     Q_PROPERTY(bool physicalMode READ physicalMode NOTIFY dataChanged)
     Q_PROPERTY(bool physicalObservationGap READ physicalObservationGap NOTIFY dataChanged)
     Q_PROPERTY(bool physicalSocInitializing READ physicalSocInitializing NOTIFY dataChanged)
+    Q_PROPERTY(bool physicalSocOutsideModel READ physicalSocOutsideModel NOTIFY dataChanged)
     Q_PROPERTY(bool socAvailable READ socAvailable NOTIFY dataChanged)
     Q_PROPERTY(bool sohAvailable READ sohAvailable NOTIFY dataChanged)
     Q_PROPERTY(bool voltageAvailable READ voltageAvailable NOTIFY dataChanged)
@@ -49,6 +50,7 @@ class DashboardViewModel : public QObject {
     Q_PROPERTY(bool darkMode READ darkMode WRITE setDarkMode NOTIFY themeChanged)
     Q_PROPERTY(QString statusTitle READ statusTitle NOTIFY dataChanged)
     Q_PROPERTY(QString statusDescription READ statusDescription NOTIFY dataChanged)
+    Q_PROPERTY(QString sohHint READ sohHint NOTIFY dataChanged)
     Q_PROPERTY(bool failSafeKnown READ failSafeKnown NOTIFY dataChanged)
     Q_PROPERTY(QString securityTitle READ securityTitle NOTIFY dataChanged)
     Q_PROPERTY(QString securityDescription READ securityDescription NOTIFY dataChanged)
@@ -73,6 +75,7 @@ public:
     bool failSafeKnown() const { return fail_safe_known_; }
     QString statusTitle() const;
     QString statusDescription() const;
+    QString sohHint() const;
     QString securityTitle() const;
     QString securityDescription() const;
     QString rejectionSummary() const { return rejection_summary_; }
@@ -106,8 +109,11 @@ public:
     bool measurementsAvailable() const;
     bool physicalMode()const{return snapshot_.physical_measurement.has_value();}
     bool physicalObservationGap()const{return physicalMode()&&snapshot_.physical_measurement->observation_gap;}
+    bool physicalSocOutsideModel()const{return physicalMode()&&snapshot_.physical_measurement->soc_basis==2&&
+        snapshot_.physical_valid[0]&&snapshot_.physical_measurement->voltage_v&&
+        (*snapshot_.physical_measurement->voltage_v<3.0||*snapshot_.physical_measurement->voltage_v>4.25);}
     bool physicalSocInitializing()const{return physicalMode()&&snapshot_.physical_measurement->soc_basis==2&&
-        snapshot_.physical_valid[0]&&!snapshot_.physical_measurement->soc_percent;}
+        snapshot_.physical_valid[0]&&!snapshot_.physical_measurement->soc_percent&&!physicalSocOutsideModel();}
     bool socAvailable()const{return physicalMode()?snapshot_.physical_valid[3]:measurementsAvailable();}
     bool sohAvailable()const{return physicalMode()?snapshot_.physical_valid[4]:measurementsAvailable();}
     bool voltageAvailable()const{return physicalMode()?snapshot_.physical_valid[0]:measurementsAvailable();}
@@ -145,6 +151,9 @@ signals:
     void securityAlertAcknowledgementRequested(qulonglong sequence);
 
 private:
+    void updateConnectionNotice();
+    QTimer connection_check_timer_;
+    bool connection_check_needed_=false;
     void updatePhysicalSensorNotice();
     QString missingSensorNames() const;
     QTimer sensor_loss_timer_, sensor_recovery_timer_;

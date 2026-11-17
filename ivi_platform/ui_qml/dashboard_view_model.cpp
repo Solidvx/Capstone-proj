@@ -64,6 +64,15 @@ DashboardViewModel::DashboardViewModel(QObject* parent) : QObject(parent) {
     event_source_instance_=QUuid::createUuid().toString(QUuid::WithoutBraces);
     dark_mode_ = QSettings(QStringLiteral("Capstone"), QStringLiteral("IviDashboard"))
                      .value(QStringLiteral("darkMode"), true).toBool();
+    // Keep handshake retries readable without changing authentication or data
+    // validity. Once reported, a connection issue stays until actual recovery.
+    connection_check_timer_.setSingleShot(true);
+    connection_check_timer_.setInterval(10000);
+    connection_check_timer_.setTimerType(Qt::PreciseTimer);
+    connect(&connection_check_timer_,&QTimer::timeout,this,[this]{
+        connection_check_needed_=true;
+        emit dataChanged();
+    });
     // Debounce notices only. Channel validity and '--' display remain immediate.
     sensor_loss_timer_.setSingleShot(true);
     sensor_loss_timer_.setInterval(2000);
@@ -93,6 +102,17 @@ DashboardViewModel::DashboardViewModel(QObject* parent) : QObject(parent) {
                 QStringLiteral("success"),50,PopupDomain::Sensor);
         emit dataChanged();
     });
+}
+
+void DashboardViewModel::updateConnectionNotice(){
+    const auto& stage=snapshot_.connection_stage;
+    if(!snapshot_.session_protocol || stage=="connected" || stage=="program-restored" ||
+       stage=="task-restoring" || stage=="operator-required" ||
+       stage=="restart-announced" || stage=="restoring"){
+        connection_check_timer_.stop();connection_check_needed_=false;
+    }else if(stage=="fault" && !connection_check_needed_ && !connection_check_timer_.isActive()){
+        connection_check_timer_.start();
+    }
 }
 
 QString DashboardViewModel::missingSensorNames() const {
@@ -342,11 +362,11 @@ QString DashboardViewModel::connectionLabel()const{
     if(stage=="restart-announced")return QStringLiteral("ECU 재시작 중…");
     if(stage=="restoring")return QStringLiteral("ECU 연결 복구 중…");
     if(stage=="program-restored")return QStringLiteral("ECU 프로그램 복구 완료");
-    if(stage=="authenticating")return QStringLiteral("안전한 연결 확인 중");
+    if(connection_check_needed_)return QStringLiteral("연결 확인 필요");
+    if(stage=="authenticating" || stage=="fault")return QStringLiteral("연결 확인 중");
     if(stage=="synchronizing")return QStringLiteral("배터리 상태 확인 중");
     if(stage=="waiting-data")return QStringLiteral("새 배터리 정보 대기");
     if(stage=="connected")return QStringLiteral("현재 수신값");
-    if(stage=="fault")return QStringLiteral("연결 확인 필요");
     return QStringLiteral("연결 대기");
 }
 QStringList DashboardViewModel::floodingMetrics()const{
@@ -401,6 +421,12 @@ QString DashboardViewModel::securityDescription()const{
     if(snapshot_.session_protocol && (!snapshot_.security_observation_ready || snapshot_.observed_condition_mask) && active_attack_types_.isEmpty())
         return QStringLiteral("탐지기의 연결 상태를 확인하고 있습니다.");
     return security_description_;
+}
+
+QString DashboardViewModel::sohHint() const {
+    if(!physicalMode())return {};
+    if(!snapshot_.physical_measurement->soh_basis)return QStringLiteral("용량 시험 후 표시됩니다");
+    return sohAvailable() ? QStringLiteral("측정한 용량을 기준으로 계산했습니다") : QStringLiteral("새 용량 정보를 확인하고 있습니다");
 }
 
 QString DashboardViewModel::statusDescription() const {
@@ -530,6 +556,7 @@ void DashboardViewModel::updateSnapshot(const ivi::VehicleSnapshot& snapshot) {
     if(snapshot.snapshot_revision && snapshot_.snapshot_revision && snapshot.snapshot_revision<=snapshot_.snapshot_revision)return;
     const auto previous = snapshot_;
     snapshot_ = snapshot;
+    updateConnectionNotice();
     const bool same_sensor_source=snapshot.physical_measurement && previous.physical_measurement &&
         snapshot.physical_measurement->instance==previous.physical_measurement->instance &&
         snapshot.physical_measurement->configuration==previous.physical_measurement->configuration &&

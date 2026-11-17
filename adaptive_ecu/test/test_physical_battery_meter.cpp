@@ -110,9 +110,10 @@ TEST(PhysicalAutoSoc, GapAndDuplicateCannotFakeACompletedRestWindow){
     meter.accept(92,161000,3.820965,0);EXPECT_TRUE(meter.state().estimated_soc);
 }
 TEST(PhysicalAutoSoc, NoCellAndOutOfModelVoltagesStayUnknownAndEndpointsAreBounded){
-    for(double voltage:{0.,2.5,4.5}){
+    for(double voltage:{0.,2.5,2.66,4.5}){
         PhysicalBatteryMeter meter(automaticConfig());resting(meter,voltage);
         EXPECT_FALSE(meter.state().estimated_soc);
+        EXPECT_STREQ(meter.socUpdate(),"voltage-out-of-range");
     }
     for(double voltage:{3.,4.2}){
         PhysicalBatteryMeter meter(automaticConfig());resting(meter,voltage);
@@ -123,7 +124,9 @@ TEST(PhysicalAutoSoc, NoCellAndOutOfModelVoltagesStayUnknownAndEndpointsAreBound
     PhysicalBatteryMeter removed(automaticConfig());resting(removed,3.820965);
     ASSERT_TRUE(removed.state().estimated_soc);
     removed.accept(62,62000,0,0);EXPECT_FALSE(removed.state().estimated_soc);
+    EXPECT_STREQ(removed.socUpdate(),"voltage-out-of-range");
     resting(removed,3.820965,63,60);EXPECT_FALSE(removed.state().estimated_soc);
+    EXPECT_STREQ(removed.socUpdate(),"waiting-rest");
     removed.accept(123,123000,3.820965,0);EXPECT_TRUE(removed.state().estimated_soc);
 }
 

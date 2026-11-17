@@ -119,6 +119,7 @@ ApplicationWindow {
                                             objectName: "socGauge"
                                             Layout.preferredWidth: 190; Layout.fillHeight: true
                                             value: root.vehicleModel.soc
+                                            showLabel: !root.vehicleModel.physicalMode
                                             available: root.vehicleModel.socAvailable
                                             stale: root.vehicleModel.stale || root.vehicleModel.sensorUsesLastGood
                                             highColor: root.green; mediumColor: root.orange; lowColor: root.red
@@ -128,22 +129,31 @@ ApplicationWindow {
                                         ColumnLayout {
                                             Layout.fillWidth: true
                                             Text {
+                                                objectName: "socStatusLabel"
                                                 Layout.fillWidth: true
-                                                text: !root.vehicleModel.socAvailable ? (root.vehicleModel.physicalSocInitializing ? "초기 잔량 확인 중" : root.vehicleModel.physicalMode ? "잔량 추정 준비 중" : "배터리 정보 대기") : root.vehicleModel.physicalMode ? (root.vehicleModel.physicalObservationGap ? "측정 공백이 있는 잔량 추정" : "배터리 잔량 추정 중") : root.vehicleModel.soc < 20 ? "충전이 필요합니다" : "잔량이 충분합니다"
+                                                text: !root.vehicleModel.socAvailable ? (root.vehicleModel.physicalSocOutsideModel ? "잔량 추정 범위 밖" : root.vehicleModel.physicalSocInitializing ? "초기 잔량 확인 중" : root.vehicleModel.physicalMode ? "잔량 추정 준비 중" : "배터리 정보 대기") : root.vehicleModel.physicalMode ? "배터리 잔량(SOC)" : root.vehicleModel.soc < 20 ? "충전이 필요합니다" : "잔량이 충분합니다"
                                                 color: root.ink; font.pixelSize: 18; font.bold: true
                                                 wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight
                                             }
                                             Text {
                                                 objectName: "socInitializationHint"
                                                 Layout.fillWidth: true
-                                                visible: root.vehicleModel.physicalSocInitializing
-                                                text: "저항 부하를 분리한 상태로 전압 안정화를 기다려 주세요."
+                                                visible: root.vehicleModel.physicalSocInitializing || root.vehicleModel.physicalSocOutsideModel
+                                                text: root.vehicleModel.physicalSocOutsideModel ? "전압이 추정 범위(3.0~4.25V)를 벗어났습니다.\n측정 전압과 배터리 상태를 확인해 주세요." : "저항 부하를 분리한 상태로 전압 안정화를 기다려 주세요."
+                                                color: root.muted; font.pixelSize: 12
+                                                wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight
+                                            }
+                                            Text {
+                                                objectName: "socEstimateHint"
+                                                Layout.fillWidth: true
+                                                visible: root.vehicleModel.physicalMode && root.vehicleModel.socAvailable
+                                                text: root.vehicleModel.physicalObservationGap ? "측정 공백으로 추정 오차가 커질 수 있습니다." : "참고 모델로 계산한 추정값입니다."
                                                 color: root.muted; font.pixelSize: 12
                                                 wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight
                                             }
                                             Text {
                                                 Layout.fillWidth: true
-                                                text: root.vehicleModel.physicalMode ? (root.vehicleModel.sohAvailable ? "배터리 건강도(SOH) · 용량 시험값 기준" : "배터리 건강도(SOH) · 용량 측정 전") : root.vehicleModel.stale || root.vehicleModel.sensorUsesLastGood ? "마지막으로 확인한 값입니다." : "배터리 건강도(SOH)"
+                                                text: root.vehicleModel.physicalMode ? "배터리 건강도(SOH)" : root.vehicleModel.stale || root.vehicleModel.sensorUsesLastGood ? "마지막으로 확인한 값입니다." : "배터리 건강도(SOH)"
                                                 color: root.muted; font.pixelSize: 12
                                                 wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight
                                             }
@@ -152,7 +162,15 @@ ApplicationWindow {
                                                 text: root.vehicleModel.sohAvailable ? root.vehicleModel.soh.toFixed(1) + "%" : "--"
                                                 color: root.ink; font.pixelSize: 30; font.bold: true
                                             }
-                                            Text { text: "배터리 건강도(SOH)"; visible: root.vehicleModel.stale || root.vehicleModel.sensorUsesLastGood; color: root.muted; font.pixelSize: 12 }
+                                            Text {
+                                                objectName: "sohHint"
+                                                Layout.fillWidth: true
+                                                visible: root.vehicleModel.physicalMode
+                                                text: root.vehicleModel.sohHint
+                                                color: root.muted; font.pixelSize: 12
+                                                wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight
+                                            }
+                                            Text { text: "배터리 건강도(SOH)"; visible: !root.vehicleModel.physicalMode && (root.vehicleModel.stale || root.vehicleModel.sensorUsesLastGood); color: root.muted; font.pixelSize: 12 }
                                         }
                                     }
                                 }
@@ -229,25 +247,31 @@ ApplicationWindow {
                             }
                         }
                     }
-                    ScrollView {
+                    Flickable {
+                        id: securityScroll
                         objectName: "securityScroll"
-                        clip: true; contentWidth: availableWidth
+                        clip: true; contentWidth: width
+                        contentHeight: securityDetails.implicitHeight
+                        flickableDirection: Flickable.VerticalFlick
+                        boundsBehavior: Flickable.StopAtBounds
+                        ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded; interactive: true }
                         ColumnLayout {
-                            width: parent.width
+                            id: securityDetails
+                            width: Math.max(0, securityScroll.width - 16)
                             spacing: 14
                             Text { text: root.vehicleModel.securityTitle; color: root.ink; font.pixelSize: 23; font.bold: true; Layout.fillWidth: true; wrapMode: Text.Wrap }
                             Text { text: root.vehicleModel.securityDescription; color: root.muted; font.pixelSize: 15; Layout.fillWidth: true; wrapMode: Text.Wrap }
                             Text { text: "수신 검증 결과"; color: root.ink; font.pixelSize: 17; font.bold: true }
-                            Text { text: "통신 상태 · Flooding 관찰"; color: root.muted; font.pixelSize: 18; font.bold: true }
-                            Repeater {
-                                model: root.vehicleModel.floodingMetrics
-                                Text { required property string modelData; text: modelData; color: root.muted; font.pixelSize: 14; Layout.fillWidth: true; wrapMode: Text.Wrap }
-                            }
                             Repeater { model: root.vehicleModel.incidentTreatments; Text { required property string modelData; text: modelData; color: root.ink; font.pixelSize: 14; Layout.fillWidth: true; wrapMode: Text.Wrap } }
                             Text { objectName: "rejectionSummary"; text: root.vehicleModel.rejectionSummary; color: root.muted; font.pixelSize: 15; Layout.fillWidth: true; wrapMode: Text.Wrap }
                             Text { text: "검증 실패 누적 " + root.vehicleModel.secocFailureCount + "건"; color: root.ink; font.pixelSize: 16 }
                             Text { objectName: "authenticationErrorIndicator"; visible: root.vehicleModel.authenticationError; text: "데이터 확인이 계속 실패하고 있습니다. 점검이 필요합니다."; color: root.red; font.pixelSize: 16; Layout.fillWidth: true; wrapMode: Text.Wrap }
                             Text { text: "검증 거부는 이 IVI의 수신 결과입니다. 공격 노드의 송신 중단이나 특정 공격 전체 차단을 의미하지 않습니다."; color: root.muted; font.pixelSize: 13; Layout.fillWidth: true; wrapMode: Text.Wrap }
+                            Text { objectName: "canHealthHeading"; text: "CAN 통신 상태"; color: root.ink; font.pixelSize: 17; font.bold: true }
+                            Repeater {
+                                model: root.vehicleModel.floodingMetrics
+                                Text { required property string modelData; text: modelData; color: root.muted; font.pixelSize: 14; Layout.fillWidth: true; wrapMode: Text.Wrap }
+                            }
                             Text { text: "상세 진단"; color: root.ink; font.pixelSize: 16 }
                             Repeater { model: root.vehicleModel.logs; Text { required property string modelData; text: modelData; color: root.muted; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.Wrap } }
                         }

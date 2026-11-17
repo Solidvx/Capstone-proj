@@ -36,7 +36,9 @@ void PhysicalSocEkf::unavailable(){
 void PhysicalSocEkf::accept(std::uint64_t at,double seconds,double delta_ah,double voltage,double current){
     // Do not show a retained SOC for an absent cell or an out-of-model input.
     // This invalidates this model, not the voltage/current measurement itself.
-    if(voltage<3.0||voltage>4.25){soc_.reset();covariance_=0;unavailable();return;}
+    if(voltage<3.0||voltage>4.25){
+        soc_.reset();covariance_=0;unavailable();step_="voltage-out-of-range";return;
+    }
     if(soc_){
         *soc_=std::clamp(*soc_+delta_ah/capacity_ah_,0.,1.);
         covariance_=std::min(1.,covariance_+process_variance_per_second*seconds);

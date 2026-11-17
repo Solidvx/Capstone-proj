@@ -728,6 +728,8 @@ FR-SEC-006/007, TC-SEC-006/007 관련: `test_runtime_ids.py`는 정상 서명 �
 
 TC-IVI-005/006/007/008에 CHG-028의 상태·닫기·테마·800×480/1024×600/480×800 경계와 내부 스크롤 검사를 연결한다. actual service→SOH90 QML 반영·MAC_FAIL 거부 표시를 검사한다. 기존 서비스 ack 경쟁 시험은 유지하되 새 popup 닫기와 구분한다. 같은 유형의 새로운 공격 사건 구분·재시작 상태 전달·공격별 차단 귀속은 아직 미인수다.
 
+보안 탭 스크롤은 contentY 직접 대입뿐 아니라 실제 Qt 마우스·터치 press/move/release로 이동을 확인한다. 수신 거부 결과/CAN 통신 상태 제목 분리와 탭 고정을 검사한다. SOC0/97.3/100%의 단일 행·숫자 폭, 정상 실측 제목 유지·측정 공백 보조 설명, SOH 용량 시험 전/정보 만료/결과 표시를 같은 QML·ViewModel 시험에 포함한다. 물리 터치 패널 인수와 구분한다.
+
 ### CHG-029 프로세스 감독/부팅 정책 하위 검증
 
 TC-BSW-006/007 및 복구 통합의 보조 증거로 `common/test_ecu_supervisor_recovery.py`를 실행한다. 실제 ECU를 SIGKILL하고, 별도 회차에서는 SIGSTOP으로 멈춰 감지→기한 내 TERM/KILL→wait 회수→검증된 resume을 확인한다. 설정한 프로세스 복구 budget3 이후 추가 자동 시작 부재, 저장 불가 시 중단, 명시적 fresh의 계산 초기화/키 보존, 수동 감독 종료의 자식 회수를 검사한다. 주기 저장 SIGKILL 시험 및 실제 Qt의 Plan/Receipt/제한시간 시험과 함께 사용한다.
@@ -844,7 +846,7 @@ TC-CI-005/006: 배포 안전 절차와 `tools/deployment/tests`의 임시 releas
 |TC-PHYS-001|명시 설정·분리취득·수명|잘못된/중복 설정 거부, 부분IPC 조립, 상속fd닫기·오류/취소/회수. test_physical_sensor_runtime 및 기존 bounded_sensor_read|
 |TC-PHYS-002|채널 품질·적분|새3회 확인, 중복적분 금지, stale/역순/다른설정 거부, 온도오류 중 전기적분 유지, 전기오류 후 기준점 재설정|
 |TC-PHYS-003|CAN 계약·인증|공개6벡터에서 C++/Python의30프레임이 바이트 일치, 방향/잘못된필드/128태그변조/패딩 거부, 기존종류1~8 벡터 보존|
-|TC-PHYS-004|실제 Service/QML|현재세션/instance/설정/순번/나이 검사, SOC/SOH미산정과유효0% 구분, 오류채널`--`·정상채널 유지·중앙알림/회복,800×480화면 캡처. test_vehicle_data_session/test_dashboard_view_model/test_dashboard_security|
+|TC-PHYS-004|실제 Service/QML|현재세션/instance/설정/순번/나이 검사, SOC/SOH미산정과유효0% 구분, 오류채널`--`·정상채널 유지·중앙알림/회복, 연결 재시도 중 문구 유지·첫 실패 후10초 미복구 표시·실제 연결 시 해제,800×480화면 캡처. test_vehicle_data_session/test_dashboard_view_model/test_dashboard_security|
 |TC-PHYS-005|실제 ECU 실행 경로|실제 ECU와별도취득worker→vcan 인증수신. 정상/온도오류/전기오류/명시SOC·외부SOH/수신복구실패의5사례. 가짜0x100 BMS·가상입력0x101 경고 미송신·정상종료. 수신실패는NodeStatus점검단계5/위험미상FF로구분. test_physical_ecu_product. 입력은공개 I²C syscall/file 모의값|
 |TC-PHYS-006|실제 Pi·배터리|동일시점/기준점 DMM·전류/온도대조, 이전저전압표시오류 재현원인, 센서단절/회복, 실제7인치/CAN 표시·종료. 별도 장비 인수이며 현재미완료|
 
@@ -861,6 +863,6 @@ FR-BMS-001/002와 입력/복구 요구의 확장을 준비하는 독립 취득·
 
 FR-BMS-009/FR-IVI-009·ICD의SOC근거2를 추적한다. 가상10직렬 EKF와별도다. test_physical_battery_meter/test_physical_sensor_runtime에서 명시 선택·부하/불안정/무셀 입력 중 미산정·60초 연속 새표본 초기화·실제 전기량 예측·안정 창에서의 EKF보정과 공분산·중복/역순/오류/공백의 창 초기화·부분 저장상태 복원 거부를 검사한다. 합성 기준점 시험은 참SOC정확도/셀모델인수가 아니다.
 
-종류9의양언어6벡터·자동초기화대기/유효0%·근거변경거부·stale에서유효값숨김을 검사한다. QML은초기화안내/게이지전환과800×480내배치를 확인한다. test_physical_ecu_product는 기존5사례와unknown/auto-rest를 실행하며 실제 제품 ECU+별도worker+인증vcan에서 정상60초 창 후 참고SOC를 확인한다. 입력은시험전용 I²C syscall/file 모의값이고 물리하드웨어검증이아니다. 이시험만150초기한을사용하며짧은정상자료만으로초기화했다고판정하지않는다.
+종류9의양언어6벡터·자동초기화대기/유효0%·근거변경거부·stale에서유효값숨김을 검사한다. QML은초기화안내/게이지전환과800×480내배치를 확인한다.2.66V 등 모델 입력 범위 밖에서는 무한 초기화 안내 대신 범위 밖 문구·전압 확인 안내와미산정 게이지를 표시하고, ECU 로그는 `voltage-out-of-range`로 대기와 구분한다. test_physical_ecu_product는 기존5사례와unknown/auto-rest를 실행하며 실제 제품 ECU+별도worker+인증vcan에서 정상60초 창 후 참고SOC를 확인한다. 입력은시험전용 I²C syscall/file 모의값이고 물리하드웨어검증이아니다. 이시험만150초기한을사용하며짧은정상자료만으로초기화했다고판정하지않는다.
 
 실장비는저항부하를분리한상태의실제전압/전류안정·초기추정표시·부하재연결후방전중변화·센서오류/복귀·이벤트/알림을TC-PHYS-006에서별도확인한다. 예제곡선이실제셀과얼마나맞는지는독립기준잔량/셀특성측정이필요하며소프트웨어통과로정확도를주장하지않는다. 실제셀을가열하거나완전방전시켜UI경고를유도하는절차는포함하지않는다.

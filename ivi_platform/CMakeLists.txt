@@ -162,7 +162,7 @@ if(IVI_BUILD_QT_APP)
                 ui_qml/dashboard_view_model.h)
             target_include_directories(test_dashboard_security PRIVATE test ui_qml)
             target_link_libraries(test_dashboard_security PRIVATE
-                ivi_core Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::QuickControls2)
+                ivi_core Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::QuickControls2 Qt6::Test)
             target_compile_definitions(test_dashboard_security PRIVATE
                 IVI_QML_FILE="${CMAKE_CURRENT_SOURCE_DIR}/ui_qml/qml/Main.qml")
             add_test(NAME test_dashboard_security COMMAND test_dashboard_security)
