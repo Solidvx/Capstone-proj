@@ -21,7 +21,7 @@ ApplicationWindow {
     readonly property color waitingPanel: dark ? "#3b2d17" : "#fff0ca"
     readonly property color lineColor: dark ? "#2c3a50" : "#e5eaf2"
     readonly property color green: dark ? "#36d399" : "#087f62"
-    readonly property color orange: dark ? "#ffcb77" : "#a36007"
+    readonly property color orange: dark ? "#ffcb77" : "#925600"
     readonly property color red: dark ? "#ff9aab" : "#c1374d"
     readonly property color blue: dark ? "#8ab4ff" : "#326cdb"
     readonly property bool portraitPanel: height > width
