@@ -64,6 +64,68 @@ DashboardViewModel::DashboardViewModel(QObject* parent) : QObject(parent) {
     event_source_instance_=QUuid::createUuid().toString(QUuid::WithoutBraces);
     dark_mode_ = QSettings(QStringLiteral("Capstone"), QStringLiteral("IviDashboard"))
                      .value(QStringLiteral("darkMode"), true).toBool();
+    // Debounce notices only. Channel validity and '--' display remain immediate.
+    sensor_loss_timer_.setSingleShot(true);
+    sensor_loss_timer_.setInterval(2000);
+    sensor_loss_timer_.setTimerType(Qt::PreciseTimer);
+    sensor_recovery_timer_.setSingleShot(true);
+    sensor_recovery_timer_.setInterval(5000);
+    sensor_recovery_timer_.setTimerType(Qt::PreciseTimer);
+    connect(&sensor_loss_timer_,&QTimer::timeout,this,[this]{
+        if(!physicalMode() || !sensor_missing_mask_ || sensor_incident_active_)return;
+        sensor_incident_active_=true;
+        recordEvent(missingSensorNames()+QStringLiteral(" 측정 확인 필요"),QStringLiteral("sensor-input-lost"));
+        presentPopup(QStringLiteral("센서를 확인해 주세요"),missingSensorNames()+
+            QStringLiteral("의 새 측정값을 2초 이상 확인하지 못했습니다. 연결과 센서 상태를 확인해 주세요."),
+            QStringLiteral("warning"),50,PopupDomain::Sensor);
+        emit dataChanged();
+    });
+    connect(&sensor_recovery_timer_,&QTimer::timeout,this,[this]{
+        if(!physicalMode() || sensor_missing_mask_ || !sensor_incident_active_ ||
+           snapshot_.physical_measurement->sequence<=sensor_recovery_sequence_)return;
+        sensor_incident_active_=false;
+        recordEvent(QStringLiteral("센서 측정 회복 확인"),QStringLiteral("sensor-input-recovered"));
+        // Recovery updates an unread notice; it never reopens a closed one or
+        // replaces an unrelated, higher-priority warning.
+        if(popup_visible_ && popup_domain_==PopupDomain::Sensor)
+            presentPopup(QStringLiteral("센서 측정이 복구됐습니다"),
+                QStringLiteral("전압·전류·온도의 새 측정값이 5초 동안 정상적으로 들어왔습니다."),
+                QStringLiteral("success"),50,PopupDomain::Sensor);
+        emit dataChanged();
+    });
+}
+
+QString DashboardViewModel::missingSensorNames() const {
+    const QStringList names{QStringLiteral("전압"),QStringLiteral("전류"),QStringLiteral("온도")};
+    QStringList missing;
+    for(unsigned i=0;i<3;++i)if(sensor_missing_mask_&(1u<<i))missing.append(names[i]);
+    return missing.join(QStringLiteral("·"));
+}
+
+void DashboardViewModel::updatePhysicalSensorNotice(){
+    if(!physicalMode())return;
+    sensor_missing_mask_=0;
+    const auto& m=*snapshot_.physical_measurement;
+    for(unsigned i=0;i<3;++i){
+        const unsigned bit=1u<<i;
+        if(snapshot_.physical_valid[i])sensor_seen_mask_|=bit;
+        const auto quality=i<2?m.ina_quality:m.temperature_quality;
+        // Warm-up is not a failure. Explicit failed/recovering quality must
+        // still warn even when this channel has never produced a valid value.
+        if(!snapshot_.physical_valid[i] && ((sensor_seen_mask_&bit) || (quality>=2&&quality<=6)))
+            sensor_missing_mask_|=bit;
+    }
+    if(sensor_missing_mask_){
+        sensor_recovery_timer_.stop();
+        if(!sensor_incident_active_ && !sensor_loss_timer_.isActive())sensor_loss_timer_.start();
+    }else{
+        sensor_loss_timer_.stop();
+        const bool all_valid=snapshot_.physical_valid[0]&&snapshot_.physical_valid[1]&&snapshot_.physical_valid[2];
+        if(sensor_incident_active_ && all_valid && !sensor_recovery_timer_.isActive()){
+            sensor_recovery_sequence_=m.sequence;sensor_recovery_timer_.start();
+        }
+        if(!all_valid)sensor_recovery_timer_.stop();
+    }
 }
 
 void DashboardViewModel::setDarkMode(bool value) {
@@ -468,6 +530,15 @@ void DashboardViewModel::updateSnapshot(const ivi::VehicleSnapshot& snapshot) {
     if(snapshot.snapshot_revision && snapshot_.snapshot_revision && snapshot.snapshot_revision<=snapshot_.snapshot_revision)return;
     const auto previous = snapshot_;
     snapshot_ = snapshot;
+    const bool same_sensor_source=snapshot.physical_measurement && previous.physical_measurement &&
+        snapshot.physical_measurement->instance==previous.physical_measurement->instance &&
+        snapshot.physical_measurement->configuration==previous.physical_measurement->configuration &&
+        snapshot.session_generation==previous.session_generation;
+    if(!same_sensor_source){
+        sensor_loss_timer_.stop();sensor_recovery_timer_.stop();
+        sensor_seen_mask_=sensor_missing_mask_=0;sensor_incident_active_=false;
+        if(popup_visible_&&popup_domain_==PopupDomain::Sensor)dismissPopup();
+    }
     recordProtectionUpdate();
     const auto valid_node=[](const auto& node){
         using namespace capstone::session_v2;
@@ -493,25 +564,7 @@ void DashboardViewModel::updateSnapshot(const ivi::VehicleSnapshot& snapshot) {
         recordEvent(QStringLiteral("ECU 재시작 예고 수신"),QStringLiteral("ecu-restart-planned"));
     if(snapshot.physical_measurement)fail_safe_known_=false;
     else if(snapshot.fail_safe_known)fail_safe_known_=true;
-    if(snapshot.physical_measurement&&previous.physical_measurement){
-        QStringList missing;
-        const QStringList channels{QStringLiteral("전압"),QStringLiteral("전류"),QStringLiteral("온도")};
-        bool lost=false,recovered=false;
-        for(unsigned i=0;i<3;++i){
-            if(previous.physical_valid[i]&&!snapshot.physical_valid[i])lost=true;
-            if(!previous.physical_valid[i]&&snapshot.physical_valid[i])recovered=true;
-            if(!snapshot.physical_valid[i])missing.append(channels[i]);
-        }
-        if(lost){
-            recordEvent(missing.join(QStringLiteral("·"))+QStringLiteral(" 측정 확인 필요"),QStringLiteral("sensor-input-lost"));
-            presentPopup(QStringLiteral("센서를 확인해 주세요"),missing.join(QStringLiteral("·"))+
-                QStringLiteral("의 새 측정값을 확인하지 못했습니다. 연결과 센서 상태를 확인해 주세요."),
-                QStringLiteral("warning"),50,PopupDomain::Sensor);
-        }else if(recovered&&missing.empty()){
-            recordEvent(QStringLiteral("센서 측정 회복 확인"),QStringLiteral("sensor-input-recovered"));
-            if(popup_visible_&&popup_domain_==PopupDomain::Sensor)dismissPopup();
-        }
-    }
+    updatePhysicalSensorNotice();
     for(unsigned i=0;i<4;++i)if(snapshot.incident_rejection_ids[i] && snapshot.incident_rejection_ids[i]!=previous.incident_rejection_ids[i]){
         const auto text=QString::fromLatin1(ivi::attackTypeName(i+1))+QStringLiteral(" · 관련 데이터의 수신 거부 확인");
         recordEvent(text,QStringLiteral("incident-data-refusal"));
@@ -611,7 +664,10 @@ void DashboardViewModel::updateSnapshot(const ivi::VehicleSnapshot& snapshot) {
                 (replay_rejected ? QStringLiteral(" 정상 데이터는 계속 확인합니다.") : QStringLiteral(" 특정 공격의 차단 여부와는 별개인 검증 결과입니다.")), expired||session_failure ? QStringLiteral("warning") : QStringLiteral("success"), 70);
         }
     }
-    if (snapshot.vehicle.valid && (!previous.vehicle.valid || snapshot.vehicle.stale != previous.vehicle.stale)) {
+    // Physical channels use the incident/debounce policy above, including
+    // total sensor loss. Do not also generate legacy BMS connection notices.
+    if (!snapshot.physical_measurement && snapshot.vehicle.valid &&
+        (!previous.vehicle.valid || snapshot.vehicle.stale != previous.vehicle.stale)) {
         const auto text = snapshot.vehicle.stale ? QStringLiteral("새 배터리 정보 수신 중단") : QStringLiteral("배터리 정보 수신 확인");
         recordEvent(text,QStringLiteral("connection-state"));
         if (snapshot.vehicle.stale) presentPopup(QStringLiteral("연결을 확인해 주세요"),

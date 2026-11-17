@@ -5,6 +5,7 @@
 #include <QStringList>
 #include <QSet>
 #include <QJsonObject>
+#include <QTimer>
 
 #include "vehicle_data_service.h"
 
@@ -141,6 +142,12 @@ signals:
     void securityAlertAcknowledgementRequested(qulonglong sequence);
 
 private:
+    void updatePhysicalSensorNotice();
+    QString missingSensorNames() const;
+    QTimer sensor_loss_timer_, sensor_recovery_timer_;
+    unsigned sensor_seen_mask_=0, sensor_missing_mask_=0;
+    std::uint64_t sensor_recovery_sequence_=0;
+    bool sensor_incident_active_=false;
     void recordProtectionUpdate();
     QJsonObject protectionLink(const QJsonObject& current)const;
     void recordEvent(const QString& text,const QString& category=QStringLiteral("event"));

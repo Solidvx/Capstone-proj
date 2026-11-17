@@ -10,7 +10,9 @@ terminal_offset_v=0
 temperature_device=28-000000000000
 w1_root=/sys/bus/w1/devices
 calibration_id=R100-UNCALIBRATED
-period_ms=2000
+# Normal DS18B20 conversion (~0.8s) plus the 1s CAN report cadence must fit
+# within max_interval_ms. Longer/blocking reads still invalidate the channel.
+period_ms=1000
 read_timeout_ms=5000
 freshness_ms=5000
 max_interval_ms=3000

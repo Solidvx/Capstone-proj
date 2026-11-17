@@ -24,6 +24,27 @@ ApplicationWindow {
     readonly property color blue: dark ? "#8ab4ff" : "#326cdb"
     readonly property bool portraitPanel: height > width
     property int currentPage: 0
+    readonly property bool batteryPopupVisible: currentPage === 0 && vehicleModel.popupVisible
+    property bool toastVisible: false
+    function updateNotification() {
+        toastVisible = currentPage !== 0 && vehicleModel.popupVisible
+        if (toastVisible) toastTimer.restart()
+        else toastTimer.stop()
+    }
+    onCurrentPageChanged: updateNotification()
+    Connections {
+        target: root.vehicleModel
+        function onPopupChanged() { root.updateNotification() }
+    }
+    Timer {
+        id: toastTimer
+        objectName: "notificationTimer"
+        interval: 6000
+        onTriggered: {
+            root.toastVisible = false
+            if (root.currentPage !== 0) root.vehicleModel.dismissPopup()
+        }
+    }
     readonly property var pageNames: ["배터리", "보안", "이벤트", "설정"]
     function ageText(ms) { return ms < 1000 ? ms + " ms" : (ms / 1000).toFixed(1) + "초" }
 
@@ -53,7 +74,7 @@ ApplicationWindow {
                 anchors.fill: parent
                 anchors.margins: 12
                 spacing: 8
-                enabled: !root.vehicleModel.popupVisible
+                enabled: !root.batteryPopupVisible
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 32; Layout.minimumHeight: 32; Layout.maximumHeight: 32
@@ -271,7 +292,7 @@ ApplicationWindow {
                 objectName: "alertOverlay"
                 anchors.fill: parent
                 z: 100
-                visible: root.vehicleModel.popupVisible
+                visible: root.batteryPopupVisible
                 onVisibleChanged: { if (visible) closeButton.forceActiveFocus(); else canvas.forceActiveFocus() }
                 Keys.onEscapePressed: root.vehicleModel.dismissPopup()
                 Rectangle { anchors.fill: parent; color: "#99101928" }
@@ -297,6 +318,31 @@ ApplicationWindow {
                         Item { Layout.fillHeight: true }
                         AppButton { id: closeButton; objectName: "dismissAlert"; text: "닫기"; Layout.fillWidth: true; Layout.preferredHeight: 44; onClicked: root.vehicleModel.dismissPopup() }
                     }
+                }
+            }
+            Rectangle {
+                id: notificationToast
+                objectName: "notificationToast"
+                z: 110
+                anchors.top: parent.top; anchors.horizontalCenter: parent.horizontalCenter
+                anchors.topMargin: 12
+                width: 600; height: toastContent.implicitHeight + 24
+                visible: root.toastVisible && root.currentPage !== 0
+                radius: 12; color: root.panel; border.width: 2
+                border.color: root.vehicleModel.popupKind === "success" ? root.green : root.vehicleModel.popupKind === "danger" ? root.red : root.orange
+                Accessible.role: Accessible.AlertMessage
+                Accessible.name: root.vehicleModel.popupTitle
+                MouseArea { anchors.fill: parent }
+                RowLayout {
+                    id: toastContent
+                    anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top
+                    anchors.margins: 12; spacing: 12
+                    ColumnLayout {
+                        Layout.fillWidth: true; spacing: 4
+                        Text { Layout.fillWidth: true; text: root.vehicleModel.popupTitle; color: root.ink; font.pixelSize: 17; font.bold: true; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight }
+                        Text { Layout.fillWidth: true; text: root.vehicleModel.popupDescription; color: root.muted; font.pixelSize: 13; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
+                    }
+                    AppButton { objectName: "dismissNotification"; text: "닫기"; Layout.preferredWidth: 60; Layout.preferredHeight: 40; onClicked: root.vehicleModel.dismissPopup() }
                 }
             }
         }

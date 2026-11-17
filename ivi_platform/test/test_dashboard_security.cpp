@@ -11,6 +11,10 @@
 #include <QTemporaryDir>
 #include <QEventLoop>
 #include <QTimer>
+#include <QFontDatabase>
+#include <QFileInfo>
+#include <QDir>
+#include <QElapsedTimer>
 
 void run() {
     DashboardViewModel model;
@@ -19,7 +23,7 @@ void run() {
     engine.load(QUrl::fromLocalFile(QStringLiteral(IVI_QML_FILE)));
     EXPECT_FALSE(engine.rootObjects().isEmpty());
     auto* root=engine.rootObjects().front();
-    auto flush=[] { QEventLoop loop; QTimer::singleShot(40,&loop,&QEventLoop::quit); loop.exec(); };
+    auto flush=[](int ms=40) { QEventLoop loop; QTimer::singleShot(ms,Qt::PreciseTimer,&loop,&QEventLoop::quit); loop.exec(); };
     auto* canvas=root->findChild<QQuickItem*>("appCanvas");
     auto* tabs=root->findChild<QQuickItem*>("bottomTabs");
     auto* recent=root->findChild<QQuickItem*>("recentEventsCard");
@@ -172,11 +176,43 @@ void run() {
     physical.physical_valid[2]=false;model.updateSnapshot(physical);flush();
     EXPECT_EQ(temperature->property("value").toString(),QStringLiteral("--"));
     EXPECT_EQ(voltage->property("value").toString(),QStringLiteral("3.853 V"));
+    EXPECT_FALSE(model.popupVisible());flush(2100);
     EXPECT_TRUE(model.popupVisible());EXPECT_TRUE(window->grabWindow().save("dashboard-physical-partial.png"));
-    physical.physical_valid[2]=true;model.updateSnapshot(physical);flush();EXPECT_FALSE(model.popupVisible());
+    physical.physical_valid[2]=true;model.updateSnapshot(physical);flush();
+    EXPECT_TRUE(model.popupVisible()); // a short recovery does not close an unread notice
+    model.dismissPopup();
+    // On other pages a temporary top notice leaves navigation/history usable.
+    auto* toast=root->findChild<QQuickItem*>("notificationToast");
+    EXPECT_TRUE(toast != nullptr);
+    for(int page : {1,2,3}){
+        root->setProperty("currentPage",page);
+        model.setHistoryStorageStatus(QString::number(page)+QStringLiteral(" 기록 저장 실패"));flush();
+        EXPECT_FALSE(overlay->isVisible());EXPECT_TRUE(toast->isVisible());
+        EXPECT_TRUE(tabs->isEnabled());
+        if(page==2){
+            EXPECT_TRUE(history->isEnabled());
+            EXPECT_TRUE(window->grabWindow().save("dashboard-history-notification.png"));
+        }
+        auto* closeToast=root->findChild<QObject*>("dismissNotification");
+        EXPECT_TRUE(closeToast && QMetaObject::invokeMethod(closeToast,"clicked"));flush();
+        EXPECT_FALSE(toast->isVisible());EXPECT_FALSE(model.popupVisible());
+    }
+    root->setProperty("currentPage",2);
+    model.setHistoryStorageStatus(QStringLiteral("알림 만료 시험 · 기록 저장 실패"));flush();
+    EXPECT_TRUE(toast->isVisible());
+    QElapsedTimer notificationWait;notificationWait.start();
+    while(toast->isVisible()&&notificationWait.elapsed()<7000)flush();
+    EXPECT_FALSE(toast->isVisible());EXPECT_FALSE(model.popupVisible());
+    root->setProperty("currentPage",0);flush();EXPECT_FALSE(overlay->isVisible());
 }
 int main(int argc,char** argv) {
     QGuiApplication app(argc,argv);
+    // Use the product's bundled Korean font in layout screenshots as well.
+    const auto font=QFontDatabase::addApplicationFont(QFileInfo(QStringLiteral(IVI_QML_FILE)).dir()
+        .filePath(QStringLiteral("../fonts/NanumGothic-Regular.ttf")));
+    const auto families=QFontDatabase::applicationFontFamilies(font);
+    if(families.isEmpty())return 1;
+    app.setFont(QFont(families.first()));
     QTemporaryDir settings;
     QSettings::setDefaultFormat(QSettings::IniFormat);
     QSettings::setPath(QSettings::IniFormat,QSettings::UserScope,settings.path());

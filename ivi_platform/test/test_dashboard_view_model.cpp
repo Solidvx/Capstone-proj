@@ -43,6 +43,76 @@ class DashboardViewModelTest : public QObject {
     }
 
 private slots:
+    void physicalSensorNoticesDebounceAndKeepOneIncidentUntilStableRecovery(){
+        DashboardViewModel model;QSignalSpy records(&model,&DashboardViewModel::eventRecorded);
+        auto count=[&](const QString& category){
+            unsigned n=0;for(const auto& args:records)
+                if(qvariant_cast<QJsonObject>(args.first()).value("category").toString()==category)++n;
+            return n;
+        };
+        ivi::VehicleSnapshot s;s.physical_measurement=capstone::session_v2::PhysicalMeasurement{};
+        s.physical_measurement->sequence=3;s.vehicle.valid=true;s.vehicle.stale=false;
+        s.physical_valid={true,true,true,false,false};model.updateSnapshot(s);
+        // Reproduce short expiry/recovery cycles: availability changes at once,
+        // but these are not separate user-visible sensor failures.
+        for(unsigned i=0;i<3;++i){
+            s.physical_valid[0]=s.physical_valid[1]=false;model.updateSnapshot(s);
+            QVERIFY(!model.voltageAvailable());QVERIFY(!model.popupVisible());
+            QTest::qWait(120);
+            s.physical_valid[0]=s.physical_valid[1]=true;model.updateSnapshot(s);
+            QTest::qWait(120);
+        }
+        QTest::qWait(2100);QCOMPARE(count("sensor-input-lost"),0u);
+        s.physical_valid[0]=s.physical_valid[1]=false;model.updateSnapshot(s);
+        QTRY_VERIFY_WITH_TIMEOUT(model.popupVisible(),2500);
+        QCOMPARE(count("sensor-input-lost"),1u);
+        QVERIFY(model.popupDescription().contains(QStringLiteral("전압·전류")));
+        // Neither short recovery nor another loss dismisses/reopens the notice.
+        s.physical_valid[0]=s.physical_valid[1]=true;model.updateSnapshot(s);
+        QTest::qWait(120);QVERIFY(model.popupVisible());
+        s.physical_valid[0]=s.physical_valid[1]=false;model.updateSnapshot(s);
+        model.dismissPopup();QTest::qWait(2100);
+        QVERIFY(!model.popupVisible());QCOMPARE(count("sensor-input-lost"),1u);
+        QCOMPARE(count("sensor-input-recovered"),0u);
+        s.physical_valid[0]=s.physical_valid[1]=true;model.updateSnapshot(s);
+        s.physical_measurement->sequence++;model.updateSnapshot(s);
+        QTRY_COMPARE_WITH_TIMEOUT(count("sensor-input-recovered"),1u,5500);
+        QVERIFY(!model.popupVisible()); // recovery never reopens a closed notice
+        s.physical_valid[2]=false;model.updateSnapshot(s);
+        QTRY_VERIFY_WITH_TIMEOUT(model.popupVisible(),2500);
+        QCOMPARE(count("sensor-input-lost"),2u);
+        s.physical_valid[2]=true;model.updateSnapshot(s);
+        s.physical_measurement->sequence++;model.updateSnapshot(s);
+        QTRY_COMPARE_WITH_TIMEOUT(model.popupKind(),QStringLiteral("success"),5500);
+        QVERIFY(model.popupVisible()); // unread recovery result stays until closed
+        QCOMPARE(count("sensor-input-recovered"),2u);
+    }
+    void physicalSensorWarmupAndSourceReplacementDoNotFabricateRecovery(){
+        DashboardViewModel model;ivi::VehicleSnapshot s;
+        s.physical_measurement=capstone::session_v2::PhysicalMeasurement{};
+        s.physical_measurement->ina_quality=s.physical_measurement->temperature_quality=1;
+        model.updateSnapshot(s);QTest::qWait(2100);QVERIFY(!model.popupVisible());
+        // A sensor which never worked must still report a persistent failure.
+        s.physical_measurement->ina_quality=3;model.updateSnapshot(s);
+        QTRY_VERIFY_WITH_TIMEOUT(model.popupVisible(),2500);
+        s.physical_measurement->instance[0]=1;
+        s.physical_measurement->ina_quality=1;model.updateSnapshot(s);
+        QVERIFY(!model.popupVisible());
+        QVERIFY(!model.eventHistory().join(' ').contains(QStringLiteral("회복 확인")));
+        // Recovery cannot cover a security warning; total loss also must not
+        // emit a second set of legacy BMS connection events.
+        s.physical_measurement->ina_quality=3;model.updateSnapshot(s);
+        QTRY_VERIFY_WITH_TIMEOUT(model.popupVisible(),2500);
+        s.session_protocol=true;s.observed_condition_mask=8;model.updateSnapshot(s);
+        const auto security_notice=model.popupTitle();QVERIFY(security_notice.contains(QStringLiteral("Flooding")));
+        s.physical_valid={true,true,true,false,false};s.vehicle.valid=true;
+        s.physical_measurement->sequence=3;model.updateSnapshot(s);
+        s.physical_measurement->sequence=4;model.updateSnapshot(s);
+        QTest::qWait(5100);
+        QCOMPARE(model.popupTitle(),security_notice);QCOMPARE(model.popupKind(),QStringLiteral("danger"));
+        QVERIFY(model.eventHistory().join(' ').contains(QStringLiteral("회복 확인")));
+        QVERIFY(!model.eventHistory().join(' ').contains(QStringLiteral("배터리 정보 수신 확인")));
+    }
     void physicalUnknownSocAndPartialSensorFailure(){
         DashboardViewModel model;ivi::VehicleSnapshot s;s.physical_measurement=capstone::session_v2::PhysicalMeasurement{};
         s.physical_measurement->sequence=3;s.vehicle.valid=true;s.vehicle.stale=false;

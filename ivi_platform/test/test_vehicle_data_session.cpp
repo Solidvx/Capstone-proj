@@ -74,6 +74,27 @@ void physicalMeasurementTests(){
     rig.advance(2200);s=rig.service.latest();EXPECT_TRUE(!s.physical_valid[0]&&!s.physical_valid[2]);
     // An authenticated foreign-instance message cannot revive stale measurements.
     m.instance=wire::diagnosticUuid();send(rig,m);EXPECT_TRUE(!rig.service.latest().physical_valid[0]);
+    // A valid sensor report near its age limit can expire before the next
+    // report arrives. This is data freshness, not proof of a broken sensor.
+    Rig timing;timing.open();
+    timing.send(timing.ecu.makeDiagnostic(wire::DiagnosticKind::NodeStatus,node())->frames);
+    m.instance=instance;m.configuration[0]=1;m.sequence=3;m.soc_basis=m.soh_basis=0;
+    m.soc_percent.reset();m.soh_percent.reset();m.temperature_c=20.125;m.temperature_quality=2;
+    m.ina_age_ms=2900;m.temperature_age_ms=2100;
+    send(timing,m);EXPECT_TRUE(timing.service.latest().physical_valid[0]);
+    timing.advance(101);auto expired=timing.service.latest();
+    EXPECT_FALSE(expired.physical_valid[0]);EXPECT_TRUE(expired.physical_valid[2]);
+    EXPECT_EQ(expired.physical_measurement->ina_quality,2u);
+    m.sequence++;m.ina_age_ms=800;m.temperature_age_ms=0;send(timing,m);
+    EXPECT_TRUE(timing.service.latest().physical_valid[0]);
+    // With a fresh sample each second the same 3s bound covers the observed
+    // conversion/report phase offset without extending any stale-data limit.
+    for(unsigned i=0;i<8;++i){
+        timing.send(timing.ecu.makeDiagnostic(wire::DiagnosticKind::NodeStatus,node())->frames);
+        m.sequence++;m.ina_age_ms=1500;m.temperature_age_ms=700;send(timing,m);
+        timing.advance(1000);EXPECT_TRUE(timing.service.latest().physical_valid[0]);
+        EXPECT_TRUE(timing.service.latest().physical_valid[2]);
+    }
 }
 void protectionLinkTests(){
     const auto instance=wire::diagnosticUuid(),lineage=wire::diagnosticUuid(),incident=wire::diagnosticUuid();
