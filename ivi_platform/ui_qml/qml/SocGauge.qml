@@ -88,7 +88,7 @@ Rectangle {
             wrapMode: Text.NoWrap
             color: root.gaugeColor
             font.pixelSize: 32
-            font.bold: true
+            font.weight: Font.Bold
             minimumPixelSize: 18
             fontSizeMode: Text.Fit
         }

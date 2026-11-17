@@ -12,6 +12,7 @@
 #include <QEventLoop>
 #include <QTimer>
 #include <QFontDatabase>
+#include <QRawFont>
 #include <QFileInfo>
 #include <QDir>
 #include <QElapsedTimer>
@@ -201,7 +202,15 @@ void run() {
         EXPECT_FALSE(metric->property("inputWaiting").toBool());
         auto* reading=metric->findChild<QObject*>("metricReading");
         EXPECT_TRUE(reading != nullptr);
-        EXPECT_TRUE(qvariant_cast<QFont>(reading->property("font")).pixelSize()>=24);
+        const auto font=qvariant_cast<QFont>(reading->property("font"));
+        EXPECT_TRUE(font.pixelSize()>=24);
+        EXPECT_TRUE(QRawFont::fromFont(font).weight()>=QFont::Bold);
+        EXPECT_EQ(reading->property("horizontalAlignment").toInt(),int(Qt::AlignHCenter));
+        auto* contents=metric->findChild<QQuickItem*>("metricContents");
+        auto* item=qobject_cast<QQuickItem*>(metric);
+        EXPECT_TRUE(contents != nullptr);
+        EXPECT_TRUE(std::abs(contents->x()+contents->width()/2-item->width()/2)<.5);
+        EXPECT_TRUE(std::abs(contents->y()+contents->height()/2-item->height()/2)<.5);
     }
     EXPECT_TRUE(window->grabWindow().save("dashboard-physical.png"));
     physical.physical_valid[2]=false;model.updateSnapshot(physical);flush();
@@ -255,6 +264,15 @@ void run() {
         EXPECT_FALSE(description->property("truncated").toBool());
         EXPECT_TRUE(description->property("lineHeight").toDouble()>=1.15);
         EXPECT_TRUE(qvariant_cast<QFont>(description->property("font")).pixelSize()>=14);
+        EXPECT_TRUE(QRawFont::fromFont(qvariant_cast<QFont>(description->property("font"))).weight()>=QFont::DemiBold);
+        for(const auto* name:{"systemStatusContents","securityStatusContents","recentEventsContents"}){
+            auto* contents=root->findChild<QQuickItem*>(name);
+            EXPECT_TRUE(contents != nullptr);
+            const auto bounds=contents->mapRectToItem(contents->parentItem(),contents->boundingRect());
+            EXPECT_TRUE(bounds.left()>=8 && bounds.right()<=contents->parentItem()->width()-8);
+            EXPECT_TRUE(bounds.top()>=0 && bounds.bottom()<=contents->parentItem()->height());
+            EXPECT_TRUE(std::abs(bounds.center().y()-contents->parentItem()->height()/2)<.5);
+        }
         for(auto* item:root->findChildren<QQuickItem*>()){
             if(!item->isVisible()||item->metaObject()->indexOfProperty("lineHeight")<0)continue;
             for(auto* parent=item->parentItem();parent;parent=parent->parentItem())if(parent->clip()){
@@ -267,6 +285,15 @@ void run() {
         physical.physical_valid[2]=false;
     }
     physical.physical_valid[2]=true;physical.vehicle.current_a=-.3711;
+    model.updateSnapshot(physical);model.dismissPopup();flush();
+    // All four names must still fit in the compact security summary.
+    auto compound=physical;compound.session_protocol=true;compound.security_observation_ready=true;
+    compound.observed_condition_mask=15;model.updateSnapshot(compound);model.dismissPopup();flush();
+    auto* securityTitle=root->findChild<QQuickItem*>("securityTitle");
+    EXPECT_TRUE(securityTitle && !securityTitle->property("truncated").toBool());
+    auto* securityContents=root->findChild<QQuickItem*>("securityStatusContents");
+    EXPECT_TRUE(securityContents->y()>=0 && securityContents->y()+securityContents->height()<=securityContents->parentItem()->height());
+    EXPECT_TRUE(window->grabWindow().save("dashboard-four-attacks-bold.png"));
     model.updateSnapshot(physical);model.dismissPopup();flush();
     // On other pages a temporary top notice leaves navigation/history usable.
     auto* toast=root->findChild<QQuickItem*>("notificationToast");
@@ -331,11 +358,18 @@ void run() {
 int main(int argc,char** argv) {
     QGuiApplication app(argc,argv);
     // Use the product's bundled Korean font in layout screenshots as well.
-    const auto font=QFontDatabase::addApplicationFont(QFileInfo(QStringLiteral(IVI_QML_FILE)).dir()
-        .filePath(QStringLiteral("../fonts/NanumGothic-Regular.ttf")));
-    const auto families=QFontDatabase::applicationFontFamilies(font);
-    if(families.isEmpty())return 1;
-    app.setFont(QFont(families.first()));
+    QString family;
+    for(const auto& file:{QStringLiteral("NanumGothic-Regular.ttf"),QStringLiteral("NanumGothic-Bold.ttf")}){
+        const auto font=QFontDatabase::addApplicationFont(QFileInfo(QStringLiteral(IVI_QML_FILE)).dir()
+            .filePath(QStringLiteral("../fonts/")+file));
+        const auto families=QFontDatabase::applicationFontFamilies(font);
+        if(families.isEmpty())return 1;
+        family=families.first();
+    }
+    QFont dashboard_font(family);dashboard_font.setWeight(QFont::DemiBold);
+    const auto raw_font=QRawFont::fromFont(dashboard_font);
+    if(raw_font.weight()<QFont::DemiBold || !raw_font.supportsCharacter(uint(0xAC00)))return 1;
+    app.setFont(dashboard_font);
     QTemporaryDir settings;
     QSettings::setDefaultFormat(QSettings::IniFormat);
     QSettings::setPath(QSettings::IniFormat,QSettings::UserScope,settings.path());

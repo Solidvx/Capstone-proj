@@ -82,7 +82,7 @@ ApplicationWindow {
                     Layout.preferredHeight: 32; Layout.minimumHeight: 32; Layout.maximumHeight: 32
                     UiText {
                         text: root.currentPage === 0 ? "배터리 현황" : root.pageNames[root.currentPage]
-                        color: root.ink; font.pixelSize: 22; font.bold: true
+                        color: root.ink; font.pixelSize: 22; font.weight: Font.Bold
                     }
                     Item { Layout.fillWidth: true }
                     UiText {
@@ -134,7 +134,7 @@ ApplicationWindow {
                                                 objectName: "socStatusLabel"
                                                 Layout.fillWidth: true
                                                 text: !root.vehicleModel.socAvailable ? (root.vehicleModel.physicalSocOutsideModel ? "잔량 추정 범위 밖" : root.vehicleModel.physicalSocInitializing ? "초기 잔량 확인 중" : root.vehicleModel.physicalMode ? "잔량 추정 준비 중" : "배터리 정보 대기") : root.vehicleModel.physicalMode ? "배터리 잔량(SOC)" : root.vehicleModel.soc < 20 ? "충전이 필요합니다" : "잔량이 충분합니다"
-                                                color: root.ink; font.pixelSize: 20; font.bold: true
+                                                color: root.ink; font.pixelSize: 20; font.weight: Font.Bold
                                                 wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight
                                             }
                                             UiText {
@@ -162,7 +162,7 @@ ApplicationWindow {
                                             UiText {
                                                 objectName: "sohValue"
                                                 text: root.vehicleModel.sohAvailable ? root.vehicleModel.soh.toFixed(1) + "%" : "--"
-                                                color: root.ink; font.pixelSize: 32; font.bold: true
+                                                color: root.ink; font.pixelSize: 32; font.weight: Font.Bold
                                             }
                                             UiText {
                                                 objectName: "sohHint"
@@ -193,40 +193,45 @@ ApplicationWindow {
                                     Layout.preferredHeight: 112; Layout.minimumHeight: 112
                                     border.color: root.vehicleModel.failSafeOverlayActive ? root.red : root.vehicleModel.failSafeState === "WARNING" ? root.orange : root.lineColor
                                     ColumnLayout {
-                                        anchors.fill: parent; anchors.margins: 10; spacing: 5
-                                        UiText { text: "시스템 상태"; color: root.muted; font.pixelSize: 14 }
+                                        objectName: "systemStatusContents"
+                                        anchors.centerIn: parent; width: parent.width - 24; spacing: 5
+                                        UiText { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: "시스템 상태"; color: root.muted; font.pixelSize: 14 }
                                         UiText {
                                             objectName: "statusTitle"
                                             Layout.fillWidth: true
+                                            horizontalAlignment: Text.AlignHCenter
                                             text: root.vehicleModel.statusTitle
                                             color: root.vehicleModel.failSafeOverlayActive ? root.red : root.vehicleModel.failSafeState === "WARNING" ? root.orange : root.ink
-                                            font.pixelSize: 20; font.bold: true; elide: Text.ElideRight
+                                            font.pixelSize: 20; font.weight: Font.Bold; elide: Text.ElideRight
                                         }
                                         UiText {
                                             objectName: "statusDescriptionLabel"
                                             Layout.fillWidth: true
+                                            horizontalAlignment: Text.AlignHCenter
                                             text: root.vehicleModel.statusDescription
                                             color: root.muted; font.pixelSize: 14
                                             wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight
                                         }
-                                        Item { Layout.fillHeight: true }
                                     }
                                 }
                                 Card {
+                                    objectName: "securityStatusCard"
                                     Layout.fillWidth: true; Layout.fillHeight: true
                                     Layout.preferredHeight: 140; Layout.minimumHeight: 140
                                     ColumnLayout {
-                                        anchors.fill: parent; anchors.margins: 8; spacing: 4
-                                        UiText { text: "보안 탐지 결과"; color: root.muted; font.pixelSize: 14 }
+                                        objectName: "securityStatusContents"
+                                        anchors.centerIn: parent; width: parent.width - 24; spacing: 4
+                                        UiText { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: "보안 탐지 결과"; color: root.muted; font.pixelSize: 14 }
                                         UiText {
                                             objectName: "securityTitle"
                                             Layout.fillWidth: true
+                                            horizontalAlignment: Text.AlignHCenter
                                             text: root.vehicleModel.securityTitle
-                                            color: root.ink; font.pixelSize: 19; font.bold: true
+                                            color: root.ink; font.pixelSize: 18; font.weight: Font.Bold
                                             wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight
                                         }
-                                        UiText { Layout.fillWidth: true; text: root.vehicleModel.secocFailureCount + "건 수신 검증 실패"; color: root.muted; font.pixelSize: 14 }
-                                        AppButton { text: "보안 내역 보기"; padding: 5; Layout.preferredHeight: 32; Layout.minimumHeight: 32; Layout.maximumHeight: 32; onClicked: root.currentPage = 1 }
+                                        UiText { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: root.vehicleModel.secocFailureCount + "건 수신 검증 실패"; color: root.muted; font.pixelSize: 14 }
+                                        AppButton { Layout.alignment: Qt.AlignHCenter; text: "보안 내역 보기"; padding: 5; Layout.preferredHeight: 32; Layout.minimumHeight: 32; Layout.maximumHeight: 32; onClicked: root.currentPage = 1 }
                                     }
                                 }
                             }
@@ -236,10 +241,11 @@ ApplicationWindow {
                             objectName: "recentEventsCard"
                             Layout.fillWidth: true; Layout.preferredHeight: 96
                             ColumnLayout {
-                                anchors.fill: parent; anchors.margins: 8; spacing: 3
+                                objectName: "recentEventsContents"
+                                anchors.centerIn: parent; width: parent.width - 24; spacing: 4
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    UiText { text: "최근 이벤트"; color: root.ink; font.pixelSize: 14; font.bold: true }
+                                    UiText { text: "최근 이벤트"; color: root.ink; font.pixelSize: 14; font.weight: Font.Bold }
                                     Item { Layout.fillWidth: true }
                                     AppButton { text: "전체 보기"; padding: 4; Layout.preferredHeight: 26; Layout.minimumHeight: 26; Layout.maximumHeight: 26; onClicked: root.currentPage = 2 }
                                 }
@@ -248,7 +254,6 @@ ApplicationWindow {
                                     UiText { required property string modelData; Layout.fillWidth: true; text: modelData; color: root.muted; font.pixelSize: 14; elide: Text.ElideRight }
                                 }
                                 UiText { visible: root.vehicleModel.recentEvents.length === 0; text: "아직 기록된 이벤트가 없습니다."; color: root.muted; font.pixelSize: 14 }
-                                Item { Layout.fillHeight: true }
                             }
                         }
                     }
@@ -264,15 +269,15 @@ ApplicationWindow {
                             id: securityDetails
                             width: Math.max(0, securityScroll.width - 16)
                             spacing: 18
-                            UiText { text: root.vehicleModel.securityTitle; color: root.ink; font.pixelSize: 24; font.bold: true; Layout.fillWidth: true; wrapMode: Text.Wrap }
+                            UiText { text: root.vehicleModel.securityTitle; color: root.ink; font.pixelSize: 24; font.weight: Font.Bold; Layout.fillWidth: true; wrapMode: Text.Wrap }
                             UiText { text: root.vehicleModel.securityDescription; color: root.muted; font.pixelSize: 16; Layout.fillWidth: true; wrapMode: Text.Wrap }
-                            UiText { text: "수신 검증 결과"; color: root.ink; font.pixelSize: 19; font.bold: true }
+                            UiText { text: "수신 검증 결과"; color: root.ink; font.pixelSize: 19; font.weight: Font.Bold }
                             Repeater { model: root.vehicleModel.incidentTreatments; UiText { required property string modelData; text: modelData; color: root.ink; font.pixelSize: 15; Layout.fillWidth: true; wrapMode: Text.Wrap } }
                             UiText { objectName: "rejectionSummary"; text: root.vehicleModel.rejectionSummary; color: root.muted; font.pixelSize: 16; Layout.fillWidth: true; wrapMode: Text.Wrap }
                             UiText { text: "검증 실패 누적 " + root.vehicleModel.secocFailureCount + "건"; color: root.ink; font.pixelSize: 17 }
                             UiText { objectName: "authenticationErrorIndicator"; visible: root.vehicleModel.authenticationError; text: "데이터 확인이 계속 실패하고 있습니다. 점검이 필요합니다."; color: root.red; font.pixelSize: 17; Layout.fillWidth: true; wrapMode: Text.Wrap }
                             UiText { text: "검증 거부는 이 IVI의 수신 결과입니다. 공격 노드의 송신 중단이나 특정 공격 전체 차단을 의미하지 않습니다."; color: root.muted; font.pixelSize: 14; Layout.fillWidth: true; wrapMode: Text.Wrap }
-                            UiText { objectName: "canHealthHeading"; text: "CAN 통신 상태"; color: root.ink; font.pixelSize: 19; font.bold: true }
+                            UiText { objectName: "canHealthHeading"; text: "CAN 통신 상태"; color: root.ink; font.pixelSize: 19; font.weight: Font.Bold }
                             Repeater {
                                 model: root.vehicleModel.floodingMetrics
                                 UiText { required property string modelData; text: modelData; color: root.muted; font.pixelSize: 15; Layout.fillWidth: true; wrapMode: Text.Wrap }
@@ -299,7 +304,7 @@ ApplicationWindow {
                         clip: true; contentWidth: availableWidth
                         ColumnLayout {
                             width: parent.width; spacing: 18
-                            UiText { text: "화면 모드"; color: root.ink; font.pixelSize: 22; font.bold: true }
+                            UiText { text: "화면 모드"; color: root.ink; font.pixelSize: 22; font.weight: Font.Bold }
                             RowLayout {
                                 AppButton { text: "화이트 모드"; highlighted: !root.dark; onClicked: root.vehicleModel.darkMode = false }
                                 AppButton { text: "다크 모드"; highlighted: root.dark; onClicked: root.vehicleModel.darkMode = true }
@@ -350,9 +355,9 @@ ApplicationWindow {
                         anchors.fill: parent; anchors.margins: 22; spacing: 10
                         UiText {
                             text: root.vehicleModel.popupKind === "success" ? "처리 결과" : "주의가 필요합니다"
-                            color: root.vehicleModel.popupKind === "success" ? root.green : root.orange; font.pixelSize: 14; font.bold: true
+                            color: root.vehicleModel.popupKind === "success" ? root.green : root.orange; font.pixelSize: 14; font.weight: Font.Bold
                         }
-                        UiText { Layout.fillWidth: true; text: root.vehicleModel.popupTitle; color: root.ink; font.pixelSize: 26; font.bold: true; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight }
+                        UiText { Layout.fillWidth: true; text: root.vehicleModel.popupTitle; color: root.ink; font.pixelSize: 26; font.weight: Font.Bold; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight }
                         UiText { Layout.fillWidth: true; text: root.vehicleModel.popupDescription; color: root.muted; font.pixelSize: 16; wrapMode: Text.Wrap; maximumLineCount: 4; elide: Text.ElideRight }
                         Item { Layout.fillHeight: true }
                         AppButton { id: closeButton; objectName: "dismissAlert"; text: "닫기"; Layout.fillWidth: true; Layout.preferredHeight: 44; onClicked: root.vehicleModel.dismissPopup() }
@@ -378,7 +383,7 @@ ApplicationWindow {
                     anchors.margins: 12; spacing: 12
                     ColumnLayout {
                         Layout.fillWidth: true; spacing: 6
-                        UiText { Layout.fillWidth: true; text: root.vehicleModel.popupTitle; color: root.ink; font.pixelSize: 19; font.bold: true; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight }
+                        UiText { Layout.fillWidth: true; text: root.vehicleModel.popupTitle; color: root.ink; font.pixelSize: 19; font.weight: Font.Bold; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight }
                         UiText { Layout.fillWidth: true; text: root.vehicleModel.popupDescription; color: root.muted; font.pixelSize: 14; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
                     }
                     AppButton { objectName: "dismissNotification"; text: "닫기"; Layout.preferredWidth: 60; Layout.preferredHeight: 40; onClicked: root.vehicleModel.dismissPopup() }
@@ -388,7 +393,7 @@ ApplicationWindow {
     }
     component UiText: Text {
         font.pixelSize: 14
-        font.weight: Font.Medium
+        font.weight: Font.DemiBold
         lineHeight: 1.2
         lineHeightMode: Text.ProportionalHeight
         textFormat: Text.PlainText
@@ -424,10 +429,9 @@ ApplicationWindow {
         border.color: inputWaiting ? root.orange : root.lineColor
         border.width: inputWaiting ? 2 : 1
         Layout.fillWidth: true; Layout.fillHeight: true
-        Rectangle { anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom; anchors.margins: 6; width: 3; radius: 1; color: root.orange; visible: metric.inputWaiting }
-        Column { anchors.fill: parent; anchors.margins: 8; anchors.leftMargin: metric.inputWaiting ? 14 : 8; spacing: 4
-            UiText { width: parent.width; text: metric.title; color: metric.inputWaiting ? root.orange : root.muted; font.pixelSize: 14; font.weight: Font.DemiBold }
-            UiText { objectName: "metricReading"; width: parent.width; text: metric.inputWaiting ? metric.statusText : metric.value; color: metric.inputWaiting ? root.orange : root.ink; font.pixelSize: metric.inputWaiting ? 16 : 24; font.bold: true; elide: Text.ElideRight }
+        Column { objectName: "metricContents"; anchors.centerIn: parent; width: parent.width - 16; spacing: 6
+            UiText { width: parent.width; horizontalAlignment: Text.AlignHCenter; text: metric.title; color: metric.inputWaiting ? root.orange : root.muted; font.pixelSize: 14; font.weight: Font.DemiBold }
+            UiText { objectName: "metricReading"; width: parent.width; horizontalAlignment: Text.AlignHCenter; text: metric.inputWaiting ? metric.statusText : metric.value; color: metric.inputWaiting ? root.orange : root.ink; font.pixelSize: metric.inputWaiting ? 16 : 24; font.weight: Font.Bold; elide: Text.ElideRight }
         }
     }
 }
