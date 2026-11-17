@@ -10,7 +10,7 @@ from security.can_diagnostic import decode, encode, valid_body
 from security.tests.diagnostic_fixtures import fixtures, put, uuid_bytes
 
 
-VECTOR_PATH = Path(__file__).resolve().parents[2] / 'docs/aidlc/changes/CHG-029/protection-v1-vectors.tsv'
+VECTOR_PATH = Path(__file__).resolve().parents[2] / 'common/testdata/protection-v1-vectors.tsv'
 
 
 def bodies():

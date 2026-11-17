@@ -22,7 +22,7 @@ def body():
 
 def test_public_vectors_cross_language_contract():
     ctx, keys, _ = fixtures()
-    path = Path(__file__).resolve().parents[2] / "docs/aidlc/changes/CHG-031/physical-v1-vectors.tsv"
+    path = Path(__file__).resolve().parents[2] / "common/testdata/physical-v1-vectors.tsv"
     rows = path.read_text().splitlines()
     assert len(rows) == 4
     for line in rows:

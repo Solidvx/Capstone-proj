@@ -1,8 +1,8 @@
-"""Create/verify a public worktree snapshot, including docs and small evidence.
+"""Create/verify a public worktree snapshot, excluding personal records and experiment outputs.
 
 Not a Git commit, release, secret scanner guarantee or physical acceptance.
-Existing historical source archives and the undecided large raw archive remain
-separate. Snapshot inputs are reread and their inventory is checked before save.
+Personal records and experiment archives remain local. Snapshot inputs are
+reread and their inventory is checked before save.
 """
 import argparse
 import gzip
@@ -14,10 +14,9 @@ import re
 import subprocess
 import tarfile
 
-ROOTS = ('adaptive_ecu', 'ivi_platform', 'common', 'security', 'tools', '.github',
-         'docs', 'plan', '.agents/skills')
-EXTRAS = ('AGENTS.md', 'CODEX.md', 'CLAUDE.md', 'SKILL.md', 'README.md', '1110할일.md', '질문리스트.md',
-          'Dockerfile.arm64', 'toolchain-aarch64.cmake', '.dockerignore', '.gitignore', '.env.example', 'scripts/health_check.sh')
+ROOTS = ('adaptive_ecu', 'ivi_platform', 'common', 'security', 'tools', '.github')
+EXTRAS = ('README.md', 'Dockerfile.arm64', 'toolchain-aarch64.cmake', '.dockerignore',
+          '.gitignore', '.env.example', 'scripts/health_check.sh')
 PREFIX = 'Capstone-handoff/'
 MAX_FILE = 12*1024*1024
 MAX_TOTAL = 96*1024*1024
@@ -35,7 +34,9 @@ def safe_name(name):
 
 def allowed(name):
     path = PurePosixPath(safe_name(name))
-    if name.startswith('plan/_archive/') or name.endswith(('-software-source.tar.gz', '-software-handoff.tar.gz')):
+    if (name.startswith(('docs/', 'plan/', 'handoff/', '.agents/', '.claude/', '.codex/')) or
+            name in ('AGENTS.md', 'CLAUDE.md', 'CODEX.md', 'SKILL.md', '1110할일.md', '질문리스트.md', '프로젝트구조개선.md') or
+            name.endswith(('-software-source.tar.gz', '-software-handoff.tar.gz'))):
         return False
     if any(part in ('.git', '__pycache__', '.venv', 'venv', 'models', 'logs') or part.startswith('build') for part in path.parts):
         return False
@@ -88,10 +89,10 @@ def create(root, output):
     manifest = {'schema': 'public-software-handoff-v1', 'working_tree_overlay_included': True,
         'git_head': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip(),
         'branch': subprocess.check_output(['git', 'branch', '--show-current'], cwd=root, text=True).strip(),
-        'entries': entries, 'scope': 'Current code, official docs/plans and selected small public evidence; not a commit or deployment.',
+        'entries': entries, 'scope': 'Current source, tests and build configuration; no personal records or experiment outputs; not a deployment.',
         'excluded': ['Git internals and ignored files', 'runtime keys/state/builds/virtual environments/models',
-            'archived plan containing device address', 'prior source archives and this generated source archive',
-            'large historical raw archive pending sharing decision'],
+            'personal and AI records, plans and experiment outputs',
+            'prior source archives and this generated source archive'],
         'checks': ['regular files', 'known private markers', 'nested evidence members', 'source reread and inventory equality']}
     contents['HANDOFF-MANIFEST.json'] = (json.dumps(manifest, ensure_ascii=False, indent=2)+'\n').encode()
     buffer = io.BytesIO()

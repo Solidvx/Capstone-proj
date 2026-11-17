@@ -57,6 +57,6 @@ def test_cross_input_snapshot_detects_added_removed_and_changed_source(tmp_path)
     after = input_hashes(tmp_path);assert after != before
     new.write_text('changed source');assert input_hashes(tmp_path) != after
     new.unlink();assert input_hashes(tmp_path) == before
-    vector=tmp_path/'docs/aidlc/changes/CHG-031/physical-v1-vectors.tsv'
+    vector=tmp_path/'common/testdata/physical-v1-vectors.tsv'
     vector.parent.mkdir(parents=True);vector.write_text('public physical contract vector')
     assert input_hashes(tmp_path) != before

@@ -1,6 +1,6 @@
 # CAN 인증 진단 계약 — diagnostic-v1
 
-2026-11-11 사용자 승인으로 [session-v2](ICD-CAN-SESSION.md)에 포함된 상세 CAN 진단 계약이다. [ICD](ICD.md)와 함께 적용한다. 승인된 형식과 실제 제품 구현/물리 인수 완료는 구분하며 현재 구현 상태는 [CHG-029](aidlc/changes/CHG-029/aidlc-state.md)를 따른다.
+2026-11-11 사용자 승인으로 [session-v2](ICD-CAN-SESSION.md)에 포함된 상세 CAN 진단 계약이다. [ICD](ICD.md)와 함께 적용한다. 승인된 형식과 실제 제품 구현/물리 인수 완료는 구분하며 현재 구현 상태는 CHG-029를 따른다.
 
 ## 전달 경로와 영향
 
@@ -187,8 +187,8 @@ IVI는 현재 세션·신선한NodeStatus·동일instance·동일설정·취득 
 
 `physical` 모드는 이 종류로 표시하며0x100/102에 가짜SOC/SOH나 가상10셀 값을 보내지 않는다. 기존0x104/105는 세션 개방 상태 동기화에 사용하되, NodeStatus의 위험값FF로 실제 셀 보호 판단이 미구성임을 구분한다. IVI는 실측 모드에서 세션의 초기NORMAL을 실제 배터리 안전 상태로 표시하지 않는다. 가상55/60°C 정책·실제 부하 차단·저잔량 보호·checkpoint 자동 복구는 이 메시지 추가만으로 구현/인수된 것이 아니다. 가상/ADS1115 제품 경로와 분리한다.
 
-공개 더미 키 기반 양언어 벡터는 [CHG-031](aidlc/changes/CHG-031/physical-v1-vectors.tsv), 현재 구현/검증은 [진행표](aidlc/changes/CHG-031/aidlc-state.md)를 따른다.
+공개 더미 키 기반 양언어 벡터는 CHG-031, 현재 구현/검증은 진행표를 따른다.
 
 ## 구현/인수 경계
 
-후보 C++/Python과 Linux ARM64/vcan 시험은 [실행 증거](aidlc/changes/CHG-029/diagnostic-evidence.md)를 참조한다. 실제 앱 소비/송신 속도 제한·사건/거부 귀속·프로세스 복구·장기 기록·Qt/물리 장비 인수는 별도 완료 증거가 필요하다.
+후보 C++/Python과 Linux ARM64/vcan 시험은 실행 증거를 참조한다. 실제 앱 소비/송신 속도 제한·사건/거부 귀속·프로세스 복구·장기 기록·Qt/물리 장비 인수는 별도 완료 증거가 필요하다.

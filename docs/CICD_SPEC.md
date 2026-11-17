@@ -1,7 +1,7 @@
 > **문서명**: CI/CD Pipeline Specification (CICD_SPEC)
-> **최종 검토**: 2026-11-14 · **상태**: native 품질과 별도 ARM64 cross/QEMU job, 읽기 전용 제품 health·로컬 release/rollback 도구 구현. 원격 CI·실제 Pi 자동 배포 인수는 미완료. [후속 증거](aidlc/changes/CHG-029/aidlc-state.md)
+> **최종 검토**: 2026-11-14 · **상태**: native 품질과 별도 ARM64 cross/QEMU job, 읽기 전용 제품 health·로컬 release/rollback 도구 구현. 원격 CI·실제 Pi 자동 배포 인수는 미완료. 후속 증거
 > **원천**: [SRS](SRS.md) FR-CI-001~006/NFR-QA, [TEST_PLAN](TEST_PLAN.md) TC-CI-001~006, ADR-006/007
-> **2026-11-17 보완**: [PR #33 CI 조사·수정](aidlc/changes/CHG-030/ci-fix-20261117.md). native 시험/health/coverage는 전용 비관리자 UID로 실행하여 권한 기반 저장 장애를 실제 주입한다. 두 원격 native 실패를 재현했고 로컬 수정 검증은 통과했으며 새 원격 결과 인수는 별도다. 아래의 과거 미달·미실행 기록과 구분한다.
+> **2026-11-17 보완**: PR #33 CI 조사·수정. native 시험/health/coverage는 전용 비관리자 UID로 실행하여 권한 기반 저장 장애를 실제 주입한다. 두 원격 native 실패를 재현했고 로컬 수정 검증은 통과했으며 새 원격 결과 인수는 별도다. 아래의 과거 미달·미실행 기록과 구분한다.
 
 # 1. 개요
 
@@ -36,7 +36,7 @@ ECU가 먼저 빌드되고 IVI CMake에 실제 adaptive_ecu 절대 경로를 넘
 
 컨테이너 옵션과 조건식은 [GitHub workflow 문법](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax), 실패 뒤 독립 단계 조건은 [상태 검사 함수](https://docs.github.com/en/actions/reference/workflows-and-actions/expressions#status-check-functions)를 따른다. run 단계의 기본 셸은 [컨테이너 실행 안내](https://docs.github.com/en/actions/how-tos/write-workflows/choose-where-workflows-run/run-jobs-in-a-container)에 따라 sh이며 bash가 필요한 coverage 단계만 명시한다.
 
-명령·작성 절차의 단일 관리 위치는 [IVI CI 참조 §1](../plan/detail/ivi/ref_CI파이프라인_명령모음.md#1-ci-구현-명세--단일-관리-위치)다. 본 문서는 공식 인수 명세를 관리한다. 전체 YAML/Docker/CMake를 양쪽에 중복 유지하지 않는다. 구현 후 실행 정본은 실제 파일이다.
+명령·작성 절차의 단일 관리 위치는 IVI CI 참조 §1다. 본 문서는 공식 인수 명세를 관리한다. 전체 YAML/Docker/CMake를 양쪽에 중복 유지하지 않는다. 구현 후 실행 정본은 실제 파일이다.
 
 ## 2.1. 트리거 조건 (FR-CI-001)
 
@@ -67,7 +67,7 @@ Docker의 x86-64 compiler host에서 실제 CMake 타겟 `adaptive_ecu`와 `ivi_
 
 ## 2.5. Stage 4 — RPi4 자동 배포 + Health Check (FR-CI-005, FR-CI-006)
 
-검증된 동일 revision/hash artifact를 staging 경로로 전달하고 설정·profile·키 접근 조건을 확인한 뒤 전환한다. 정상 데이터 확인 실패 시 이전 artifact·관련 설정으로 복구하고 결과를 기록한다. 구현 절차는 [IVI M4 §3.4~3.7](../plan/detail/ivi/M4_대시보드_Alert_배포.md#34-systemd-유닛)을 따른다. 서명/세션 상태·counter를 임의 초기화하는 rollback을 정상 복구로 보지 않는다.
+검증된 동일 revision/hash artifact를 staging 경로로 전달하고 설정·profile·키 접근 조건을 확인한 뒤 전환한다. 정상 데이터 확인 실패 시 이전 artifact·관련 설정으로 복구하고 결과를 기록한다. 구현 절차는 IVI M4 §3.4~3.7을 따른다. 서명/세션 상태·counter를 임의 초기화하는 rollback을 정상 복구로 보지 않는다.
 
 # 3. Docker 크로스컴파일 환경
 
@@ -81,7 +81,7 @@ Docker의 x86-64 compiler host에서 실제 CMake 타겟 `adaptive_ecu`와 `ivi_
 
 ## 3.3. adaptive_ecu/CMakeLists.txt 필수 옵션
 
-기존 CMake를 별도 골격으로 덮어쓰지 않는다. 실제 옵션 `ECU_BUILD_TESTS`·`ENABLE_COVERAGE`와 타겟을 보존한다. 현재 로컬 재현 명령은 [AGENTS 검증 기준](../AGENTS.md#6-verification-baseline)을 따른다. 계측 활성화·테스트 이름·누락 소스와 실패 전파를 검증한 뒤 CI에 연결한다.
+기존 CMake를 별도 골격으로 덮어쓰지 않는다. 실제 옵션 `ECU_BUILD_TESTS`·`ENABLE_COVERAGE`와 타겟을 보존한다. 현재 로컬 재현 명령은 AGENTS 검증 기준을 따른다. 계측 활성화·테스트 이름·누락 소스와 실패 전파를 검증한 뒤 CI에 연결한다.
 
 # 4. QEMU user-mode 에뮬레이션 상세 (ADR-006)
 
@@ -101,15 +101,15 @@ CI에서 Mock/가상 입력 단위시험과 실제 장비 시험을 구분한다
 
 ## 5.2. RPi4 배포 계정 설정
 
-배포 계정과 ECU 서비스 실행 계정을 구분한다. [IVI M4](../plan/detail/ivi/M4_대시보드_Alert_배포.md)의 과거 계획은 deploy로 전달, root 서비스로 ECU 실행이다. 현재 template 서비스/감독 경계와 차이가 있어 실제 운영 정책 확인이 필요하다. 파일 소유·실행·profile 읽기·키 읽기 권한과 제한된 서비스 관리/전환 권한을 실제 대상에서 검증한다. sudo 그룹 전체 권한을 관례로 추가하지 않는다.
+배포 계정과 ECU 서비스 실행 계정을 구분한다. IVI M4의 과거 계획은 deploy로 전달, root 서비스로 ECU 실행이다. 현재 template 서비스/감독 경계와 차이가 있어 실제 운영 정책 확인이 필요하다. 파일 소유·실행·profile 읽기·키 읽기 권한과 제한된 서비스 관리/전환 권한을 실제 대상에서 검증한다. sudo 그룹 전체 권한을 관례로 추가하지 않는다.
 
 # 6. Health Check 스크립트
 
-`scripts/health_check.sh`와 `tools/deployment/health.py`는 구현됐다. [배포 안전 절차](development/playbooks/deployment-safety.md)에 실제 입력/증거·한계가 있다. 서비스 active 외에 배포 hash/설정, 새 CAN/인증 데이터, 오류·stale 상태, 요구된 IVI 연결을 확인하고 실패 코드를 반환한다. 배터리 보호 상태 자체를 프로그램 장애로 판단하거나 초기화하지 않는다. 검사 기한·재시도 값은 구현/측정 근거를 남긴다. 이전 5회×3초 골격을 승인된 상한으로 취급하지 않는다. 키 누락·프로세스 생존하나 송신 정지·버전 불일치·rollback 실패를 음성 시험에 포함한다.
+`scripts/health_check.sh`와 `tools/deployment/health.py`는 구현됐다. 배포 안전 절차에 실제 입력/증거·한계가 있다. 서비스 active 외에 배포 hash/설정, 새 CAN/인증 데이터, 오류·stale 상태, 요구된 IVI 연결을 확인하고 실패 코드를 반환한다. 배터리 보호 상태 자체를 프로그램 장애로 판단하거나 초기화하지 않는다. 검사 기한·재시도 값은 구현/측정 근거를 남긴다. 이전 5회×3초 골격을 승인된 상한으로 취급하지 않는다. 키 누락·프로세스 생존하나 송신 정지·버전 불일치·rollback 실패를 음성 시험에 포함한다.
 
 # 7. ecu-node-a.service systemd 유닛
 
-과거 Node A 설계 파일명은 `/etc/systemd/system/ecu-node-a.service`다. 현재 구현에는 `adaptive_ecu/service/capstone-ecu@.service`와 별도 감독자의 fresh/resume 정책이 있으므로 동일한 설치 서비스라고 가정하지 않는다. 실제 계정/서비스 운영 인수 전까지 [IVI M4 §3.4](../plan/detail/ivi/M4_대시보드_Alert_배포.md#34-systemd-유닛)의 과거 root 예시로 현재 정책을 덮어쓰지 않는다. Node B Qt 앱에는 별도 systemd 서비스/그래픽 세션 정책을 정의하고 이 Node A 유닛을 적용하지 않는다. 서비스 재기동·완료 heartbeat·CAN 재개를 확인하며 SecOC counter/세션 복구는 별도 인수한다.
+과거 Node A 설계 파일명은 `/etc/systemd/system/ecu-node-a.service`다. 현재 구현에는 `adaptive_ecu/service/capstone-ecu@.service`와 별도 감독자의 fresh/resume 정책이 있으므로 동일한 설치 서비스라고 가정하지 않는다. 실제 계정/서비스 운영 인수 전까지 IVI M4 §3.4의 과거 root 예시로 현재 정책을 덮어쓰지 않는다. Node B Qt 앱에는 별도 systemd 서비스/그래픽 세션 정책을 정의하고 이 Node A 유닛을 적용하지 않는다. 서비스 재기동·완료 heartbeat·CAN 재개를 확인하며 SecOC counter/세션 복구는 별도 인수한다.
 
 # 8. 요구사항 추적 매트릭스
 

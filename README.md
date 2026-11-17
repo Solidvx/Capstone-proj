@@ -1,78 +1,57 @@
 # IVI–ECU Capstone
 
-RPi4 Node A ECU와 Node B IVI를 CAN으로 연결해 BMS, SecOC, IDS, 대시보드를 검증하는 프로젝트다.
+RPi4 ECU와 IVI가 CAN으로 배터리 데이터·SecOC 인증·IDS 탐지·대시보드를 연결하는 프로젝트다. PC는 실험 제어와 로그 수집, Pi3는 CAN 공격 모듈을 담당한다.
 
-## 현재 작업본 인수인계 — 2026-11-14
+## 소스와 규격
 
-최신 소프트웨어의 시작점은 [실행·인계 안내](docs/aidlc/changes/CHG-029/delivery-status.md#새-담당자의-시작-순서--실장비-제외)다. PC는 실행/수집, Pi3는 키 없는 CAN 공격, ECU/IVI는 정상 송수신·방어를 맡는다. 현재 session-v2·복구·UI·검증 범위와 남은 결정은 해당 안내와 [1110할일](1110할일.md)을 따른다. 아래9월 상태 설명은 이력이다.
+- `adaptive_ecu/`: ECU 실행 코드·센서 취득·배터리 계산·시험.
+- `ivi_platform/`: SocketCAN·Qt Quick 대시보드·시험.
+- `common/`: 양 노드 공통 프로토콜과 `testdata/`의 공개 시험 벡터.
+- `security/`: Python SecOC·IDS·공격 및 실험 자동화 코드.
+- `tools/`, `.github/`: 빌드·품질·배포 도구와 CI.
+- [공식 문서](docs/README.md): ICD·요구사항·설계·시험 기준.
 
-결정/장비/외부 설정 없이 가능한 구현·보완과 독립 재현을 마쳤다. [최신 기능/잔여 판정](docs/aidlc/changes/CHG-029/software-closeout-20261114.md), [검증한697입력/392코드·설정의 묶음](docs/aidlc/changes/CHG-029/software-handoff-20261114.json), [최신 시험/작은 원본 로그](docs/aidlc/changes/CHG-029/reviewed-native-20261114.json)를 함께 전달한다. Fail-safe113/115의 품질 미달·큰 상세 raw 공유 위치·실제 팀원/원격/물리 인수는 남는다. 미커밋·미추적 파일을 포함한 snapshot이며 stage/commit/push하지 않았으므로 현재 원격 branch와 같다고 보장하지 않는다.
+개인 질문·AI 지침·작업일지·인계 묶음·실험 결과 원본은 소스 저장소에 포함하지 않는다. 실제 키·장비 주소·센서 고유번호·로컬 측정 로그도 커밋하지 않는다. README와 공식 규격, 코드·시험·빌드 설정은 유지한다.
 
-## 처음 참여한 팀원
+## Pi 설치
 
-1. [프로젝트 구조 사용 안내](docs/development/governance/프로젝트구조_사용안내.md)에서 전체 구조를 확인하고, IVI 담당자는 [Plan B 진행 안내](docs/development/governance/IVI_Plan_B_진행상황_및_구조_안내.md)를 이어서 읽는다.
-2. [공통 지침](AGENTS.md)과 아래 담당 계획·공동 규약을 읽는다.
-3. [작업 흐름](docs/development/workflow.md)에 따라 관련 계약·선행 과제를 확인하고 작업·검증·인계를 기록한다.
-4. GitHub 저장소를 만들거나 브랜치·커밋·PR을 관리할 때는 [GitHub 형상관리 실행 매뉴얼](docs/development/governance/commit.md)을 순서대로 따른다.
+장비에서 전체 저장소를 받을 필요 없이 GitHub Actions의 `Local-quality baseline` 성공 실행에서 노드별 실행 패키지를 받을 수 있다. 이 artifact를 제공하는 형상에서 `runtime-ecu-linux-arm64`는 ECU, `runtime-ivi-linux-arm64`는 IVI에 전달한다. 각 ZIP 안의 `.tar.gz`와 `.sha256`를 함께 옮긴다. 패키지는 Debian 13 ARM64 대상이며 시스템 Qt·OpenSSL 등 공유 라이브러리는 별도로 필요하다. 기존 설치·측정 로그·키는 덮어쓰지 않는다.
 
-## 주요 디렉터리
+설치용 실행 패키지와 개발 소스 묶음은 용도가 다르다. 실측 표시용 패키지에는 Python IDS·공격 실험·감독자 전체 설치가 포함되지 않는다.
 
-| 위치 | 역할 |
-|---|---|
-| `adaptive_ecu/` | Node A C++ 소스·헤더·시험·입력 자료 |
-| `security/` | Python SecOC·IDS·합성 공격·평가 코드 |
-| `ivi_platform/` | Node B C++17/SocketCAN/Qt Quick 코드·시험·실행 스크립트 |
-| `plan/` | ECU·IVI·공동 실행 계획과 단계별 과제 |
-| `docs/` | 공식 계약·요구·설계·시험 및 개발 운영 자료 |
-| `docs/development/` | 목적별 운영 지침·설계 보충·실험 보고서·양식 |
-| `docs/aidlc/` | 개별 작업 기록 템플릿과 구조 변경 증거 |
-| `tools/workflow/` | 운영 자동화의 미구현 골격 |
-| `.agents/`, `.claude/`, `.codex/` | AI 안내·설정 골격; 배치와 활성화 구분 |
-| `하드웨어 정보/` | 장비 사진·배선 참고 자료 |
-| `tmp/` | 임시 분석·출력; 보존할 최종 문서 위치 아님 |
+## 개발 빌드와 시험
 
-전체 파일 설명은 [상세 안내](docs/development/governance/프로젝트구조_사용안내.md), 새 문서 위치는 [배치 기준](docs/development/README.md#document-placement), GitHub 작업은 [실행 매뉴얼](docs/development/governance/commit.md)을 따른다.
+개발 환경에 CMake·C++17 컴파일러·OpenSSL·GoogleTest·Qt6와 Python 의존성을 준비한다.
 
-## GitHub 공유와 팀원 로컬 설정
+```sh
+cmake -S adaptive_ecu -B adaptive_ecu/build -DECU_BUILD_TESTS=ON
+cmake --build adaptive_ecu/build -j2
+ctest --test-dir adaptive_ecu/build --output-on-failure
 
-코드·ICD·설계·시험·실행 계획은 함께 공유한다. 실제 암호·API 토큰·SecOC 키·장비 접속 정보는 `secrets/` 또는 `private/`에 보관하고 커밋하지 않는다. 필요한 값은 접근이 제한된 팀 비밀번호 관리자나 비공개 파일 전달 수단으로 담당 팀원에게 전달한다. GitHub 이슈·PR·커밋 메시지에 비밀값을 적지 않는다.
+cmake -S ivi_platform -B ivi_platform/build -DIVI_BUILD_QT_APP=ON
+cmake --build ivi_platform/build -j2
+ctest --test-dir ivi_platform/build --output-on-failure
 
-- 설정 항목은 [`.env.example`](.env.example)에 빈 값으로 공유한다. 필요하면 `.env`로 복사해 로컬에서 채운다. 현재 제품은 이 파일을 자동으로 읽지 않으므로 각 도구에 맞게 설정한다.
-- ECU는 `--key <키 파일 경로>`, IVI는 `--secoc-key <키 파일 경로>`로 키를 읽는다. 현재 제품 session-v2는 양측에 명시적인 `--session-policy FILE`을 요구한다. 키 형식·길이는 [ICD](docs/ICD.md)를 따르고 담당자가 별도로 배치한다. `.env`에 경로를 적는 것만으로 제품에 적용되지는 않는다. Pi3 공격 worker에는 SecOC 키를 전달하지 않는다.
-- 테스트용 더미 키와 실제 통합 키를 구분한다. 공유용 `*.example` 파일에는 실제 비밀값을 넣지 않는다. 개인 설정을 공유해야 하면 인증정보를 제거한 예제를 제공한다. `.codex/config.toml`과 `.claude/settings.json`은 공용 설정이므로 비밀값을 넣지 않는다.
-- 하드웨어 JPG 원본은 촬영 위치정보가 있어 Git에서 제외한다. IVI 팀원은 [`하드웨어 정보/shared/`](하드웨어%20정보/shared/)의 공개용 사본을 사용한다. 사본은 촬영 위치·시간·기기 메타데이터를 제거하고 표시 방향만 보존했다. 새 사진도 메타데이터와 화면 속 개인정보를 확인한 뒤 공유 경로에 넣는다. 기존 PNG·배선 자료는 원래 경로에서 공유한다.
-- `.gitignore`는 이미 추적된 파일이나 과거 커밋을 제거하지 않는다. Git 저장소를 만든 뒤 업로드 전에 `git status --short`와 `git diff --cached`로 실제 포함 파일을 확인한다. 제외 파일을 `git add -f`로 추가하지 않는다. 폴더 전체 ZIP에는 제외 규칙이 적용되지 않는다.
+python3 -m pytest security/tests ivi_platform/test tools/quality/tests tools/deployment/tests -q
+```
 
-## 진행 계획
+Linux CAN 통합 시험은 설정된 가상 CAN 환경이 필요하다. 소스 존재·소프트웨어 시험·실제 센서 정확도·실물 디스플레이 인수는 각각 구분한다. 실제 SecOC 키는 ECU의 `--key`, IVI의 `--secoc-key`로 로컬 파일을 지정하고 Pi3에는 전달하지 않는다. session-v2는 양측에 명시적인 `--session-policy`를 지정한다.
 
-| 문서 | 담당 |
-|---|---|
-| [ECU 계획](plan/ECU.md) | 팀원A: ECU·BMS·보안·실험 |
-| [IVI 계획](plan/IVI.md) | 팀원B: Ubuntu·C++ SocketCAN·Qt Quick/QML·측정·CI |
-| [공동 계획](plan/detail/common/00_협업_규약.md) | 공동 일정·선행 조건·통합 시험·릴리즈·최종 제출 |
+## 선택형 단셀 실측 표시
 
-M1~M8 단계 순서는 유지한다. 사용자 지정 시연 마감은 2026-09-18이며 단계별 완료 상태는 증거로 확인한다. 파일이 있다는 이유만으로 구현 완료나 시험 통과로 표시하지 않는다.
+ECU의 `adaptive_ecu`와 `physical_battery_worker`를 같은 `bin/`에 유지한다. 배포 예시 설정을 로컬 복사해 본인 DS18B20 번호·실물 션트값을 확인한다. 초기 SOC·용량 시험 근거가 없으면 예시의 `unknown`을 유지한다. IVI는 같은 형상의 일반 `ivi_dashboard`를 사용한다.
 
-## 2026-09-23 상태 이력
+```sh
+# ECU 패키지를 푼 폴더에서 실행
+cp -n config/physical-battery.conf.example config/physical-battery.conf
+./bin/adaptive_ecu --interface can0 --sensor-mode physical \
+  --physical-config config/physical-battery.conf --protocol session-v2 \
+  --session-policy config/session-v2-development.conf --key /etc/secoc/key.bin
 
-2026-09-23 파일·Git 대조 기준 ECU C++와 Python 보안·IDS 소스가 있다. IVI는 Ubuntu/C++17/SocketCAN/Qt Quick Plan B의 P3 상태·UI까지 완료했고 Qt 6 Debug/Release 시험이 각 8/8 통과했다. Linux vcan·RPi4 물리 통합과 CI·ARM64 Docker는 아직 미검증 또는 미구현이다. Git 원격과 `develop` 브랜치가 존재한다.
+# IVI 패키지를 푼 폴더에서 실행. 데스크톱 세션 환경이 필요하다.
+QT_QPA_PLATFORM=wayland ./bin/ivi_dashboard --interface can0 \
+  --protocol session-v2 --session-policy config/session-v2-development.conf \
+  --secoc-key /etc/ivi/secoc.key
+```
 
-- [공식 문서 목록](docs/README.md): 계약·요구사항·설계·시험
-- [공통 작업 지침 및 검증 명령](AGENTS.md): 환경 조건을 확인한 뒤 필요한 검증 실행
-- [정리 결과](docs/development/reviews/정리_이력.md#part3-apply): 변경 내역·백업·검증·이관 근거
-
-개발 재개 시 [종합 정합성 검토·착수 관문](docs/development/reviews/문서_종합정합성_검토.md)을 먼저 확인한다.
-
-## 소스
-
-- `adaptive_ecu/`: C++17 ECU, CMake, GoogleTest
-- `security/`: Python SecOC, 합성 공격·IDS 비교, 실험·측정
-- `ivi_platform/`: C++/Qt Node B 코드, core·Qt 시험과 실행 보조 스크립트. P1~P3 결과와 후속 제한은 [CHG-003](docs/aidlc/changes/CHG-003/aidlc-state.md)에 기록한다.
-
-연구·배경 자료는 [문서 목록](docs/README.md)에서 연결한다. 제품 코드의 존재·완료 여부는 실제 파일과 검증 결과로 확인한다.
-
-
-개발 운영과 작업 기록: [운영 안내](docs/development/README.md) · [AIdlc 구조 적용·보존 결과](docs/aidlc/structure/verification.md).
-
-
-전체 예정 구조의 선배치 결과: [골격 적용 안내](docs/aidlc/structure/scaffold-application.md).
+전압·전류·온도는 센서값을 표시하고 근거 없는 SOC/SOH는 `--`로 표시한다. 이 모드는 측정·표시 연결이며 실셀 부하 차단·자동 checkpoint 복구·정확도 인수는 포함하지 않는다. 프로그램을 종료해도 저항 부하는 분리되지 않으므로 측정 종료 후 셀/부하를 분리한다. 기존 가변저항 모드는 유지한다.

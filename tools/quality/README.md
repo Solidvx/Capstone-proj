@@ -50,7 +50,7 @@ python3 -m tools.quality.bms_period --input-dir tmp/bms-period-NEW/bms-period-AC
 
 실제 출력 폴더는 임의 suffix를 포함해 첫 명령의 output에 표시된다. 두 번째 명령은 보존한 frames.jsonl/capture.json의 재평가이며 새 출력 경로만 허용한다. 절대 kernel realtime stamp를 고정 로컬 monotonic epoch로 매핑하며 최대 변화10ms, boot・경계/순서・SocketCAN/인터페이스 drop・오류를 검사한다. 시계 문제/부분/101프레임 미만은 INVALID(exit2), 유효하지만90~110ms 밖 간격이 있으면 FAIL(exit1), 모두 충족하면 관측 기준 PASS(exit0)다. 모든 간격을 보고하며 평균으로 위반을 감추거나 일부100개만 골라 쓰지 않는다.
 
-원본/auth/제어를 함께 보존하지만0x100/DLC8 표준 데이터만 간격에 포함한다. 절대 ECU 송신 순간이 아닌 수신 관측 간격이다. sender 인증/실제 물리 CAN 송신/버스 부하/실물 TC 합격을 추정하지 않으며 환경 의존 타이밍 합격을 CI에 강제하지 않는다. [최종 소프트웨어 측정/해시](../../docs/aidlc/changes/CHG-029/bms-period-20261112.json)를 참고한다.
+원본/auth/제어를 함께 보존하지만0x100/DLC8 표준 데이터만 간격에 포함한다. 절대 ECU 송신 순간이 아닌 수신 관측 간격이다. sender 인증/실제 물리 CAN 송신/버스 부하/실물 TC 합격을 추정하지 않으며 환경 의존 타이밍 합격을 CI에 강제하지 않는다. 최종 소프트웨어 측정/해시를 참고한다.
 
 ## NASA 후보 원시 판독
 
@@ -64,7 +64,7 @@ python3 -m tools.quality.nasa_data --candidate /PRIVATE/candidate.zip --output-d
 
 B0028의0-based cycle3은 과거 구조 조사와 대조할 원시 CSV로만 내보낸다. 단셀 terminal V・실제 부호의 A・소수 온도・원시 초를 유지하며 원시 CSV의 hash를 남긴다. 데이터 판독 완료와 유효 cycle 전체/보간/제품 입력/정확도 인수를 구분한다. 소스는 표준 라이브러리로 검사 로직을 시험할 수 있고 실제 MAT CLI에만 scipy가 필요하다. 이번 환경은 이미 설치된 scipy1.16.3을 사용했으며 새 패키지를 설치하지 않았다.
 
-[독립 판독 결과](../../docs/aidlc/changes/CHG-029/nasa-raw-20261112.json)는4개 MAT hash・각59개 charge/discharge 중58개 유효/마지막1개 무효・원시641표본을 보존한다. 재표본화 방법/결측 상한・단셀/가상 팩 모델・정수 온도인 제품 로더의 양자화는 아직 별도 검토 대상이다. 이 파일을50Ah 팩 EKF에 바로 넣거나 SOC 정답으로 사용하지 않는다.
+독립 판독 결과는4개 MAT hash・각59개 charge/discharge 중58개 유효/마지막1개 무효・원시641표본을 보존한다. 재표본화 방법/결측 상한・단셀/가상 팩 모델・정수 온도인 제품 로더의 양자화는 아직 별도 검토 대상이다. 이 파일을50Ah 팩 EKF에 바로 넣거나 SOC 정답으로 사용하지 않는다.
 
 ### NASA 두 변환 후보·실제 CSV 로더 비교
 
@@ -82,7 +82,7 @@ python3 -m tools.quality.nasa_replay --candidate /PRIVATE/candidate.zip --loader
 
 수치적 적분 보존 허용차1e-10Ah는 과거 후보 검토의 수치 기준이며 실제 전류 정확도 기준이 아니다. 제품 로더의float 전류 양자화 뒤 적분 차이와 온도 반올림/clamp 영향도 따로 보고한다. `COMPARISON_COMPLETE`는 두 후보의 수치/로더 비교 완료다. 결측 공백 상한/운영 보간 방식/물리 모델은 채택하지 않았고 제품 main/실시간 센서・SOC 정확도도 인수하지 않는다. 실패/중단 원본과 각 후보를 삭제하거나 기존 출력에 덮어쓰지 않는다.
 
-[실제 비교/원본/해시](../../docs/aidlc/changes/CHG-029/nasa-replay-20261112.json)를 따른다. 기존 test_soc_profile_product는 S-21 외에 이 로더의float 변환/온도 경계・잘못된 표본 수/누락 파일을 검사하도록 보완했다. CMake가 실제 fixture 경로를 전달하며 CTest 등록 수28은 유지한다. 새 fixture는 제품 설치 대상이 아니다.
+실제 비교/원본/해시를 따른다. 기존 test_soc_profile_product는 S-21 외에 이 로더의float 변환/온도 경계・잘못된 표본 수/누락 파일을 검사하도록 보완했다. CMake가 실제 fixture 경로를 전달하며 CTest 등록 수28은 유지한다. 새 fixture는 제품 설치 대상이 아니다.
 
 ## 분석 그림 사용
 
@@ -102,7 +102,7 @@ python3 -m tools.quality.bms_profile --executable /tmp/ecu-s21/evaluate_soc_prof
 
 주 비교2개는 각각 엄격한 EKF RMSE 우위를 요구한다. 대조군은 기존 float 반올림 누적 상한으로 수치 정합을 확인하며, 민감도4개는 열위도 그대로 보고한다. 이 민감도 행의 PASS는 보고 조건 충족이며 EKF 우위가 아니다. 실제 셀/OCV 정확도・NASA 재생・main/CAN/ADS1115/화면 인수와 구분한다. 이전 예정 `data/battery_profile_1h.csv` 입력은 이 조건별 생성 CSV와 manifest로 관리한다.
 
-같은 실행 경로의 CTest는 `test_soc_profile_product`이며7조건 외에 짧은 CSV/잘못된 표본 수/누락/비유한 관측의 거부를 검사한다. raw 결과는 build의 soc-profile-test-results 아래 보존하며 CI artifact에도 연결한다. [실측 수치/해시](../../docs/aidlc/changes/CHG-029/bms-profile-20261111.json)를 참고한다.
+같은 실행 경로의 CTest는 `test_soc_profile_product`이며7조건 외에 짧은 CSV/잘못된 표본 수/누락/비유한 관측의 거부를 검사한다. raw 결과는 build의 soc-profile-test-results 아래 보존하며 CI artifact에도 연결한다. 실측 수치/해시를 참고한다.
 
 ### N02 센서 입력 보완 사례
 
@@ -116,7 +116,7 @@ python3 -m tools.quality.sensor_scenarios \
   --output-dir /PRIVATE/new-source-results
 ```
 
-settings의 표본 수/0부터 세는 사건 시작 포함·종료 제외/세 변조량은 모두 명시해야 한다. 제공 파일의2,000표본/사건[500,1500)/전압 drift 최종-0.5V·jump-6V/전류 bias+4A는 재현용 fixture다. 실물 센서의 허용 범위나 경보 임계로 채택하지 않는다. 시간은0.1초 계산 간격의 합성 축이며 실제200초 CAN 송신을 측정한 것이 아니다.
+settings의 표본 수/0부터 세는 사건 시작 포함·종료 제외/세 변조량은 모두 명시해야 한다. 제공 파일의2,000표본/사건500,1500)/전압 drift 최종-0.5V·jump-6V/전류 bias+4A는 재현용 fixture다. 실물 센서의 허용 범위나 경보 임계로 채택하지 않는다. 시간은0.1초 계산 간격의 합성 축이며 실제200초 CAN 송신을 측정한 것이 아니다.
 
 | 사례 | 입력 변화 | 라벨 의미 |
 |---|---|---|
@@ -131,7 +131,7 @@ settings의 표본 수/0부터 세는 사건 시작 포함·종료 제외/세 �
 
 원본·생성기·native 실행본/입력 hash·행 수/변환·구간·모든 reason/type을 보존한다. 입력/라벨 변경은 hash만 고쳐도 사전 정의한 내용과 비교해 거부한다. native exit2는 NATIVE_REJECTED로 기록하고 다음 사례를 수행한다. 다른 비정상 종료와 잘못된/부분 출력은 INVALID이며 정상 수집/진단 성공으로 채우지 않는다. COMPLETE 상태는 분석 완료이지 센서 고장 탐지 성공이 아니다. 새 출력 폴더만 허용하며 중단/실패의 원본을 덮어쓰지 않는다.
 
-짧은100표본 사례에서는 control/allowed_constant/voltage_freeze가 같은 raw 및 더미 인증 프레임 입력을 만들었다. 긴2,000표본에서도 기존 raw 규칙의 고장 진단/공격 유형은0건이었다. 이 결과를 실제 탐지율/정상 오탐률/공격 차단율로 쓰지 않는다. [원본/수치/소스](../../docs/aidlc/changes/CHG-029/sensor-source-supplement-20261112.json), 적용 범위 결정은 [CHG-029](../../docs/aidlc/changes/CHG-029/aidlc-state.md)를 따른다.
+짧은100표본 사례에서는 control/allowed_constant/voltage_freeze가 같은 raw 및 더미 인증 프레임 입력을 만들었다. 긴2,000표본에서도 기존 raw 규칙의 고장 진단/공격 유형은0건이었다. 이 결과를 실제 탐지율/정상 오탐률/공격 차단율로 쓰지 않는다. [원본/수치/소스, 적용 범위 결정은 CHG-029를 따른다.
 
 기존5열 evaluate_soc_profile 출력은 유지하고 명시적 --emit-bms만6번째 bms_payload_hex를 추가한다. test_soc_profile_product는 기존7조건×36,000회/원래 우위·열위 결과와 별개로6개100표본 보완 사례/짧은 동일 프레임 반례를 검사한다.
 
@@ -155,7 +155,7 @@ python3 -m tools.quality.legacy_if_history --root /PRIVATE/pc-types360-001
 
 원본은 읽기 전용으로 열고 C3 네 묶음의 manifest15파일씩/총60개 hash, 완료/정리 확인·30개 유효 시행·ECU observer_a의120개 phase marker와 evidence-v2 START/READY를 검사한다. 출력은 stdout JSON이며 실제 detector를 재생하거나 IF를 재학습하지 않는다. 다른 버전/빠진·변경된 원본을 정상 결과로 받아들이지 않는다.
 
-같은 Node A 시계라는 원래 실험 역할 계약에서 IF 양성 **평가 시점**을 baseline/attack/post/시행 외로 분리한다. IF 입력 윈도우 자체의 시작/내용·음성 추론/모든 평가 분모는 이 과거 로그에 없으므로 endpoint를 윈도우 정답/FPR/추가 탐지 효과로 바꾸지 않는다. 보존본의 IF1건은Flooding28회 baseline 시점이고 attack endpoint는0건이다. [분석/원본 hash](../../docs/aidlc/changes/CHG-029/legacy360-if-analysis-20261112.json)를 따른다. 현행 session-v2/실장비 IF 인수는 별도다.
+같은 Node A 시계라는 원래 실험 역할 계약에서 IF 양성 **평가 시점**을 baseline/attack/post/시행 외로 분리한다. IF 입력 윈도우 자체의 시작/내용·음성 추론/모든 평가 분모는 이 과거 로그에 없으므로 endpoint를 윈도우 정답/FPR/추가 탐지 효과로 바꾸지 않는다. 보존본의 IF1건은Flooding28회 baseline 시점이고 attack endpoint는0건이다. 분석/원본 hash를 따른다. 현행 session-v2/실장비 IF 인수는 별도다.
 
 ### N07 실행 자원·수집 재현
 
@@ -174,7 +174,7 @@ CAPSTONE_SESSION_TEST_INTERFACE=vcan0 TMPDIR=/var/tmp python3 common/test_manage
 
 제품 검사는 기존 비어 있는 가상 CAN을 다른 시험과 직렬로 사용한다. 실제 key/노드/새 vcan을 요구하지 않으며 더미 키는 정리한다. Linux 경로/짧은 private runtime이 필요하다. 첫 IDS 강제 종료 후 마지막 sample은 INCOMPLETE, 다음 세대의 종료 요청 요약은 INTERRUPTED이며 파일 hash/프로세스 회수/ECU·Qt 복구와 함께 검사한다. CPU/RSS의 실제 관찰값이지 최대 처리량·실물 Pi 성능·IF 추가 효과의 합격 수치가 아니다.
 
-[최종 소스/전체 Python639·기본 제품7·선택 제품1/IF 재생·원본 해시](../../docs/aidlc/changes/CHG-029/n07-resources-20261113.json)에 검증 범위를 남겼다. 기본 제품7개를 전체 IVI43개 재실행으로 합치지 않으며, 원래 clean native148소스/Fail-safe113/115 미달은 유지한다. 두 쌍의 작은 ON/OFF 메모리 재생 시간 차이에는 캐시/스케줄 영향이 포함돼 격리된 계측 비용으로 사용하지 않는다.
+최종 소스/전체 Python639·기본 제품7·선택 제품1/IF 재생·원본 해시에 검증 범위를 남겼다. 기본 제품7개를 전체 IVI43개 재실행으로 합치지 않으며, 원래 clean native148소스/Fail-safe113/115 미달은 유지한다. 두 쌍의 작은 ON/OFF 메모리 재생 시간 차이에는 캐시/스케줄 영향이 포함돼 격리된 계측 비용으로 사용하지 않는다.
 
 ### N06 지표·합성 보정 재현
 
@@ -191,7 +191,7 @@ PY
 
 입력은 합성이며 학습90창·별도 정상 보정60창·평가210창을 사용한다. 같은PRNG의 분리된 생성 호출이므로 실제 수집/공격 family holdout으로 표현하지 않는다. 운영 규칙/IF threshold·CAN은 바꾸지 않았다. Precision/Recall/FPR/FNR/TNR/F1/Balanced Accuracy는 ratio, MCC는 무차원 계수이며 분모0은null/N/A다. 원수/길이/라벨/점수의 오류를 거부하고 기존 점수 경계의 차이를 보존한다.
 
-[두 단계 원수/소스/실행 근거](../../docs/aidlc/changes/CHG-029/n06-metrics-20261113.json)에 분모 보완만의 기존 결과 동등성과 별도 보정 후의 새 결과를 나눴다. 목표FPR1%가 실제 보정/평가FPR을 보장하지 않으며, live IF 추가 효과·최대 처리량/자원·정식 실물 인수는 남는다.
+두 단계 원수/소스/실행 근거에 분모 보완만의 기존 결과 동등성과 별도 보정 후의 새 결과를 나눴다. 목표FPR1%가 실제 보정/평가FPR을 보장하지 않으며, live IF 추가 효과·최대 처리량/자원·정식 실물 인수는 남는다.
 
 ### 기존 실험/추정 결과의 그림
 
@@ -214,7 +214,7 @@ environment는 synthetic/vcan/physical-can 중 실제 출처다. 물리 전압�
 
 ## ARM64 cross/QEMU와 최신 인계
 
-`Dockerfile.arm64`·`toolchain-aarch64.cmake`·`cross_build.py`는 native ARM64와 구분한 x86-64→ARM64 경로다. `quality.yml`의 cross job 명령을 정본으로 사용한다. 전체 CTest 등록28/21을 검사하고 비장비 C++24/18을 QEMU로 실행하며 native28/44·Python·coverage를 유지한다. [공식 CI 명세](../../docs/CICD_SPEC.md)와 [배포 안전 절차](../../docs/development/playbooks/deployment-safety.md)를 따른다.
+`Dockerfile.arm64`·`toolchain-aarch64.cmake`·`cross_build.py`는 native ARM64와 구분한 x86-64→ARM64 경로다. `quality.yml`의 cross job 명령을 정본으로 사용한다. 전체 CTest 등록28/21을 검사하고 비장비 C++24/18을 QEMU로 실행하며 native28/44·Python·coverage를 유지한다. [공식 CI 명세](../../docs/CICD_SPEC.md)와 배포 안전 절차를 따른다.
 
 `python3 tools/quality/handoff.py create --repo . --out NEW-software-handoff.tar.gz`는 현재 tracked/untracked 공개 소스·공식 문서/계획·작은 증거의 목록/길이/hash를 고정한다. archive의 SHA256을 기록하고 `verify --archive ARCHIVE --sha256 SHA --extract-to NEW_DIRECTORY`로 검증·새 경로 추출한다. source reread와 목록 변화를 검사하며 기존 폴더를 덮어쓰지 않는다. 키/빌드/가상환경·주소가 있는 역사 계획·이전 source archive·공유 결정 전 큰 raw는 제외한다. 알려진 비밀 표식 검사를 포괄적 비밀 탐지 보장으로 표현하지 않는다.
 

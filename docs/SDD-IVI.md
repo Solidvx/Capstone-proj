@@ -4,7 +4,7 @@
 
 # 1. 목적과 현재 기준선
 
-**2026-11-11 승인된 제품 전환 설계:** [ICD session-v2](ICD-CAN-SESSION.md)/[진단](ICD-CAN-DIAGNOSTIC.md)을 적용한다. 세션·유한 인증 정렬/보호 예약·진단을 같은 수신 소유 경계에서 처리하고 현재 상태 반영 뒤 receipt를 전송한다. 새 세션은 옛 후보/정렬 큐를 버리되 마지막 화면/위험을 정상으로 낮추지 않는다. Service snapshot은 프로그램 단계/입력 준비·현재 위험·통신 신선도·사건/거부/관찰 품질·Flooding 출처를 분리해 Qt queued signal로 넘긴다. 팝업 닫기는 reset/재시작 ACK가 아니다. 실제 연결/인수는 [CHG-029](aidlc/changes/CHG-029/aidlc-state.md)를 따른다.
+**2026-11-11 승인된 제품 전환 설계:** [ICD session-v2](ICD-CAN-SESSION.md)/[진단](ICD-CAN-DIAGNOSTIC.md)을 적용한다. 세션·유한 인증 정렬/보호 예약·진단을 같은 수신 소유 경계에서 처리하고 현재 상태 반영 뒤 receipt를 전송한다. 새 세션은 옛 후보/정렬 큐를 버리되 마지막 화면/위험을 정상으로 낮추지 않는다. Service snapshot은 프로그램 단계/입력 준비·현재 위험·통신 신선도·사건/거부/관찰 품질·Flooding 출처를 분리해 Qt queued signal로 넘긴다. 팝업 닫기는 reset/재시작 ACK가 아니다. 실제 연결/인수는 CHG-029를 따른다.
 
 이 문서는 Node B를 Debian 13 ARM64, C++17, SocketCAN, Qt 6.8 Quick/QML로 구현하기 위한 설계 기준이다. CAN ID·DLC·바이트 순서·SecOC MAC/rolling counter 계약은 [ICD](ICD.md)를 그대로 따른다.
 
@@ -135,7 +135,7 @@ struct VehicleData {
 
 P4 계측 모드의 `--latency-csv`와 `--latency-samples`는 T1~T4 stage row를 기록한다. T1~T4는 한 프로세스의 `steady_clock`을 사용하며 CAN payload에 timestamp나 sample id를 넣지 않는다. T4는 `QQuickWindow::frameSwapped`이고 종료는 signal callback 밖의 다음 event-loop tick에서 수행한다.
 
-004 계측 보완은 실제 `--run-id`와 Linux boot UUID를 기록한다. `beforeSynchronizing`에서 표본 ID를 프레임에 연결하고 `frameSwapped` emitting thread에서 T4를 채취한다. 프레임당 최신 표본 최대1개만 완료로 세며, 합쳐진 이전 갱신은 NOT_RENDERED, 미확정 종료/시각 오류/비노출은 INDETERMINATE다. 실제 패널 픽셀 표시 시각을 보장하지 않는다. CSV 열·종료·집계 계약은 [성능 전달본 안내](development/playbooks/ivi-performance-handoff.md)에 있다. 기존 5열 CSV용 집계 도구를 004의 상태 포함 CSV에 그대로 적용하지 않는다.
+004 계측 보완은 실제 `--run-id`와 Linux boot UUID를 기록한다. `beforeSynchronizing`에서 표본 ID를 프레임에 연결하고 `frameSwapped` emitting thread에서 T4를 채취한다. 프레임당 최신 표본 최대1개만 완료로 세며, 합쳐진 이전 갱신은 NOT_RENDERED, 미확정 종료/시각 오류/비노출은 INDETERMINATE다. 실제 패널 픽셀 표시 시각을 보장하지 않는다. CSV 열·종료·집계 계약은 성능 전달본 안내에 있다. 기존 5열 CSV용 집계 도구를 004의 상태 포함 CSV에 그대로 적용하지 않는다.
 
 개발 환경은 `vcan0`, 실제 RPi4는 `can0`을 사용한다. Qt 전체 빌드의 최소 버전은 6.8이며 Debian 13 배포판 패키지를 기준으로 한다. 배포 전 Node A와 bitrate 500 kbps, CAN ID, 키, counter 초기화 정책을 함께 확인한다.
 
@@ -162,13 +162,13 @@ P4 계측 모드의 `--latency-csv`와 `--latency-samples`는 T1~T4 stage row를
 
 ## SecOC 런타임 보강 (CHG-006)
 
-P2 위에 무수신 pending 만료, 실패 observer 진단 전달과 CRITICAL QML 경고를 구현했다. `VehicleDataService::pollTimeouts()`는 무수신 pending 100ms 만료만 담당하는 구현 내부 타이머 진입점(10ms)이며 ICD의 observer/wire 계약은 유지한다. 300ms stale은 P3의 `refreshTime()`(50ms)으로 일원화했고 stale 로그만 `reason=BMS_STALE`로 맞췄다. 실패 auth 뒤 원본 유지·새 원본 교체 정책은 유지하며, 키 재설정은 pending만 폐기하고 counter를 초기화하지 않는다. 상세 동작·재현은 [IVI README](../ivi_platform/README.md), 결과는 [CHG-006](aidlc/changes/CHG-006/audit.md)을 따른다. 물리 수신 복구·인증 세션 전환·P3 전체 UI 완료를 뜻하지 않는다.
+P2 위에 무수신 pending 만료, 실패 observer 진단 전달과 CRITICAL QML 경고를 구현했다. `VehicleDataService::pollTimeouts()`는 무수신 pending 100ms 만료만 담당하는 구현 내부 타이머 진입점(10ms)이며 ICD의 observer/wire 계약은 유지한다. 300ms stale은 P3의 `refreshTime()`(50ms)으로 일원화했고 stale 로그만 `reason=BMS_STALE`로 맞췄다. 실패 auth 뒤 원본 유지·새 원본 교체 정책은 유지하며, 키 재설정은 pending만 폐기하고 counter를 초기화하지 않는다. 상세 동작·재현은 [IVI README](../ivi_platform/README.md), 결과는 CHG-006을 따른다. 물리 수신 복구·인증 세션 전환·P3 전체 UI 완료를 뜻하지 않는다.
 
 ## 2026-11-10 앱형 UI 제품 연결
 
-[CHG-028](aidlc/changes/CHG-028/evidence.md). 배터리/보안/이력/설정, 공통800×480 canvas와 회전/scale, 내부 스크롤·테마·중앙 팝업을 구현했다. 배터리 페이지는 현황과 최근2이벤트·하단44px탭까지 고정 배치하며 보안/이력만 내부 스크롤한다. 실제 전체화면이 기본이고 점검용 --windowed를 제공한다.
+CHG-028. 배터리/보안/이력/설정, 공통800×480 canvas와 회전/scale, 내부 스크롤·테마·중앙 팝업을 구현했다. 배터리 페이지는 현황과 최근2이벤트·하단44px탭까지 고정 배치하며 보안/이력만 내부 스크롤한다. 실제 전체화면이 기본이고 점검용 --windowed를 제공한다.
 
-ViewModel은 수신 snapshot에서 의미 있는 상태 전이·IDS 보고·SecOC 실패를 별도 UI 캐시로 유지한다. 현재 위험 상태의 인증 이벤트가 없으면 BMS만으로 NORMAL을 추정하지 않는다. legacy sensorState0은 미지원이며 센서 오류처럼 표시하지 않는다. 거부 진단은 특정 공격 차단 완료로 귀속하지 않는다. 재시작 진행/완료 표시는 실제 근거가 없으므로 미구현으로 남기고 [후속 결정](development/design/IVI_UI_추가연결_결정사항.md)에 연결한다.
+ViewModel은 수신 snapshot에서 의미 있는 상태 전이·IDS 보고·SecOC 실패를 별도 UI 캐시로 유지한다. 현재 위험 상태의 인증 이벤트가 없으면 BMS만으로 NORMAL을 추정하지 않는다. legacy sensorState0은 미지원이며 센서 오류처럼 표시하지 않는다. 거부 진단은 특정 공격 차단 완료로 귀속하지 않는다. 재시작 진행/완료 표시는 실제 근거가 없으므로 미구현으로 남기고 후속 결정에 연결한다.
 
 이벤트는 프로세스 메모리100건이며 테마만 QSettings에 저장한다. 계측용 measurementReady 경로는 유지한다. 기존 service ack 경쟁 규칙은 유지되며 새 UI 닫기 동작과 구분한다.
 
@@ -177,7 +177,7 @@ ViewModel은 수신 snapshot에서 의미 있는 상태 전이·IDS 보고·SecO
 
 VehicleDataService의 enableSession/processSessionFrame/pollSession이 같은 Exchange를 직렬 소유한다. 실제 SocketCAN 수신에서 캡처한 ns 시각을 보존하고 검증/정렬/반영 뒤 서비스 시각을 따로 기록한다. 수신 콜백과 GUI 타이머의 늦은 알림은 snapshot revision으로 걸러 최신 위험/데이터를 보존한다. 인증된 현재 위험 동기화와 새 BMS 준비는 구분하며 무수신은 마지막 값/위험을 보존한 연결 대기로 처리한다. 제품 경계에서 legacy 자동 fallback은 없다.
 
-진단은 인증 후 snapshot/제한 receipt까지 연결했다. IDS 사건/실제 재시작 controller/전체 단계 전달은 미완료이며 보안 관찰 미연결을 정상으로 표시하지 않는다. [실제품 증거](aidlc/changes/CHG-029/ivi-product-evidence.md)의 실제 앱2개 vcan 결과와 물리 DSI 미검증 범위를 따른다.
+진단은 인증 후 snapshot/제한 receipt까지 연결했다. IDS 사건/실제 재시작 controller/전체 단계 전달은 미완료이며 보안 관찰 미연결을 정상으로 표시하지 않는다. 실제품 증거의 실제 앱2개 vcan 결과와 물리 DSI 미검증 범위를 따른다.
 
 ### session-v2 실제 거부 기록과 보고
 
@@ -218,7 +218,7 @@ session-v2 IDS는 현재 관찰 구간에 유형별 근거 후보가 정확히 �
 
 ### 센서 오류·회복 보완 (2026-11-11)
 
-기존 인증 NodeStatus의 입력 품질을 ECU 오류 경로에서도 전달한다. IVI는 최근 입력 오류 보고와 통신 단절을 구분하고, 정상 품질 보고에 더해 새 BMS 수신을 확인한 뒤 stale을 해제한다. 상세 구현·호스트 시험·물리 미검증 범위는 [CHG-029 추가 증거](aidlc/changes/CHG-029/evidence.md)의 센서 오류 전달·회복 절을 따른다.
+기존 인증 NodeStatus의 입력 품질을 ECU 오류 경로에서도 전달한다. IVI는 최근 입력 오류 보고와 통신 단절을 구분하고, 정상 품질 보고에 더해 새 BMS 수신을 확인한 뒤 stale을 해제한다. 상세 구현·호스트 시험·물리 미검증 범위는 CHG-029 추가 증거의 센서 오류 전달·회복 절을 따른다.
 
 
 ### 과열 대기·복귀 표시 — 2026-11-11
@@ -255,12 +255,12 @@ Journal은 scan에서 마지막 보호 상태 레코드1개만 추가 보유하�
 
 ### 배포 health의 현재 게시 증거
 
-session-v2의 로컬 `SESSION_PUBLICATION` 관찰에는 현재 확인된 `session_id`, `secoc_verified`, `state_confirmed`, `protection_confirmed`, `battery_state`, `battery_reason`을 추가한다. 보호 확인 전에는 세션 번호를 빈 값으로 두며, 진단/STATE가 일치하지 않은 게시를 health 성공으로 사용하지 않는다. 기존 CAN ID/DLC/바이트와 HAL API는 바꾸지 않는다. `tools/deployment/health.py`는 정확한 live IVI 실행본·실제 열고 있는 비공개 관찰 파일과 새 인증 BMS/NodeStatus/종류8을 읽기 전용 대조한다. 배터리 위험 상태의 유지와 프로그램 정상성은 별개다. 운영 입력과 소프트웨어 검증 경계는 [배포 안전 절차](development/playbooks/deployment-safety.md)를 따른다.
+session-v2의 로컬 `SESSION_PUBLICATION` 관찰에는 현재 확인된 `session_id`, `secoc_verified`, `state_confirmed`, `protection_confirmed`, `battery_state`, `battery_reason`을 추가한다. 보호 확인 전에는 세션 번호를 빈 값으로 두며, 진단/STATE가 일치하지 않은 게시를 health 성공으로 사용하지 않는다. 기존 CAN ID/DLC/바이트와 HAL API는 바꾸지 않는다. `tools/deployment/health.py`는 정확한 live IVI 실행본·실제 열고 있는 비공개 관찰 파일과 새 인증 BMS/NodeStatus/종류8을 읽기 전용 대조한다. 배터리 위험 상태의 유지와 프로그램 정상성은 별개다. 운영 입력과 소프트웨어 검증 경계는 배포 안전 절차를 따른다.
 
 
 ### 2026-11-16 — R02/R03/R05 구현 경계
 
-R02 센서 추가 검사는 알려진 합성 프로필과 native 관측을 비교하는 상세 로그 도구로 우선 구현한다. 자유 조작 ADS/실제 배터리의 운영 임계나 CAN 공격 분류를 추가하지 않는다. R03은 IVI 동일 boot/monotonic 시계에서 식별 가능한 최초 공격 관찰부터 새 사건의 완전한 인증·의미 검증까지 평가하며 목표3초·화면 지연 별도를 유지한다. MAC/본문 인증과 사건 revision/관찰 순서 수용을 구분하고 의미 수용 플래그·완료 시각을 제품 관찰 로그에 남긴다. R05는 동일 QML/실행본 분리를 유지하고 데스크톱 소유권·협조 종료·PC stdin 수명의 실험 lease·단일 Wayland 화면·종료 후 기존 앱 복원을 연결한다. 관리되지 않은 앱이나 회수/복원 불명은 성공으로 처리하지 않는다. 계약 바이트는 변경하지 않는다. 정의/합격 기준은 [TC-PERF-003](TEST_PLAN.md#tc-perf-003-ids-탐지-응답-시간), 운영 절차는 [session campaign](development/playbooks/session-campaign.md)을 따른다.
+R02 센서 추가 검사는 알려진 합성 프로필과 native 관측을 비교하는 상세 로그 도구로 우선 구현한다. 자유 조작 ADS/실제 배터리의 운영 임계나 CAN 공격 분류를 추가하지 않는다. R03은 IVI 동일 boot/monotonic 시계에서 식별 가능한 최초 공격 관찰부터 새 사건의 완전한 인증·의미 검증까지 평가하며 목표3초·화면 지연 별도를 유지한다. MAC/본문 인증과 사건 revision/관찰 순서 수용을 구분하고 의미 수용 플래그·완료 시각을 제품 관찰 로그에 남긴다. R05는 동일 QML/실행본 분리를 유지하고 데스크톱 소유권·협조 종료·PC stdin 수명의 실험 lease·단일 Wayland 화면·종료 후 기존 앱 복원을 연결한다. 관리되지 않은 앱이나 회수/복원 불명은 성공으로 처리하지 않는다. 계약 바이트는 변경하지 않는다. 정의/합격 기준은 [TC-PERF-003](TEST_PLAN.md#tc-perf-003-ids-탐지-응답-시간), 운영 절차는 session campaign을 따른다.
 
 
 ### CHG-031 단셀 실측 표시 — 2026-11-17
@@ -269,8 +269,8 @@ FR-IVI-009에 따라 기존 앱의 VehicleSnapshot에 선택적PhysicalMeasureme
 
 전압/전류와 온도는 독립적으로 ECU내 나이+IVI 수신후 경과를 계산한다. 명시한 최대 적분구간을 IVI의보수적 채널/보고 최대나이로도 적용하며, NodeStatus기한3000ms와별개다. 2초 취득에 legacy의300ms BMS timeout을 그대로 적용하지 않는다. 이전세션/오래된값을 새로운 정상값으로 재게시하지 않고 채널별 `--`를 표시한다. 기존 가변저항·가상 BMS의300ms 계약은 유지한다.
 
-동일 QML은 physicalMode/socAvailable/sohAvailable/voltageAvailable/currentAvailable/temperatureAvailable을 사용한다. SOC미산정은 회색`--`·잔량 추정 준비, SOH미측정은`--`·용량 측정 전으로 표시한다. 실제 전압은 셀 전압/3자리, 전류3자리·온도1자리다. 관찰 공백은 추정 화면에 남기며 채널 오류/회복을 이벤트/중앙 알림에 연결한다. 세션의 초기NORMAL을 실제 셀 보호로 보이지 않게 하고, 실셀 보호/자동차단 미구성 상태를 구분한다. 보안 화면·가상 위험·기존 사건/이력 기능은 유지한다. [계약](ICD-CAN-DIAGNOSTIC.md)·[실행 안내](aidlc/changes/CHG-031/physical-runtime-guide.md).
+동일 QML은 physicalMode/socAvailable/sohAvailable/voltageAvailable/currentAvailable/temperatureAvailable을 사용한다. SOC미산정은 회색`--`·잔량 추정 준비, SOH미측정은`--`·용량 측정 전으로 표시한다. 실제 전압은 셀 전압/3자리, 전류3자리·온도1자리다. 관찰 공백은 추정 화면에 남기며 채널 오류/회복을 이벤트/중앙 알림에 연결한다. 세션의 초기NORMAL을 실제 셀 보호로 보이지 않게 하고, 실셀 보호/자동차단 미구성 상태를 구분한다. 보안 화면·가상 위험·기존 사건/이력 기능은 유지한다. [계약](ICD-CAN-DIAGNOSTIC.md)·실행 안내.
 
 ### 2026-11-17 Replay 응답 계측 근거
 
-관찰용 LOCAL_REJECTION_RECORD에 run_id·Linux boot clock_id·기록 시각 recorded_monotonic_ns를 추가한다. 기존 네트워크 RejectionRecord 바이트/인증과 UI 동작은 유지한다. 평가기는 같은 세션의 MAC 검증된 COUNTER_REPLAY 전체 참조·이전 원본/auth 관찰·이후 첫 반복auth를 대조해 식별 가능한 IVI 관찰 시작점을 정한다. SESSION_PUBLICATION에는 실제 적용된 BMS 원본/auth bytes·context·수신시각을 기록하고 새 세션에서 이 근거를 비운다. 이전 원본의 실제 인증/적용 완료가 첫 반복auth보다 앞서는지도 대조한다. 원본raw 송신 시각이나 PC/다른 노드의 시각을 대신 쓰지 않는다. 종료는 기존 새 IncidentStatus의 인증/의미 수용 완료다. 근거 누락·다른run/clock/context·원본 미관찰은 지연 성공이 아니다. [시험 기준](TEST_PLAN.md)·[진행](aidlc/changes/CHG-030/aidlc-state.md).
+관찰용 LOCAL_REJECTION_RECORD에 run_id·Linux boot clock_id·기록 시각 recorded_monotonic_ns를 추가한다. 기존 네트워크 RejectionRecord 바이트/인증과 UI 동작은 유지한다. 평가기는 같은 세션의 MAC 검증된 COUNTER_REPLAY 전체 참조·이전 원본/auth 관찰·이후 첫 반복auth를 대조해 식별 가능한 IVI 관찰 시작점을 정한다. SESSION_PUBLICATION에는 실제 적용된 BMS 원본/auth bytes·context·수신시각을 기록하고 새 세션에서 이 근거를 비운다. 이전 원본의 실제 인증/적용 완료가 첫 반복auth보다 앞서는지도 대조한다. 원본raw 송신 시각이나 PC/다른 노드의 시각을 대신 쓰지 않는다. 종료는 기존 새 IncidentStatus의 인증/의미 수용 완료다. 근거 누락·다른run/clock/context·원본 미관찰은 지연 성공이 아니다. [시험 기준](TEST_PLAN.md)·진행.
