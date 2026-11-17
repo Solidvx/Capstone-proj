@@ -37,6 +37,17 @@ def main():
         assert row['ds18b20']['measurement'] == {'temperature_c': 25}
         assert row['physical_accuracy_verified'] is False
         assert row['ds18b20']['completed_ms'] >= row['ds18b20']['started_ms']
+        # The physical check exposed a variable internal scratchpad byte 6.
+        # Exercise the actual CLI/file parser, retaining CRC and t= agreement.
+        observed = '3b 01 7f 80 7f ff 05 10 db'
+        path.write_text(observed+' : crc=db YES\n'+observed+' t=19687\n')
+        varied = subprocess.run(base, text=True, capture_output=True, timeout=5)
+        varied_row = json.loads(varied.stdout)
+        assert varied.returncode == 1  # INA device is intentionally absent.
+        assert varied_row['ds18b20']['status'] == 'OK'
+        assert varied_row['ds18b20']['measurement'] == {'temperature_c': 19.687}
+        assert varied_row['ds18b20']['scratchpad'] == '3b017f807fff0510db'
+        path.write_text(line+' : crc=33 YES\n'+line+' t=25000\n')
         mocked = base.copy();mocked[0] = str(Path(args.fixture).resolve())
         device = root/'public-i2c-file';device.touch()
         mocked[mocked.index('--i2c-device')+1] = str(device)

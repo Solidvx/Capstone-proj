@@ -60,7 +60,9 @@ Ds18b20Result parseDs18b20(std::string_view text) {
     if(!bytes(b,retained)||!(b>>temp)||temp.size()<3||temp.substr(0,2)!="t="||b>>extra)return result;
     if(retained!=result.scratchpad){result.status=Ds18b20Status::RetainedValue;return result;}
     const auto& raw=result.scratchpad;
-    if((raw[4]&0x9f)!=0x1f||raw[5]!=0xff||raw[6]!=0x0c||raw[7]!=0x10)return result;
+    // Scratchpad byte 6 is reserved for internal use, not a specified constant.
+    // It remains covered by CRC and the current/retained scratchpad comparison.
+    if((raw[4]&0x9f)!=0x1f||raw[5]!=0xff||raw[7]!=0x10)return result;
     unsigned word=unsigned(raw[0])|(unsigned(raw[1])<<8);
     const unsigned unused=3-((raw[4]>>5)&3);word&=~((1u<<unused)-1);
     const int signed_word=word<0x8000 ? int(word) : int(word)-65536;

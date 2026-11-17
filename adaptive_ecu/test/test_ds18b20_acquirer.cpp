@@ -34,6 +34,35 @@ TEST(Ds18b20, Startup85AndDisconnectedMinus127AreNotNormalData){
     const auto power_on=parseDs18b20(text(1360));EXPECT_EQ(power_on.status,Ds18b20Status::AmbiguousPowerOn);EXPECT_FALSE(power_on.temperature_c);
     const auto disconnected=parseDs18b20(text(-2032));EXPECT_EQ(disconnected.status,Ds18b20Status::RangeError);EXPECT_FALSE(disconnected.temperature_c);
 }
+TEST(Ds18b20, ReservedByteSixIsNotARequiredConstant){
+    // Public scratchpad bytes from the first physical sensor check; no device ID.
+    const auto first=parseDs18b20(
+        "3c 01 7f 80 7f ff 04 10 cf : crc=cf YES\n"
+        "3c 01 7f 80 7f ff 04 10 cf t=19750\n");
+    ASSERT_EQ(first.status,Ds18b20Status::Complete);
+    ASSERT_TRUE(first.temperature_c);EXPECT_DOUBLE_EQ(*first.temperature_c,19.75);
+    EXPECT_EQ(first.scratchpad[6],4);
+    const auto next=parseDs18b20(
+        "3b 01 7f 80 7f ff 05 10 db : crc=db YES\n"
+        "3b 01 7f 80 7f ff 05 10 db t=19687\n");
+    ASSERT_EQ(next.status,Ds18b20Status::Complete);
+    ASSERT_TRUE(next.temperature_c);EXPECT_DOUBLE_EQ(*next.temperature_c,19.687);
+    EXPECT_EQ(next.scratchpad[6],5);
+}
+TEST(Ds18b20, VariableReservedByteStillRequiresCrcAndMatchingRetainedData){
+    const auto bad_crc=parseDs18b20(
+        "3c 01 7f 80 7f ff 05 10 cf : crc=cf YES\n"
+        "3c 01 7f 80 7f ff 05 10 cf t=19750\n");
+    EXPECT_EQ(bad_crc.status,Ds18b20Status::CrcError);EXPECT_FALSE(bad_crc.temperature_c);
+    const auto old_data=parseDs18b20(
+        "3c 01 7f 80 7f ff 04 10 cf : crc=cf YES\n"
+        "3c 01 7f 80 7f ff 05 10 cf t=19750\n");
+    EXPECT_EQ(old_data.status,Ds18b20Status::RetainedValue);EXPECT_FALSE(old_data.temperature_c);
+    const auto wrong_temp=parseDs18b20(
+        "3c 01 7f 80 7f ff 04 10 cf : crc=cf YES\n"
+        "3c 01 7f 80 7f ff 04 10 cf t=19687\n");
+    EXPECT_EQ(wrong_temp.status,Ds18b20Status::Malformed);EXPECT_FALSE(wrong_temp.temperature_c);
+}
 TEST(Ds18b20, MalformedAndSpoofedCrcLabelAreRejected){
     for(const auto& value:{std::string{},std::string("t=25000\n"),std::string(1025,'x'),
         std::string("00 00 00 00 00 00 00 00 00 : crc=00 YES\n00 00 00 00 00 00 00 00 00 t=0\n")})
