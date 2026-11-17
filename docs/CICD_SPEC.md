@@ -1,6 +1,7 @@
 > **문서명**: CI/CD Pipeline Specification (CICD_SPEC)
 > **최종 검토**: 2026-11-14 · **상태**: native 품질과 별도 ARM64 cross/QEMU job, 읽기 전용 제품 health·로컬 release/rollback 도구 구현. 원격 CI·실제 Pi 자동 배포 인수는 미완료. [후속 증거](aidlc/changes/CHG-029/aidlc-state.md)
 > **원천**: [SRS](SRS.md) FR-CI-001~006/NFR-QA, [TEST_PLAN](TEST_PLAN.md) TC-CI-001~006, ADR-006/007
+> **2026-11-17 보완**: [PR #33 CI 조사·수정](aidlc/changes/CHG-030/ci-fix-20261117.md). native 시험/health/coverage는 전용 비관리자 UID로 실행하여 권한 기반 저장 장애를 실제 주입한다. 두 원격 native 실패를 재현했고 로컬 수정 검증은 통과했으며 새 원격 결과 인수는 별도다. 아래의 과거 미달·미실행 기록과 구분한다.
 
 # 1. 개요
 

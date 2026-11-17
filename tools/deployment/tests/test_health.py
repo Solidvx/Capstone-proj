@@ -3,8 +3,37 @@ from pathlib import Path
 
 import pytest
 
-from tools.deployment.health import check, evaluate
+from tools.deployment.health import check, evaluate, validate_ready
 from tools.deployment import health
+
+
+@pytest.mark.parametrize('platform', [None, 'offscreen', 'wayland', 'xcb'])
+def test_ready_preserves_required_fields_with_optional_display_metadata(platform):
+    record = {'result': 'READY', 'run_id': 'PUBLIC-DUMMY', 'secoc_on': True}
+    if platform is not None:record['display_platform'] = platform
+    before = copy.deepcopy(record)
+    validate_ready(record, 'PUBLIC-DUMMY')
+    assert record == before
+
+
+@pytest.mark.parametrize('mutation', ['wrong-run', 'not-ready', 'missing-security',
+    'unprotected', 'numeric-security', 'unknown-field', 'empty-platform',
+    'invalid-platform', 'oversized-platform', 'nontext-platform', 'not-object'])
+def test_display_metadata_cannot_bypass_protected_readiness(mutation):
+    record = {'result': 'READY', 'run_id': 'PUBLIC-DUMMY', 'secoc_on': True,
+              'display_platform': 'offscreen'}
+    if mutation == 'wrong-run':record['run_id'] = 'OTHER'
+    elif mutation == 'not-ready':record['result'] = 'STARTING'
+    elif mutation == 'missing-security':record.pop('secoc_on')
+    elif mutation == 'unprotected':record['secoc_on'] = False
+    elif mutation == 'numeric-security':record['secoc_on'] = 1
+    elif mutation == 'unknown-field':record['skip_authentication'] = True
+    elif mutation == 'empty-platform':record['display_platform'] = ''
+    elif mutation == 'invalid-platform':record['display_platform'] = 'offscreen\n'
+    elif mutation == 'oversized-platform':record['display_platform'] = 'x'*65
+    elif mutation == 'nontext-platform':record['display_platform'] = True
+    elif mutation == 'not-object':record = []
+    with pytest.raises(ValueError):validate_ready(record, 'PUBLIC-DUMMY')
 
 
 def rows():

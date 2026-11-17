@@ -101,6 +101,21 @@ def process_identity(pid):
     return folder, fields[19], folder.stat().st_uid
 
 
+def validate_ready(record, run_id):
+    required = {'result', 'run_id', 'secoc_on'}
+    if (not isinstance(record, dict) or not required <= record.keys() or
+            record.keys() - required - {'display_platform'} or
+            record['result'] != 'READY' or record['run_id'] != run_id or
+            record['secoc_on'] is not True):
+        raise ValueError('protected receiver readiness unavailable')
+    # Display metadata does not establish CAN/data readiness; check() below
+    # still requires fresh authenticated publication and current diagnostics.
+    if 'display_platform' in record:
+        platform = record['display_platform']
+        if not isinstance(platform, str) or not re.fullmatch(r'[A-Za-z0-9_.-]{1,64}', platform):
+            raise ValueError('invalid receiver display metadata')
+
+
 def check(pid, expected_sha256, ready, observations, run_id, max_age_ms, max_bytes):
     if type(pid) is not int or pid <= 0 or not re.fullmatch('[0-9a-f]{64}', expected_sha256):
         raise ValueError('explicit live PID and expected artifact hash required')
@@ -123,8 +138,7 @@ def check(pid, expected_sha256, ready, observations, run_id, max_age_ms, max_byt
         data = stream.read(4097)
     if len(data) > 4096:raise ValueError('ready evidence too large')
     ready_record = json.loads(data)
-    if ready_record != {'result': 'READY', 'run_id': run_id, 'secoc_on': True}:
-        raise ValueError('protected receiver readiness unavailable')
+    validate_ready(ready_record, run_id)
     with os.fdopen(private_file(observations, uid), 'rb') as stream:
         info = os.fstat(stream.fileno())
         descriptors = list((folder/'fd').iterdir())

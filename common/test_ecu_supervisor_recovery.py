@@ -51,6 +51,8 @@ def main():
     if not interface:return 77
     if not interface.startswith('vcan') or not Path('/sys/devices/virtual/net',interface).is_dir():
         raise ValueError('existing virtual CAN only')
+    if os.geteuid() == 0:
+        raise RuntimeError('permission-failure injection requires a non-root test user')
     args.out_parent.mkdir(parents=True,exist_ok=True)
     output=Path(tempfile.mkdtemp(prefix='supervisor-',dir=args.out_parent))
     with tempfile.TemporaryDirectory(prefix='ecu-supervisor-private-') as folder:

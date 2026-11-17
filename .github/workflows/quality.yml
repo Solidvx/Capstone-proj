@@ -107,22 +107,28 @@ jobs:
           cmake --build build-quality-ivi --parallel 2
           test -x build-quality-ivi/ivi_dashboard
           test -x build-quality-ivi/ivi_dashboard_experiment
+      - name: Prepare unprivileged product test ownership
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          useradd --create-home --uid 10001 capstone-test
+          chown -R capstone-test:capstone-test build-quality-ecu build-quality-ivi quality-reports
+          runuser -u capstone-test -- id
       - name: ECU tests (all 28 required, no skips)
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: |
-          python3 tools/quality/ctest_gate.py --build build-quality-ecu --component ecu
+          runuser -u capstone-test -- python3 tools/quality/ctest_gate.py --build build-quality-ecu --component ecu
       - name: IVI and real product integration (all 44 required, no skips)
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: |
-          python3 tools/quality/ctest_gate.py --build build-quality-ivi --component ivi-integrated
+          runuser -u capstone-test -- python3 tools/quality/ctest_gate.py --build build-quality-ivi --component ivi-integrated
       - name: Python and quality tool tests
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: |
-          python3 -m pytest -p no:cacheprovider security/tests ivi_platform/test tools/quality/tests tools/deployment/tests -q --junitxml=quality-reports/python-junit.xml
+          runuser -u capstone-test -- python3 -m pytest -p no:cacheprovider security/tests ivi_platform/test tools/quality/tests tools/deployment/tests -q --junitxml=quality-reports/python-junit.xml
       - name: Verify deployment health against ordinary products on virtual CAN
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: |
-          python3 tools/deployment/health_product.py \
+          runuser -u capstone-test -- python3 tools/deployment/health_product.py \
             --ecu build-quality-ecu/adaptive_ecu --ivi build-quality-ivi/ivi_dashboard \
             --policy adaptive_ecu/data/session-v2-development.conf --interface vcan0 \
             --out quality-reports/deployment-health --max-age-ms 3000 --startup-timeout-s 30
@@ -131,8 +137,8 @@ jobs:
         shell: bash
         run: |
           result=0
-          python3 tools/quality/coverage.py --build build-quality-ecu --source adaptive_ecu --component ecu --output-dir quality-reports/ecu || result=1
-          python3 tools/quality/coverage.py --build build-quality-ivi --source ivi_platform --component ivi --output-dir quality-reports/ivi || result=1
+          runuser -u capstone-test -- python3 tools/quality/coverage.py --build build-quality-ecu --source adaptive_ecu --component ecu --output-dir quality-reports/ecu || result=1
+          runuser -u capstone-test -- python3 tools/quality/coverage.py --build build-quality-ivi --source ivi_platform --component ivi --output-dir quality-reports/ivi || result=1
           exit "$result"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
