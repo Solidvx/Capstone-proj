@@ -431,8 +431,8 @@ QString DashboardViewModel::sohHint() const {
 
 QString DashboardViewModel::statusDescription() const {
     if(physicalMode())return physicalObservationGap() ?
-        QStringLiteral("측정이 끊긴 구간이 있어 잔량 추정에 오차가 있을 수 있습니다. 자동 부하 차단은 지원하지 않습니다.") :
-        QStringLiteral("실측 상태를 확인하는 모드입니다. 자동 부하 차단은 지원하지 않습니다.");
+        QStringLiteral("측정이 끊긴 구간이 있습니다.\n부하를 자동 차단하지 않습니다.") :
+        QStringLiteral("실제 센서로 측정하고 있습니다.\n부하를 자동 차단하지 않습니다.");
     switch (snapshot_.vehicle.fail_safe_reason) {
     case 1: if (snapshot_.vehicle.fail_safe_state) return QStringLiteral("배터리 잔량이 부족합니다. 충전이 필요합니다."); break;
     case 2: if (snapshot_.vehicle.fail_safe_state) return QStringLiteral("잔량이 매우 낮습니다. 배터리를 점검해 주세요."); break;

@@ -197,15 +197,77 @@ void run() {
     EXPECT_EQ(voltage->property("value").toString(),QStringLiteral("3.853 V"));
     EXPECT_EQ(current->property("value").toString(),QStringLiteral("-0.371 A"));
     EXPECT_EQ(temperature->property("value").toString(),QStringLiteral("20.1 °C"));
+    for(auto* metric:{voltage,current,temperature}){
+        EXPECT_FALSE(metric->property("inputWaiting").toBool());
+        auto* reading=metric->findChild<QObject*>("metricReading");
+        EXPECT_TRUE(reading != nullptr);
+        EXPECT_TRUE(qvariant_cast<QFont>(reading->property("font")).pixelSize()>=24);
+    }
     EXPECT_TRUE(window->grabWindow().save("dashboard-physical.png"));
     physical.physical_valid[2]=false;model.updateSnapshot(physical);flush();
     EXPECT_EQ(temperature->property("value").toString(),QStringLiteral("--"));
+    EXPECT_TRUE(temperature->property("inputWaiting").toBool());
+    EXPECT_EQ(temperature->property("statusText").toString(),QStringLiteral("센서 입력 대기"));
+    auto* waitingReading=temperature->findChild<QObject*>("metricReading");
+    EXPECT_EQ(waitingReading->property("text").toString(),QStringLiteral("센서 입력 대기"));
+    EXPECT_FALSE(waitingReading->property("truncated").toBool());
+    EXPECT_FALSE(voltage->property("inputWaiting").toBool());
+    EXPECT_FALSE(current->property("inputWaiting").toBool());
     EXPECT_EQ(voltage->property("value").toString(),QStringLiteral("3.853 V"));
     EXPECT_FALSE(model.popupVisible());flush(2100);
     EXPECT_TRUE(model.popupVisible());EXPECT_TRUE(window->grabWindow().save("dashboard-physical-partial.png"));
     physical.physical_valid[2]=true;model.updateSnapshot(physical);flush();
     EXPECT_TRUE(model.popupVisible()); // a short recovery does not close an unread notice
     model.dismissPopup();
+    // Missing inputs stay visible after closing a popup. Zero current and
+    // missing SOH capacity are distinct from unavailable sensor channels.
+    for(bool dark:{false,true}){
+        physical.physical_valid[2]=false;
+        model.setDarkMode(dark);model.updateSnapshot(physical);flush();
+        EXPECT_TRUE(temperature->property("inputWaiting").toBool());
+        EXPECT_FALSE(waitingReading->property("truncated").toBool());
+        EXPECT_EQ(temperature->property("color").value<QColor>(),root->property("waitingPanel").value<QColor>());
+        EXPECT_TRUE(window->grabWindow().save(dark?"dashboard-sensor-wait-dark.png":"dashboard-sensor-wait-light.png"));
+        physical.physical_valid[2]=true;physical.physical_valid[0]=physical.physical_valid[1]=false;
+        model.updateSnapshot(physical);flush();
+        EXPECT_TRUE(voltage->property("inputWaiting").toBool());
+        EXPECT_TRUE(current->property("inputWaiting").toBool());
+        EXPECT_FALSE(temperature->property("inputWaiting").toBool());
+        for(auto* metric:{voltage,current}){
+            auto* reading=metric->findChild<QObject*>("metricReading");
+            EXPECT_EQ(reading->property("text").toString(),QStringLiteral("센서 입력 대기"));
+            EXPECT_FALSE(reading->property("truncated").toBool());
+        }
+        EXPECT_TRUE(window->grabWindow().save(dark?"dashboard-electrical-wait-dark.png":"dashboard-electrical-wait-light.png"));
+        physical.physical_valid[0]=physical.physical_valid[1]=true;physical.vehicle.current_a=0;
+        model.updateSnapshot(physical);flush();
+        for(auto* metric:{voltage,current,temperature}){
+            EXPECT_FALSE(metric->property("inputWaiting").toBool());
+            EXPECT_EQ(metric->property("color").value<QColor>(),root->property("panel").value<QColor>());
+            auto* item=qobject_cast<QQuickItem*>(metric);
+            const auto bounds=item->mapRectToItem(canvas,item->boundingRect());
+            EXPECT_TRUE(bounds.left()>=0 && bounds.right()<=800 && bounds.bottom()<tabs->y());
+        }
+        EXPECT_EQ(current->property("value").toString(),QStringLiteral("0.000 A"));
+        EXPECT_EQ(soh->property("text").toString(),QStringLiteral("--"));
+        auto* description=root->findChild<QObject*>("statusDescriptionLabel");
+        EXPECT_TRUE(description != nullptr);
+        EXPECT_FALSE(description->property("truncated").toBool());
+        EXPECT_TRUE(description->property("lineHeight").toDouble()>=1.15);
+        EXPECT_TRUE(qvariant_cast<QFont>(description->property("font")).pixelSize()>=14);
+        for(auto* item:root->findChildren<QQuickItem*>()){
+            if(!item->isVisible()||item->metaObject()->indexOfProperty("lineHeight")<0)continue;
+            for(auto* parent=item->parentItem();parent;parent=parent->parentItem())if(parent->clip()){
+                const auto bounds=item->mapRectToItem(parent,item->boundingRect());
+                EXPECT_TRUE(bounds.top()>=-.5 && bounds.bottom()<=parent->height()+.5);
+                break;
+            }
+        }
+        EXPECT_TRUE(window->grabWindow().save(dark?"dashboard-sensor-restored-dark.png":"dashboard-sensor-restored-light.png"));
+        physical.physical_valid[2]=false;
+    }
+    physical.physical_valid[2]=true;physical.vehicle.current_a=-.3711;
+    model.updateSnapshot(physical);model.dismissPopup();flush();
     // On other pages a temporary top notice leaves navigation/history usable.
     auto* toast=root->findChild<QQuickItem*>("notificationToast");
     EXPECT_TRUE(toast != nullptr);
@@ -277,5 +339,6 @@ int main(int argc,char** argv) {
     QTemporaryDir settings;
     QSettings::setDefaultFormat(QSettings::IniFormat);
     QSettings::setPath(QSettings::IniFormat,QSettings::UserScope,settings.path());
+    QSettings::setPath(QSettings::NativeFormat,QSettings::UserScope,settings.path());
     return runTestProgram("Qt authentication warning and recovery",run);
 }

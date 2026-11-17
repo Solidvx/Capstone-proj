@@ -36,7 +36,8 @@ Rectangle {
     Text {
         objectName: "socGaugeLabel"
         visible: root.showLabel
-        font.pixelSize: 12
+        font.pixelSize: 14
+        font.weight: Font.DemiBold
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.margins: 8
@@ -86,7 +87,7 @@ Rectangle {
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.NoWrap
             color: root.gaugeColor
-            font.pixelSize: 27
+            font.pixelSize: 32
             font.bold: true
             minimumPixelSize: 18
             fontSizeMode: Text.Fit

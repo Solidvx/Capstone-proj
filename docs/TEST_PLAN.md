@@ -730,6 +730,8 @@ TC-IVI-005/006/007/008에 CHG-028의 상태·닫기·테마·800×480/1024×600/
 
 보안 탭 스크롤은 contentY 직접 대입뿐 아니라 실제 Qt 마우스·터치 press/move/release로 이동을 확인한다. 수신 거부 결과/CAN 통신 상태 제목 분리와 탭 고정을 검사한다. SOC0/97.3/100%의 단일 행·숫자 폭, 정상 실측 제목 유지·측정 공백 보조 설명, SOH 용량 시험 전/정보 만료/결과 표시를 같은 QML·ViewModel 시험에 포함한다. 물리 터치 패널 인수와 구분한다.
 
+TC-PHYS-004에는 온도 단독 누락·전압/전류 누락·정상0A·회복을 두 테마로 검사한다. 누락된 입력 칸만 노란색과 `센서 입력 대기`를 표시하고, 팝업을 닫아도 유지하며 회복 시 해제해야 한다. 대기 문구의 잘림, 정상 숫자24px 이상, 본문14px 이상·줄높이1.2배,800×480 측정 칸·최근 이벤트·탭 경계를 확인하고 캡처를 남긴다.
+
 ### CHG-029 프로세스 감독/부팅 정책 하위 검증
 
 TC-BSW-006/007 및 복구 통합의 보조 증거로 `common/test_ecu_supervisor_recovery.py`를 실행한다. 실제 ECU를 SIGKILL하고, 별도 회차에서는 SIGSTOP으로 멈춰 감지→기한 내 TERM/KILL→wait 회수→검증된 resume을 확인한다. 설정한 프로세스 복구 budget3 이후 추가 자동 시작 부재, 저장 불가 시 중단, 명시적 fresh의 계산 초기화/키 보존, 수동 감독 종료의 자식 회수를 검사한다. 주기 저장 SIGKILL 시험 및 실제 Qt의 Plan/Receipt/제한시간 시험과 함께 사용한다.
@@ -846,7 +848,7 @@ TC-CI-005/006: 배포 안전 절차와 `tools/deployment/tests`의 임시 releas
 |TC-PHYS-001|명시 설정·분리취득·수명|잘못된/중복 설정 거부, 부분IPC 조립, 상속fd닫기·오류/취소/회수. test_physical_sensor_runtime 및 기존 bounded_sensor_read|
 |TC-PHYS-002|채널 품질·적분|새3회 확인, 중복적분 금지, stale/역순/다른설정 거부, 온도오류 중 전기적분 유지, 전기오류 후 기준점 재설정|
 |TC-PHYS-003|CAN 계약·인증|공개6벡터에서 C++/Python의30프레임이 바이트 일치, 방향/잘못된필드/128태그변조/패딩 거부, 기존종류1~8 벡터 보존|
-|TC-PHYS-004|실제 Service/QML|현재세션/instance/설정/순번/나이 검사, SOC/SOH미산정과유효0% 구분, 오류채널`--`·정상채널 유지·중앙알림/회복, 연결 재시도 중 문구 유지·첫 실패 후10초 미복구 표시·실제 연결 시 해제,800×480화면 캡처. test_vehicle_data_session/test_dashboard_view_model/test_dashboard_security|
+|TC-PHYS-004|실제 Service/QML|현재세션/instance/설정/순번/나이 검사, SOC/SOH미산정과유효0% 구분, 오류채널 미산정·노란 입력 대기·정상채널 유지·중앙알림/회복, 두 테마의 글자·줄간격·잘림, 연결 재시도 중 문구 유지·첫 실패 후10초 미복구 표시·실제 연결 시 해제,800×480화면 캡처. test_vehicle_data_session/test_dashboard_view_model/test_dashboard_security|
 |TC-PHYS-005|실제 ECU 실행 경로|실제 ECU와별도취득worker→vcan 인증수신. 정상/온도오류/전기오류/명시SOC·외부SOH/수신복구실패의5사례. 가짜0x100 BMS·가상입력0x101 경고 미송신·정상종료. 수신실패는NodeStatus점검단계5/위험미상FF로구분. test_physical_ecu_product. 입력은공개 I²C syscall/file 모의값|
 |TC-PHYS-006|실제 Pi·배터리|동일시점/기준점 DMM·전류/온도대조, 이전저전압표시오류 재현원인, 센서단절/회복, 실제7인치/CAN 표시·종료. 별도 장비 인수이며 현재미완료|
 
