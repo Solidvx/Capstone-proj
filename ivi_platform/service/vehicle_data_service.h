@@ -16,6 +16,7 @@
 #include "publication_metrics.h"
 #include "diagnostic_tx_queue.h"
 #include "incident_rejection_link.h"
+#include "physical_measurement.h"
 
 namespace ivi {
 
@@ -35,6 +36,9 @@ struct VehicleData {
 
 struct VehicleSnapshot {
     VehicleData vehicle{};
+    std::optional<capstone::session_v2::PhysicalMeasurement> physical_measurement;
+    std::uint64_t physical_received_ms=0;
+    std::array<bool,5> physical_valid{}; // voltage, current, temperature, SOC, SOH
     std::optional<SecurityAlert> security_alert;
     std::uint64_t security_alert_sequence = 0;
     std::uint64_t last_good_age_ms = 0;

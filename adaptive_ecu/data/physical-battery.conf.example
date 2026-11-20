@@ -1,0 +1,32 @@
+# Local-only example. Replace the dummy probe ID and confirm the actual shunt.
+# Values reflect the short diagnostic setup, not verified Pi operating limits.
+i2c_device=/dev/i2c-1
+ina_address=64
+shunt_ohm=0.1
+current_lsb_a=0.0001
+battery_current_sign=-1
+current_zero_a=0
+terminal_offset_v=0
+temperature_device=28-000000000000
+w1_root=/sys/bus/w1/devices
+calibration_id=R100-UNCALIBRATED
+# Normal DS18B20 conversion (~0.8s) plus the 1s CAN report cadence must fit
+# within max_interval_ms. Longer/blocking reads still invalidate the channel.
+period_ms=1000
+read_timeout_ms=5000
+freshness_ms=5000
+max_interval_ms=3000
+nominal_capacity_ah=2.55
+# Explicit reference model (unverified for this cell): typical Li-ion OCV,
+# 1-cell EKF; initial voltage update needs >=60s, |I|<=20mA, spread<=10mV.
+# Keep 'unknown' for no SOC model, or supply 0..100 for explicit coulomb SOC.
+# No state restore or loaded-voltage correction; this is not a cutoff policy.
+initial_soc_percent=auto-ekf-adi-liion-v1
+
+# Common initial prior from the 2026-11-20 partial-discharge estimate.
+# Not an independently measured capacity; does not alter SOC nominal capacity.
+# Parent directory must exist and be writable. No per-cell identity tracking.
+# initial_soh_percent=81
+# soh_state_path=physical-soh-state.txt
+measured_capacity_ah=unknown
+capacity_test_id=unknown

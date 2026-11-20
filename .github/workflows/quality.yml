@@ -113,7 +113,7 @@ jobs:
           useradd --create-home --uid 10001 capstone-test
           chown -R capstone-test:capstone-test build-quality-ecu build-quality-ivi quality-reports
           runuser -u capstone-test -- id
-      - name: ECU tests (all 28 required, no skips)
+      - name: ECU tests (all 36 required, no skips)
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: |
           runuser -u capstone-test -- python3 tools/quality/ctest_gate.py --build build-quality-ecu --component ecu
@@ -140,6 +140,40 @@ jobs:
           runuser -u capstone-test -- python3 tools/quality/coverage.py --build build-quality-ecu --source adaptive_ecu --component ecu --output-dir quality-reports/ecu || result=1
           runuser -u capstone-test -- python3 tools/quality/coverage.py --build build-quality-ivi --source ivi_platform --component ivi --output-dir quality-reports/ivi || result=1
           exit "$result"
+      - name: Build and package node runtimes on Debian13 ARM64
+        if: ${{ success() && matrix.runner == 'ubuntu-24.04-arm' }}
+        run: |
+          cmake -S adaptive_ecu -B build-runtime-ecu -DCMAKE_BUILD_TYPE=Release -DENABLE_COVERAGE=OFF -DECU_BUILD_TESTS=OFF
+          cmake --build build-runtime-ecu --target adaptive_ecu --parallel 2
+          cmake -S ivi_platform -B build-runtime-ivi -DCMAKE_BUILD_TYPE=Release -DENABLE_COVERAGE=OFF -DIVI_BUILD_TESTS=OFF -DIVI_BUILD_QT_APP=ON -DIVI_BUILD_EXPERIMENT_TOOLS=OFF
+          cmake --build build-runtime-ivi --target ivi_dashboard --parallel 2
+          mkdir -p runtime-packages
+          python3 tools/deployment/package_runtime.py --node ecu --build build-runtime-ecu --revision "$GITHUB_SHA" --out runtime-packages/ecu-runtime-linux-arm64.tar.gz
+          python3 tools/deployment/package_runtime.py --node ivi --build build-runtime-ivi --revision "$GITHUB_SHA" --out runtime-packages/ivi-runtime-linux-arm64.tar.gz
+          mkdir -p runtime-smoke/ecu runtime-smoke/ivi
+          tar -xzf runtime-packages/ecu-runtime-linux-arm64.tar.gz --no-same-owner -C runtime-smoke/ecu
+          tar -xzf runtime-packages/ivi-runtime-linux-arm64.tar.gz --no-same-owner -C runtime-smoke/ivi
+          runuser -u capstone-test -- python3 tools/deployment/health_product.py \
+            --ecu runtime-smoke/ecu/capstone-ecu-runtime/bin/adaptive_ecu \
+            --ivi runtime-smoke/ivi/capstone-ivi-runtime/bin/ivi_dashboard \
+            --policy runtime-smoke/ecu/capstone-ecu-runtime/config/session-v2-development.conf --interface vcan0 \
+            --out quality-reports/runtime-deployment-health --max-age-ms 3000 --startup-timeout-s 30
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: ${{ success() && matrix.runner == 'ubuntu-24.04-arm' }}
+        with:
+          name: runtime-ecu-linux-arm64
+          path: |
+            runtime-packages/ecu-runtime-linux-arm64.tar.gz
+            runtime-packages/ecu-runtime-linux-arm64.tar.gz.sha256
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: ${{ success() && matrix.runner == 'ubuntu-24.04-arm' }}
+        with:
+          name: runtime-ivi-linux-arm64
+          path: |
+            runtime-packages/ivi-runtime-linux-arm64.tar.gz
+            runtime-packages/ivi-runtime-linux-arm64.tar.gz.sha256
+          if-no-files-found: error
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:

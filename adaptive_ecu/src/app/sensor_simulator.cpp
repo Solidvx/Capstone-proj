@@ -45,6 +45,7 @@ std::optional<SensorSimulator::Mode> SensorSimulator::parseMode(const std::strin
     if (name == "profile_csv") return Mode::PROFILE_CSV;
     if (name == "random_walk") return Mode::RANDOM_WALK;
     if (name == "ads1115") return Mode::ADS1115_HARDWARE;
+    if (name == "physical") return Mode::PHYSICAL_HARDWARE;
     return std::nullopt;
 }
 
@@ -53,6 +54,8 @@ SensorSimulator::SensorSimulator(Mode mode, std::string profile_path)
 
 SensorData SensorSimulator::next() {
     switch (mode_) {
+    case Mode::PHYSICAL_HARDWARE:
+        throw std::logic_error("physical mode requires the independent real sensor feed");
     case Mode::CONSTANT:
         return {42.0f, -2.0f, 25};
     case Mode::ADS1115_HARDWARE:

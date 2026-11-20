@@ -165,14 +165,20 @@ int runDashboard(int argc, char* argv[]) {
         if(!license.open(QIODevice::ReadOnly))return 2;
         std::cout<<license.readAll().constData();return 0;
     }
-    const int font_id=QFontDatabase::addApplicationFont(QStringLiteral(":/ivi-fonts/NanumGothic-Regular.ttf"));
-    const auto families=QFontDatabase::applicationFontFamilies(font_id);
-    if(font_id<0 || families.isEmpty()){
-        std::cerr<<"Bundled Korean font is unavailable\n";return 2;
+    QString font_family;
+    for(const auto& file:{QStringLiteral("NanumGothic-Regular.ttf"),QStringLiteral("NanumGothic-Bold.ttf")}){
+        const int font_id=QFontDatabase::addApplicationFont(QStringLiteral(":/ivi-fonts/")+file);
+        const auto families=QFontDatabase::applicationFontFamilies(font_id);
+        if(font_id<0 || families.isEmpty() || (!font_family.isEmpty() && !families.contains(font_family))){
+            std::cerr<<"Bundled Korean font is unavailable\n";return 2;
+        }
+        font_family=families.constFirst();
     }
-    const QFont dashboard_font(families.constFirst());
-    if(!QRawFont::fromFont(dashboard_font).supportsCharacter(uint(0xAC00))){
-        std::cerr<<"Bundled font lacks Korean glyphs\n";return 2;
+    QFont dashboard_font(font_family);
+    dashboard_font.setWeight(QFont::DemiBold);
+    const auto raw_font=QRawFont::fromFont(dashboard_font);
+    if(!raw_font.supportsCharacter(uint(0xAC00)) || raw_font.weight()<QFont::DemiBold){
+        std::cerr<<"Bundled font lacks bold Korean glyphs\n";return 2;
     }
     application.setFont(dashboard_font);
     const auto arguments = parseArguments(argc, argv);
@@ -513,7 +519,8 @@ int runDashboard(int argc, char* argv[]) {
     }
 
     QQmlApplicationEngine engine;
-    engine.setInitialProperties({{"vehicleModel", QVariant::fromValue(&view_model)}});
+    engine.setInitialProperties({{"vehicleModel", QVariant::fromValue(&view_model)},
+                                 {"demonstration",demo_mode}});
     engine.load(QUrl(QStringLiteral(
         "qrc:/qt/qml/IviDashboard/ui_qml/qml/Main.qml")));
     if (engine.rootObjects().isEmpty()) {

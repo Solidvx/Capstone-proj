@@ -1,5 +1,7 @@
 > **계약 프로파일 경계(2026-11-11)**: §1~2의 고정키·인증 ID별 counter/래핑은 `legacy-v1` 실험 재현 프로파일이다. 사용자 승인된 제품 전환 계약 `session-v2`는 [인증 세션](ICD-CAN-SESSION.md) 및 [CAN 진단](ICD-CAN-DIAGNOSTIC.md)을 함께 따른다. 기존0x100~103/200 배치는 유지하지만 키/counter 의미는 비호환이다. 프로파일을 명시하고 자동 downgrade하지 않는다. 제품 양쪽 연결은 CHG-029에서 진행 중이며 승인만으로 배포/물리 인수가 완료된 것이 아니다. §3은 현재 C++ Service API이며 확장 연동도 같은 변경 단위로 진행한다. §8 sensorState byte7을 이번에 임의 활성화하지 않고 입력 준비/오류는 인증 NodeStatus로 전달한다.
 
+> **선택형 단셀 실측(2026-11-17)**: 승인된 [CAN 진단 종류9](ICD-CAN-DIAGNOSTIC.md)는 기존0x100~105/200의 배치를 보존하고0x302로 실측값·미산정·품질을 전달한다. `physical` 모드는 종류9로 표시하며0x100/102에 미산정값을 채우지 않는다. 아래100ms 가상 BMS 계약과 구분한다. 현재 C++ Service API는 `VehicleSnapshot::physical_measurement` 및 채널별 `physical_valid`를 확장하며 기존 소비자는 새 모드의 정상 BMS로 간주하지 않는다. 기존 checkpoint/가상 보호를 실셀에 자동 적용하지 않는다.
+
 > **문서명**: Interface Control Document (ICD)  
 > **버전**: v1.7 (session-v2 전환 포함) | **작성일**: 2026-03-01 | **최종 수정**: 2026-11-11
 > **작성자**: 팀원A + 팀원B (공동 — 인터페이스 확정 후 각자 독립 개발 시작)  
@@ -402,3 +404,10 @@ Node A (ECU)                    CAN 버스                Node B (IVI Service)
 ### 2026-11-14 보호 사건 연속성 확장 승인
 
 ECU→IVI0x302의 종류8 ProtectionStatus(56B/24프레임)를 승인했다. 정확한 본문/단계/복원·연결 규칙은 [CAN 진단 계약](ICD-CAN-DIAGNOSTIC.md#8-protectionstatus--ecuivi56b24프레임)을 따른다. 기존 ID/DLC·종류1~7·HMAC 입력/최대 조립 상한은 유지한다. 신규 codec/문서 변경과 실제 ECU checkpoint/발행·IVI 영속 연결·물리 인수 완료를 구분한다.
+
+
+## 공통 초기 SOH와 부분방전 참고 갱신 (2026-11-21)
+
+사용자 승인: 초기81%, 셀별 관리 생략, 조건부 갱신·보존, CAN SOH근거2.
+FR-BMS-009/FR-IVI-009 및 TC-PHYS-SOH-REF-001에 연결한다.
+상세 조건·운영 한계는 [ECU 설계](SDD-ECU.md)의 공통 초기 SOH 절을 따른다.
