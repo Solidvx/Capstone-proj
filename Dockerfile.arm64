@@ -1,0 +1,22 @@
+# x86-64 compiler host -> ARM64 products; not an ARM64 native image build.
+FROM debian:trixie-slim
+ARG DEBIAN_FRONTEND=noninteractive
+RUN test "$(dpkg --print-architecture)" = amd64 \
+ && dpkg --add-architecture arm64 \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends \
+    build-essential cmake ninja-build file python3 pkg-config \
+    crossbuild-essential-arm64 qemu-user \
+    libssl-dev:arm64 libgtest-dev:arm64 \
+    qt6-base-dev:arm64 qt6-declarative-dev:arm64 \
+    qt6-base-dev-tools:amd64 qt6-declarative-dev-tools:amd64 \
+    qml6-module-qtquick:arm64 qml6-module-qtquick-controls:arm64 \
+    qml6-module-qtquick-layouts:arm64 qml6-module-qtquick-templates:arm64 \
+    qml6-module-qtquick-window:arm64 qml6-module-qtqml-workerscript:arm64 \
+ && mkdir /cross-environment \
+ && dpkg-query -W > /cross-environment/packages.tsv \
+ && rm -rf /var/lib/apt/lists/*
+# No source, credentials or keys enter the build context/image. Sources are
+# mounted read-only when running tools/quality/cross_build.py.
+ENV PYTHONDONTWRITEBYTECODE=1 QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software
+WORKDIR /src

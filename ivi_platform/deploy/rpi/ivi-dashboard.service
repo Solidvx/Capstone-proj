@@ -10,7 +10,7 @@ Group=ivi
 SupplementaryGroups=video render input
 EnvironmentFile=/etc/ivi/ivi-dashboard.env
 ExecStartPre=/opt/ivi/libexec/rpi_preflight.sh --service
-ExecStart=/opt/ivi/bin/ivi_dashboard --interface ${IVI_CAN_INTERFACE} --secoc-key ${IVI_SECOC_KEY}
+ExecStart=/opt/ivi/bin/ivi_dashboard --interface ${IVI_CAN_INTERFACE} --secoc-key ${IVI_SECOC_KEY} --protocol session-v2 --session-policy ${IVI_SESSION_POLICY} --event-policy ${IVI_EVENT_POLICY}
 Restart=on-failure
 RestartSec=2
 TimeoutStopSec=5
@@ -19,6 +19,7 @@ PrivateTmp=true
 ProtectHome=true
 ProtectSystem=strict
 ReadOnlyPaths=/etc/ivi
+ReadWritePaths=/var/lib/capstone-ivi/events
 CapabilityBoundingSet=CAP_NET_RAW
 AmbientCapabilities=CAP_NET_RAW
 

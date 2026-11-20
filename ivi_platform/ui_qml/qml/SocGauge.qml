@@ -11,6 +11,8 @@ Rectangle {
     property color mediumColor: "#f59e0b"
     property color lowColor: "#fb7185"
     property color mutedColor: "#9aa4b2"
+    property color textColor: "white"
+    property color trackColor: "#374151"
     property color panelColor: "#1b2029"
 
     readonly property real clampedValue: Math.max(0, Math.min(100, value))
@@ -28,18 +30,22 @@ Rectangle {
     onClampedValueChanged: gaugeArc.requestPaint()
     onGaugeColorChanged: gaugeArc.requestPaint()
     onAvailableChanged: gaugeArc.requestPaint()
+    onTrackColorChanged: gaugeArc.requestPaint()
 
     Text {
+        objectName: "socGaugeLabel"
+        font.pixelSize: 12
         anchors.left: parent.left
         anchors.top: parent.top
-        anchors.margins: 14
-        text: "SOC"
+        anchors.margins: 8
+        text: "배터리 잔량(SOC)"
         color: root.mutedColor
     }
 
     Item {
         anchors.centerIn: parent
-        width: Math.min(parent.width - 24, parent.height - 18)
+        anchors.verticalCenterOffset: 13
+        width: Math.min(parent.width - 24, parent.height - 48)
         height: width
 
         Canvas {
@@ -56,7 +62,7 @@ Rectangle {
                 context.clearRect(0, 0, width, height)
                 context.lineWidth = 10
                 context.lineCap = "round"
-                context.strokeStyle = "#374151"
+                context.strokeStyle = root.trackColor
                 context.beginPath()
                 context.arc(center, center, radius, start, end, false)
                 context.stroke()

@@ -1,6 +1,6 @@
 {
   "schema": "pc-campaign-v1",
-  "note": "Run pc_campaign on PC. SecOC keys stay only on ECU/IVI. Pi3 only runs keyless CAN worker. Fill PC SSH identity and all remote paths. No real keys/addresses in version control.",
+  "note": "Historical legacy-v1 campaign only. Current session-v2 uses authenticated diagnostics and requires a different campaign path. PC owns SSH; Pi3 receives no SecOC key. Fill private paths locally.",
   "receiver_on": [
     "ssh",
     "-T",
@@ -15,7 +15,7 @@
     "-o",
     "ServerAliveCountMax=3",
     "REPLACE_NODE_B_USER@REPLACE_NODE_B_HOST",
-    "cd /REPLACE_NODE_B_PROJECT && exec sudo -n .venv-handoff/bin/python -m security.experiments.remote_process --run-id {run_id} --duration {lifetime_s} -- env QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software ./ivi_platform/build-handoff/ivi_dashboard_experiment --interface can0 --secoc-key /REPLACE_NODE_B_KEY --run-id {run_id} --observation-jsonl - --demo-exit-ms {lifetime_ms}"
+    "cd /REPLACE_NODE_B_PROJECT && exec sudo -n .venv-handoff/bin/python -m security.experiments.remote_process --run-id {run_id} --duration {lifetime_s} -- env QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software ./ivi_platform/build-handoff/ivi_dashboard_experiment --interface can0 --secoc-key /REPLACE_NODE_B_KEY --run-id {run_id} --observation-jsonl - --demo-exit-ms {lifetime_ms} --protocol legacy-v1"
   ],
   "receiver_off": [
     "ssh",
@@ -31,7 +31,7 @@
     "-o",
     "ServerAliveCountMax=3",
     "REPLACE_NODE_B_USER@REPLACE_NODE_B_HOST",
-    "cd /REPLACE_NODE_B_PROJECT && exec sudo -n .venv-handoff/bin/python -m security.experiments.remote_process --run-id {run_id} --duration {lifetime_s} -- env QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software ./ivi_platform/build-handoff/ivi_dashboard_experiment --interface can0 --secoc-key /REPLACE_NODE_B_KEY --run-id {run_id} --observation-jsonl - --demo-exit-ms {lifetime_ms} --experiment-secoc-off --confirm-isolated-test-bus"
+    "cd /REPLACE_NODE_B_PROJECT && exec sudo -n .venv-handoff/bin/python -m security.experiments.remote_process --run-id {run_id} --duration {lifetime_s} -- env QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software ./ivi_platform/build-handoff/ivi_dashboard_experiment --interface can0 --secoc-key /REPLACE_NODE_B_KEY --run-id {run_id} --observation-jsonl - --demo-exit-ms {lifetime_ms} --experiment-secoc-off --confirm-isolated-test-bus --protocol legacy-v1"
   ],
   "ids": [
     "ssh",
@@ -47,7 +47,7 @@
     "-o",
     "ServerAliveCountMax=3",
     "REPLACE_NODE_A_USER@REPLACE_NODE_A_HOST",
-    "cd /REPLACE_NODE_A_PROJECT && exec .venv-handoff/bin/python -m security.experiments.remote_process --run-id {run_id} --duration {lifetime_s} -- .venv-handoff/bin/python -m security.ids.runtime --interface can0 --train-normal /REPLACE_NODE_A_TRAIN_CAPTURE --calibrate-normal /REPLACE_NODE_A_CALIBRATION_CAPTURE --secoc-key /REPLACE_NODE_A_KEY --run-id {run_id} --log '/REPLACE_NODE_A_LOG_DIRECTORY/ids-{run_id}.jsonl' --duration {lifetime_s} --send-alerts"
+    "cd /REPLACE_NODE_A_PROJECT && exec .venv-handoff/bin/python -m security.experiments.remote_process --run-id {run_id} --duration {lifetime_s} -- .venv-handoff/bin/python -m security.ids.runtime --interface can0 --train-normal /REPLACE_NODE_A_TRAIN_CAPTURE --calibrate-normal /REPLACE_NODE_A_CALIBRATION_CAPTURE --secoc-key /REPLACE_NODE_A_KEY --run-id {run_id} --log '/REPLACE_NODE_A_LOG_DIRECTORY/ids-{run_id}.jsonl' --duration {lifetime_s} --send-alerts --protocol legacy-v1"
   ],
   "ecu": [
     "ssh",
@@ -63,7 +63,7 @@
     "-o",
     "ServerAliveCountMax=3",
     "REPLACE_NODE_A_USER@REPLACE_NODE_A_HOST",
-    "cd /REPLACE_NODE_A_PROJECT && exec .venv-handoff/bin/python -m security.experiments.remote_process --run-id {run_id} --duration {lifetime_s} -- ./adaptive_ecu/build/adaptive_ecu --interface can0 --sensor-mode {sensor_mode} --secoc {secoc} --key /REPLACE_NODE_A_KEY"
+    "cd /REPLACE_NODE_A_PROJECT && exec .venv-handoff/bin/python -m security.experiments.remote_process --run-id {run_id} --duration {lifetime_s} -- ./adaptive_ecu/build/adaptive_ecu --interface can0 --sensor-mode {sensor_mode} --secoc {secoc} --key /REPLACE_NODE_A_KEY --protocol legacy-v1"
   ],
   "observer_a": [
     "ssh",
@@ -224,5 +224,6 @@
     "ServerAliveCountMax=3",
     "REPLACE_NODE_C_USER@REPLACE_NODE_C_HOST",
     "cd /REPLACE_NODE_C_PROJECT && exec .venv-handoff/bin/python -m security.experiments.retire_pi3_ssh --remote key"
-  ]
+  ],
+  "protocol": "legacy-v1"
 }

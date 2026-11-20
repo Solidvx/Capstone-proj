@@ -48,6 +48,22 @@ TEST(SecOcModule, VerifiesAndRejectsTamper) {
     EXPECT_FALSE(verifier.verify(0x100, status.data, auth));
 }
 
+TEST(SecOcModule, TcSec002RejectsHundredOneBitTamperedMessagesWithoutConsumingCounter) {
+    SecOcModule signer,verifier;
+    signer.setKey(testKey());verifier.setKey(testKey());
+    const auto status=encodeBmsStatusFrame({75.0f,95.0f,42.0f,-2.0f,25});
+    const auto original=signer.sign(0x102,0x100,status.data);
+    unsigned accepted=0;
+    for(unsigned attempt=0;attempt<100;++attempt){
+        auto altered=original;const unsigned bit=attempt%32;
+        altered.data[bit/8]^=static_cast<uint8_t>(1u<<(bit%8));
+        accepted+=verifier.verify(0x100,status.data,altered)?1u:0u;
+    }
+    EXPECT_EQ(accepted,0U);
+    EXPECT_TRUE(verifier.verify(0x100,status.data,original));
+    EXPECT_FALSE(verifier.verify(0x100,status.data,original));
+}
+
 TEST(SecOcModule, RejectsReplayCounter) {
     SecOcModule signer;
     SecOcModule verifier;

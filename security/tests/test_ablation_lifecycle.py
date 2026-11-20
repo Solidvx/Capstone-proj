@@ -23,9 +23,9 @@ def test_incremental_reader_keeps_partial_line_and_future_events(tmp_path):
 
 
 def test_owned_ids_outlives_duration_and_exits_after_parent_loss(tmp_path):
-    bus=Mock(start_time=0, clock_offset_ns=0, idle_time=0)
+    bus=Mock(start_time=0, clock_offset_ns=0, idle_time=0, rx_dropped=0)
     bus.receive.return_value=None
-    with patch('security.ids.runtime.SocketCan',return_value=bus), patch('security.ids.runtime.os.getppid',side_effect=[123,123,123,1]), patch('security.ids.runtime.time.monotonic',side_effect=[0,0]):
+    with patch('security.ids.runtime.OrderedSocketCan',return_value=bus), patch('security.ids.runtime.os.getppid',side_effect=[123,123,123,1]), patch('security.ids.runtime.time.monotonic',side_effect=[0,0]):
         assert main(['--interface','test','--rules-only','--parent-pid','123','--duration','.001','--log',str(tmp_path/'ids')])==0
     assert bus.receive.call_count==2
     bus.close.assert_called_once()

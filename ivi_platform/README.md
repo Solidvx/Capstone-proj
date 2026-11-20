@@ -4,6 +4,9 @@ Debian 13 ARM64, C++17, SocketCAN, Qt 6.8 Quick/QML 기반 Node B 구현이다. 
 
 ## 현재 구현 범위
 
+2026-11-11: 제품 기본 인증은 session-v2이며 ECU와 IVI 양쪽에 명시적인 세션 정책이 필요하다. 아래 P1~P4는 기존 단계의 기록이다. 현재 연결과 검증 범위는 CHG-029 실제 앱 검증을 따른다. 개발 정책은 vcan 시험값이며 물리 장비 인수값이 아니다. 기존 고정키 송신 도구·실험 스크립트는 legacy-v1 경계를 명시해야 하며 전체 자동실험 전환은 진행 중이다.
+
+
 P1에서 로컬 보관본의 C++/QML을 선택 이관하고, P2에서 CAN·SecOC pending 정책과 수신 오류 경계를 완성했다. P3에서는 stale·IDS 확인·Fail-safe 전체 화면 경고를 완성했다. P4에서는 Linux `vcan0` 통합과 Qt T1~T4 계측을 완료했다.
 
 - `ivi_core`: CAN parser, OpenSSL HMAC-SHA256 verifier, 인증 후 게시하는 `VehicleDataService`
@@ -28,7 +31,8 @@ Qt 6.8 이상이 없으면 core와 시험만 빌드된다. Qt target을 명시�
 Qt 앱 실행 시 32바이트 SecOC 키와 CAN 인터페이스를 명시한다. 키 파일은 저장소에 커밋하지 않는다.
 
 ```bash
-./ivi_platform/build/ivi_dashboard --interface vcan0 --secoc-key /etc/secoc/key.bin
+./ivi_platform/build/ivi_dashboard --interface vcan0 --secoc-key /etc/secoc/key.bin \
+  --protocol session-v2 --session-policy adaptive_ecu/data/session-v2-development.conf
 ```
 
 환경 점검은 `scripts/check_qt_ivi_env.sh`, 테스트 프레임 전송은 `scripts/send_ivi_test_vectors.py --help`를 사용한다.
@@ -71,7 +75,7 @@ sudo ./ivi_platform/scripts/install_rpi.sh
 sudo ./ivi_platform/scripts/provision_secoc_key.sh <32-byte-key-file>
 ```
 
-실제 MCP2515 `can0`와 display는 별도 물리 시험으로 판정한다. 단계별 결과는 [P1](../docs/aidlc/changes/CHG-003/construction/P1_구현_결과.md), [P2](../docs/aidlc/changes/CHG-003/construction/P2_구현_결과.md), [P3](../docs/aidlc/changes/CHG-003/construction/P3_구현_결과.md), [P4](../docs/aidlc/changes/CHG-003/construction/P4_구현_결과.md), 전체 상태는 [CHG-003](../docs/aidlc/changes/CHG-003/aidlc-state.md)에 기록한다.
+실제 MCP2515 `can0`와 display는 별도 물리 시험으로 판정한다. 단계별 결과는 P1, P2, P3, P4, 전체 상태는 CHG-003에 기록한다.
 
 ## SecOC 보완 브랜치의 소프트웨어 구현
 
@@ -93,4 +97,10 @@ ctest --test-dir ivi_platform/build --output-on-failure
 ```
 
 Qt 화면 시험을 완료로 보고하려면 offscreen QML 경고·복구 시험 `test_dashboard_security`가 실제 실행되어야 한다.
-실행 증거와 한계: [CHG-006](../docs/aidlc/changes/CHG-006/audit.md).
+실행 증거와 한계: CHG-006.
+
+## 2026-11-10 실제 앱형 UI
+
+800×480 기준 배터리/보안/이력/설정 화면, 중앙 알림, 화이트/다크 저장을 구현했다. 배터리 현황·최근2개 이벤트·하단44px탭은 한 화면에 고정하고 보안/전체 이력만 내부 스크롤한다. 실제 수신값과 실제 검증 실패를 사용하며 재시작 단계나 공격별 차단 성공을 추정하지 않는다.
+
+일반 CAN 실행은 전체 화면이다. 점검용 창 모드는 --windowed를 추가한다. --demo는 창 모드를 유지한다. CHG-028 실행·시험, 추가 연결 결정사항을 참고한다. 이번 로컬12개 시험 통과는 Pi DSI/터치·물리 지연 인수가 아니다. 기존 /opt 설치본은 자동 갱신되지 않는다.

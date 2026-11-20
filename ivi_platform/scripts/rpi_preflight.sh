@@ -69,6 +69,16 @@ if [[ "${service_mode}" == "1" ]] && [[ ! -x /opt/ivi/bin/ivi_dashboard ]]; then
   fail "installed dashboard binary is missing"
 fi
 
+if [[ "${service_mode}" == "1" ]]; then
+  for policy in "${IVI_SESSION_POLICY:-}" "${IVI_EVENT_POLICY:-}"; do
+    if [[ "${policy}" == /* && -f "${policy}" && -r "${policy}" ]]; then
+      pass "policy file is readable: ${policy}"
+    else
+      fail "absolute readable IVI_SESSION_POLICY and IVI_EVENT_POLICY are required"
+    fi
+  done
+fi
+
 ip -details -statistics link show "${interface_name}" 2>/dev/null || true
 if [[ "${failures}" -ne 0 ]]; then
   echo "FAIL: ${failures} RPi preflight check(s) failed" >&2

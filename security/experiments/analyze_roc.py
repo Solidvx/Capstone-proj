@@ -8,6 +8,7 @@ import re
 from collections import defaultdict
 
 from security.attack_simulator import ATTACKS
+from security.ids.rule_baseline import confusion_metrics
 
 SCOPE='offline-if-1s-nonoverlap-v1'
 
@@ -26,17 +27,11 @@ def metrics(rows,threshold):
             item=per[row['attack_type']];item['windows']+=1;item['detected']+=positive
     for item in per.values():
         if item['windows']:item['tpr']=item['detected']/item['windows']
-    normal=counts['fp']+counts['tn'];attack=counts['tp']+counts['fn']
-    tp,fp,tn,fn=(counts[k] for k in ('tp','fp','tn','fn'))
-    ratio=lambda a,b:a/b if b else None
-    mcc_den=(tp+fp)*(tp+fn)*(tn+fp)*(tn+fn)
-    return {**counts,'normal_windows':normal,'attack_windows':attack,
-            'fpr':counts['fp']/normal if normal else None,
-            'tpr':counts['tp']/attack if attack else None,'per_attack':per,
-            'precision':ratio(tp,tp+fp),'recall':ratio(tp,tp+fn),
-            'fnr':ratio(fn,attack),'tnr':ratio(tn,normal),'f1':ratio(2*tp,2*tp+fp+fn),
-            'balanced_accuracy':(tp/attack+tn/normal)/2 if attack and normal else None,
-            'mcc':(tp*tn-fp*fn)/math.sqrt(mcc_den) if mcc_den else None}
+    result=confusion_metrics(**counts)
+    return {**result,'normal_windows':counts['fp']+counts['tn'],
+            'attack_windows':counts['tp']+counts['fn'],
+            'metric_unit':'ratio','decision':'score > threshold',
+            'tpr':result['recall'],'per_attack':per}
 
 
 def roc(rows):

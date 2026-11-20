@@ -13,7 +13,7 @@ def test_observer_drains_old_phase_then_ack_and_stops_on_eof(monkeypatch, capsys
     frame = SimpleNamespace(t=0, can_id=123, data=bytes(1), dlc=1, extended=False, remote=False, error=False)
     bus = Mock(dropped=0)
     bus.receive.side_effect = [(frame, False), None, None]
-    monkeypatch.setattr(trial_observer, 'healthy', lambda c: None)
+    monkeypatch.setattr(trial_observer, 'healthy', lambda c,environment='physical': None)
     monkeypatch.setattr(trial_observer, 'CaptureSocket', lambda c: bus)
     monkeypatch.setattr(trial_observer.select, 'select', lambda *a: ([0], [], []))
     monkeypatch.setattr(trial_observer.os, 'read', Mock(side_effect=[b'{"phase":"attack"}\n', b'']))

@@ -23,6 +23,33 @@ TEST(EkfSocEstimator, MaintainsSocWhenVoltageMatchesModel) {
     EXPECT_NEAR(estimator.soc(), 0.75f, 1e-5f);
 }
 
+TEST(EkfSocEstimator, TcBms001KnownHundredSecondDischarge) {
+    EkfSocEstimator::Config config;
+    config.initial_soc=0.8f;
+    config.capacity_ah=50.0f;
+    EkfSocEstimator estimator(config);
+    // Independent closed-form charge balance, not estimator output. The same
+    // virtual OCV model generates pack observations; this is not cell accuracy.
+    constexpr int samples=1000;
+    constexpr double dt=.1,current=-2.,capacity_as=50.*3600.;
+    for(int k=1;k<=samples;++k){
+        const double reference=.8+current*(k*dt)/capacity_as;
+        const auto estimate=estimator.update(static_cast<float>(dt),static_cast<float>(current),
+                                             static_cast<float>(packOcv(reference)));
+        ASSERT_TRUE(std::isfinite(estimate));
+        ASSERT_GE(estimate,0.0f);ASSERT_LE(estimate,1.0f);
+    }
+    const double reference_percent=100*(.8+current*(samples*dt)/capacity_as);
+    const double estimated_percent=100*static_cast<double>(estimator.soc());
+    const double error_pp=std::abs(estimated_percent-reference_percent);
+    EXPECT_NEAR(reference_percent,79.88888888888889,1e-10);
+    EXPECT_LE(error_pp,.5); // TEST_PLAN's absolute SOC percentage-point bound.
+    std::cout<<std::setprecision(12)<<"TC_BMS_001 samples="<<samples
+             <<" duration_s="<<samples*dt<<" reference_soc_pct="<<reference_percent
+             <<" estimated_soc_pct="<<estimated_percent<<" absolute_error_pp="<<error_pp
+             <<" limit_pp=0.5 environment=synthetic\n";
+}
+
 TEST(EkfSocEstimator, TracksHigherVoltageUpward) {
     EkfSocEstimator estimator;
 
@@ -121,5 +148,41 @@ TEST(EkfSocEstimator, CorrectionUsesSocDependentJacobian) {
         const double gain = p * h / (h * h * p + config.measurement_noise);
         const double expected = s + gain * (static_cast<double>(pack_voltage) / 10 - packOcv(s) / 10);
         EXPECT_NEAR(estimator.update(0.1f, 0.0f, pack_voltage), expected, 1e-5);
+    }
+}
+
+TEST(EkfSocEstimator, CompleteSnapshotContinuesSameCalculationWithoutGapIntegration) {
+    EkfSocEstimator original;
+    for (int i=0;i<700;++i) original.update(.1f,-2.0f,37.0f);
+    const auto saved=original.exportState();
+    EkfSocEstimator recovered;
+    ASSERT_TRUE(recovered.restoreState(saved));
+    EXPECT_FLOAT_EQ(recovered.soc(),original.soc());
+    EXPECT_FLOAT_EQ(recovered.exportState().covariance,saved.covariance);
+    // Only newly observed .1s samples are processed after recovery, not downtime.
+    for(int i=0;i<200;++i)
+        EXPECT_FLOAT_EQ(recovered.update(.1f,-2.0f,36.0f),original.update(.1f,-2.0f,36.0f));
+}
+
+TEST(EkfSocEstimator, InvalidSnapshotIsRejectedAtomically) {
+    EkfSocEstimator estimator;
+    estimator.update(.1f,-2.0f,35.0f);
+    const auto before=estimator.exportState();
+    for(int i=0;i<9;++i) {
+        auto bad=before;
+        switch(i) {
+        case 0: bad.version=2; break;
+        case 1: bad.soc=std::numeric_limits<float>::quiet_NaN(); break;
+        case 2: bad.soc=1.1f; break;
+        case 3: bad.soc=-.1f; break;
+        case 4: bad.covariance=-1; break;
+        case 5: bad.covariance=std::numeric_limits<float>::infinity(); break;
+        case 6: bad.capacity_ah=45; break;
+        case 7: bad.process_noise*=2; break;
+        case 8: bad.measurement_noise=0; break;
+        }
+        EXPECT_FALSE(estimator.restoreState(bad));
+        EXPECT_FLOAT_EQ(estimator.soc(),before.soc);
+        EXPECT_FLOAT_EQ(estimator.exportState().covariance,before.covariance);
     }
 }

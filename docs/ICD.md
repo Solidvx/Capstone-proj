@@ -1,7 +1,7 @@
-> **개발 재개 시 읽기 경계(2026-09-22)**: §1~2는 현행 CAN/SecOC wire 계약, §3은 ADR-010에 따른 Node B C++ Service API다. §8 sensorState byte 7은 승인된 다음 전환 목표이며 아직 활성 wire 계약이 아니다. 인증 세션 상세 전환도 별도 승인·양 노드 동시 반영 전까지 현행 고정키 규칙을 대체하지 않는다. 계약 변경은 AGENTS의 Default Workflow에 따라 ICD·양 노드 구현·시험을 같은 변경 단위로 동기화한다.
+> **계약 프로파일 경계(2026-11-11)**: §1~2의 고정키·인증 ID별 counter/래핑은 `legacy-v1` 실험 재현 프로파일이다. 사용자 승인된 제품 전환 계약 `session-v2`는 [인증 세션](ICD-CAN-SESSION.md) 및 [CAN 진단](ICD-CAN-DIAGNOSTIC.md)을 함께 따른다. 기존0x100~103/200 배치는 유지하지만 키/counter 의미는 비호환이다. 프로파일을 명시하고 자동 downgrade하지 않는다. 제품 양쪽 연결은 CHG-029에서 진행 중이며 승인만으로 배포/물리 인수가 완료된 것이 아니다. §3은 현재 C++ Service API이며 확장 연동도 같은 변경 단위로 진행한다. §8 sensorState byte7을 이번에 임의 활성화하지 않고 입력 준비/오류는 인증 NodeStatus로 전달한다.
 
 > **문서명**: Interface Control Document (ICD)  
-> **버전**: v1.6 | **작성일**: 2026-03-01 | **최종 수정**: 2026-10-03
+> **버전**: v1.7 (session-v2 전환 포함) | **작성일**: 2026-03-01 | **최종 수정**: 2026-11-11
 > **작성자**: 팀원A + 팀원B (공동 — 인터페이스 확정 후 각자 독립 개발 시작)  
 > **참조**: SRS v1.6, ADR-002 (SecOC 설계), ADR-009 (IDS 위치), ADR-010 (IVI Plan B), ADR-012 (분리 프레임)
 > **변경 관리**: 수정 시 GitHub Issue (`interface-change` 라벨) + 양측 합의 후 PR 머지
@@ -46,13 +46,17 @@
 
 | Reason Code | 의미 | 전이 방향 |
 | --- | --- | --- |
-| 0x01 | SOC < 20% | NORMAL → WARNING |
-| 0x02 | SOC < 5% | WARNING → CRITICAL |
+| 0x01 | SOC < 20% | NORMAL → WARNING; 과열 해제 후 SHUTDOWN → WARNING |
+| 0x02 | SOC < 5% 또는 보존된 저전압 CRITICAL | WARNING → CRITICAL; 과열 해제 후 SHUTDOWN → CRITICAL |
 | 0x03 | 온도 > 55°C | NORMAL → WARNING |
 | 0x04 | 온도 > 60°C | WARNING/CRITICAL → SHUTDOWN |
-| 0x05 | SOC ≥ 20% && 온도 ≤ 55°C | WARNING → NORMAL (복귀) |
+| 0x05 | SOC ≥ 20% && 온도 ≤ 55°C | WARNING → NORMAL; 아래 연속 확인 조건 충족 시 SHUTDOWN → NORMAL |
 | 0x06 | 수동 리셋 명령 수신 | SHUTDOWN → NORMAL (복귀) |
 | 0x07 | Watchdog 태스크 재시작 3회 연속 실패 | NORMAL → WARNING |
+
+**2026-11-11 승인된 과열 복귀 정책:** SHUTDOWN은 프로그램 재시작이나 실제 전원 차단 명령이 아니다. ECU 실행·온도 감시·상태 전송을 유지한다. 유효 온도가 55°C 이하로 5초 연속 유지되면 과열 보호를 해제한다. 무효 입력/입력 오류, 200ms 초과 관찰 공백, 시각 역행, 55°C 초과는 확인 구간을 다시 시작한다. 재시작 전 냉각 확인 시간은 복원하지 않는다. 55°C·5초는 가상 배터리 정책이며 산업 공통 기준이 아니다.
+
+해제 시 저전압 CRITICAL 이력이 있거나 관찰 SOC<5%이면 CRITICAL/0x02, 그 외 SOC<20%이면 WARNING/0x01, 나머지는 NORMAL/0x05로 전이한다. 저전압 CRITICAL은 과열 해제만으로 지우지 않는다. 현재 상태 통보의 reason도 목적 상태와 일치한다. 기존 CAN ID·방향·DLC·배치·인증 입력은 변경하지 않으며 기존 사유 코드의 허용 출발 상태를 확장한다. IVI는 인증된 전이를 받아 표시하고 UI 자체 타이머로 위험 상태를 해제하지 않는다.
 
 > `0x07`은 배터리 상태가 아니라 **소프트웨어 감시 실패**에 의한 전이다 (SRS FR-BSW-006, NFR-REL-001/002). Node B는 이 코드를 SOC·온도 사유와 구분하여 표시한다. 이미 WARNING 이상 상태이면 전이가 발생하지 않으므로 `0x101`도 송신하지 않는다.
 
@@ -155,9 +159,9 @@ TruncatedMAC = MAC[0:4]  (앞 4바이트)
 
 현행 고정키의 uint32 래핑은 유지하지만 last=0xFFFFFFFF 이후 0 수신은 동일 키의 정상 래핑과 재부팅을 구별하지 못한다. 위 정정만으로 재부팅·전체 counter 순환의 replay 위험을 해결했다고 주장하지 않는다.
 
-**승인된 다음 방향:** 인증된 세션을 통해 자동 복구한다. [세션 설계안](development/security/CAN_세션인증_설계안.md)의 상세 wire·키 파생·운영 수치는 사전 검증과 별도 승인 후 양측에 동시 적용한다. 새 세션 없이 고정키 counter를 초기화하는 것으로 대체하지 않는다. 이번 정정은 CAN ID·방향·DLC·바이트 배치·HMAC 입력 순서·Node B Service API를 변경하지 않는다.
+**승인된 다음 방향:** 인증된 세션을 통해 자동 복구한다. 세션 설계안의 상세 wire·키 파생·운영 수치는 사전 검증과 별도 승인 후 양측에 동시 적용한다. 새 세션 없이 고정키 counter를 초기화하는 것으로 대체하지 않는다. 이번 정정은 CAN ID·방향·DLC·바이트 배치·HMAC 입력 순서·Node B Service API를 변경하지 않는다.
 
-2026-09-09 사용자 승인: [현행 계약 정정안](development/security/CAN_세션인증_설계안.md#secoc-amendment). 이전 §2.3 단순 비교·§2.4 경계 설명·§2.5.3 범위 밖 MAC 재동기화는 이 절로 대체한다.
+2026-09-09 사용자 승인: 현행 계약 정정안. 이전 §2.3 단순 비교·§2.4 경계 설명·§2.5.3 범위 밖 MAC 재동기화는 이 절로 대체한다.
 
 ---
 
@@ -393,4 +397,8 @@ Node A (ECU)                    CAN 버스                Node B (IVI Service)
 
 정상 데이터 수신 기록은 인증·품질 확인 후 갱신한다. 오류/복구/미지원 상태로 마지막 정상 수신 경과시간을 갱신하지 않는다. UI 표시는 `마지막 정상 데이터 수신 후 …`이며 실제 측정 시각으로 표현하지 않는다. 통신 timeout의 stale과 sensorState는 독립이다. 센서 상태 정상만으로 이전 Fail-safe 판정 유무나 계산 공백 후 SOC 정확도를 추론하지 않는다.
 
-이 byte 7 확장은 세션 인증 후보의 승인과 별개다. 세션 nonce·ID·키 파생·counter 변경은 [세션 후보](development/security/CAN_세션인증_설계안.md)의 사전 검증·확정 절차를 계속 따른다. 혼합 버전에서 0을 새 정상 상태로 처리하지 않는다.
+이 byte 7 확장은 세션 인증 후보의 승인과 별개다. 세션 nonce·ID·키 파생·counter 변경은 세션 후보의 사전 검증·확정 절차를 계속 따른다. 혼합 버전에서 0을 새 정상 상태로 처리하지 않는다.
+
+### 2026-11-14 보호 사건 연속성 확장 승인
+
+ECU→IVI0x302의 종류8 ProtectionStatus(56B/24프레임)를 승인했다. 정확한 본문/단계/복원·연결 규칙은 [CAN 진단 계약](ICD-CAN-DIAGNOSTIC.md#8-protectionstatus--ecuivi56b24프레임)을 따른다. 기존 ID/DLC·종류1~7·HMAC 입력/최대 조립 상한은 유지한다. 신규 codec/문서 변경과 실제 ECU checkpoint/발행·IVI 영속 연결·물리 인수 완료를 구분한다.

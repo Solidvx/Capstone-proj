@@ -1,0 +1,24 @@
+# Explicit DEVELOPMENT policy. Values require physical Pi load/timing checks.
+# Copy to /etc/capstone/ecu-<login>.conf only during reviewed deployment.
+ECU_INTERFACE=can0
+ECU_SENSOR_MODE=ads1115
+ECU_I2C_DEVICE=/dev/i2c-1
+ECU_SESSION_POLICY=/etc/capstone/session.conf
+ECU_KEY_PATH=/etc/secoc/key.bin
+ECU_STOP_TIMEOUT_S=3
+ECU_STARTUP_TIMEOUT_S=5
+ECU_HEARTBEAT_TIMEOUT_S=3
+ECU_MAX_CRASH_RESTARTS=3
+ECU_CHECKPOINT_PERIOD_MS=1000
+ECU_CHECKPOINT_FLUSH_MS=2000
+ECU_CHECKPOINT_MAX_AGE_MS=30000
+ECU_RESTART_WAIT_MS=1000
+ECU_RESTART_RETRY_MS=200
+ECU_RESTART_NOTICE_ATTEMPTS=3
+# Optional whitespace-separated argv, expanded by systemd without a shell.
+# E.g. --soh-profile /etc/capstone/soh.csv
+ECU_INPUT_ARGS=
+
+# Optional owned IDS. Requires a reviewed local settings JSON and Python deps.
+# ECU_SUPERVISOR_ARGS=--ids-settings /etc/capstone/ids.json
+ECU_SUPERVISOR_ARGS=

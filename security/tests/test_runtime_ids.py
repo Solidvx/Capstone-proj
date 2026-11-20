@@ -93,7 +93,45 @@ class RuntimeIdsTests(unittest.TestCase):
         count=run_replay(d,[frame(.9),1.0],output)
         self.assertGreater(count,0)
         self.assertIn('"reason": "IF_ANOMALY"',output.getvalue())
+        self.assertIn('"result": "MODEL_EVALUATION"',output.getvalue())
         self.assertEqual(len(model.vector),7)
+
+    def test_if_inference_evidence_is_not_an_attack_or_missing_input_success(self):
+        class Model:
+            def anomaly(self, vector):return -0.25
+        detector=RuntimeDetector(model=Model())
+        detector.observe(frame(.9))
+        events=detector.tick(1.0)
+        inference=next(event for event in events if event.result=='MODEL_EVALUATION')
+        self.assertEqual(inference.anomaly_score,-0.25)
+        self.assertEqual(inference.frame_count,1)
+        self.assertTrue(inference.input_complete)
+        self.assertEqual(len(inference.features),7)
+        self.assertIsNone(inference.alert_payload(1))
+        throttle=AlertThrottle()
+        throttle.offer(inference)
+        self.assertIsNone(throttle.pop_ready(1.0))
+        from security.ids.observation_window import ObservationWindow
+        window=ObservationWindow(0)
+        body,_=window.observe(1000,frame_present=True,events=[inference],total_drops=0)
+        self.assertEqual(body[48],0)
+        self.assertFalse(any(event.reason=='IF_ANOMALY' for event in events))
+        later=detector.tick(3.0)
+        self.assertTrue(any(event.result=='MODEL_SKIPPED' for event in later))
+        self.assertFalse(any(event.result=='MODEL_EVALUATION' for event in later))
+
+    def test_if_clipped_input_is_not_reported_as_complete(self):
+        class Model:
+            def anomaly(self, vector):return -0.25
+        detector=RuntimeDetector(model=Model())
+        for i in range(4097):
+            detector.observe(frame(.2+i*.0001,0x123))
+        inference=next(event for event in detector.tick(1.0) if event.result=='MODEL_EVALUATION')
+        self.assertEqual(inference.frame_count,4096)
+        self.assertFalse(inference.input_complete)
+        detector.observe(frame(1.9))
+        recovered=next(event for event in detector.tick(2.0) if event.result=='MODEL_EVALUATION')
+        self.assertTrue(recovered.input_complete)
 
     def test_config_and_time_rejection(self):
         with self.assertRaises(ValueError):Config(missing_s=-1)

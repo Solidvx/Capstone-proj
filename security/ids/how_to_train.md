@@ -1,6 +1,6 @@
 # IDS 학습·평가 재현 절차
 
-프로젝트 루트에서 실행한다. 장비 준비 절차는 [Pi 수동 인계](../../docs/development/playbooks/pi-manual-handoff.md)를 참고하며, 아래 CAN 실행은 환경·빌드·정상 통신 확인 **이후** 단계다. 이미 완료한 준비를 반복할 필요는 없다. 기존 키·모델·정상 로그를 덮어쓰지 않는다. 실제 키 내용은 공개하지 않는다.
+프로젝트 루트에서 실행한다. 사용자 첫 작업은 [임시_할일.md](../../임시_할일.md)이며, 아래 CAN 실행은 환경·빌드·정상 통신 확인 **이후** 단계다. 기존 키·모델·정상 로그를 덮어쓰지 않는다. 실제 키 내용은 공개하지 않는다.
 
 ## 1. 정상 학습 데이터
 
@@ -28,7 +28,7 @@ capture는 COMPLETE·SHA·프레임 형식/연속성을 검사한다. 최소 조
 
 학습·calibration·evaluation을 별도 capture/run/SHA로 분리한다. 인접 윈도우를 같은 캡처에서 잘라 두 split으로 나누어 독립이라고 주장하지 않는다. 공격 라벨은 실제 주입 구간을 검증해 만들며 경보로 추측하지 않는다. 사용한 seed/profile/family 목록을 보존한다. 새로운 seed가 미지 공격이라는 뜻은 아니다.
 
-[설정·분석 안내](../../docs/development/playbooks/experiment-analysis.md)에 따라 captures template → score_ids_captures → analyze_roc → render_roc를 실행한다. 기본 후보 조건은 정상 FPR ≤5%와 **각 네 공격** TPR ≥90%이며 calibration만 사용한다. 후보가 없으면 미달을 그대로 기록한다. 평가 결과로 임계를 재튜닝한 자료를 같은 독립 최종 평가라고 하지 않는다.
+설정·분석 안내에 따라 captures template → score_ids_captures → analyze_roc → render_roc를 실행한다. 기본 후보 조건은 정상 FPR ≤5%와 **각 네 공격** TPR ≥90%이며 calibration만 사용한다. 후보가 없으면 미달을 그대로 기록한다. 평가 결과로 임계를 재튜닝한 자료를 같은 독립 최종 평가라고 하지 않는다.
 
 ## 3. wire FPR·Ablation·반복
 

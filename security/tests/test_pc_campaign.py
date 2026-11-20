@@ -32,6 +32,27 @@ def test_pc_template_roles_no_local_health_or_attacker_key():
     with pytest.raises(ValueError,match='SecOC'):pc.validate_pc_settings(cfg)
 
 
+@pytest.mark.parametrize('role',['ecu','ids','receiver_on','receiver_off'])
+@pytest.mark.parametrize('change',['missing','session-v2','duplicate'])
+def test_legacy_campaign_rejects_implicit_or_mixed_protocols(role,change):
+    cfg=settings()
+    if change=='missing':cfg[role][-1]=cfg[role][-1].replace(' --protocol legacy-v1','')
+    elif change=='session-v2':cfg[role][-1]=cfg[role][-1].replace('--protocol legacy-v1','--protocol session-v2')
+    else:cfg[role][-1]+=' --protocol legacy-v1'
+    with pytest.raises(ValueError,match='protocol'):pc.validate_pc_settings(cfg)
+
+
+def test_wrong_campaign_protocol_fails_before_remote_health_or_run_creation(tmp_path,monkeypatch):
+    args=argv(tmp_path,'pilot')
+    cfg=settings();cfg['protocol']='session-v2'
+    (tmp_path/'settings.json').write_text(json.dumps(cfg))
+    health=Mock(side_effect=AssertionError('must not touch hardware'))
+    monkeypatch.setattr(scheduler,'check_health',health)
+    with pytest.raises(SystemExit):pc.main(args)
+    health.assert_not_called()
+    assert not (tmp_path/'run').exists()
+
+
 @pytest.mark.parametrize('stage,count',[('pilot',1),('test360',30)])
 def test_pc_runs_from_controller_without_key_or_local_can(tmp_path,monkeypatch,stage,count):
     calls,health=install_fake(monkeypatch)

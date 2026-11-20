@@ -10,6 +10,9 @@ constexpr std::uint32_t kCanIdBmsFailSafe = 0x101;
 constexpr std::uint32_t kCanIdBmsSecOc = 0x102;
 constexpr std::uint32_t kCanIdFailSafeSecOc = 0x103;
 constexpr std::uint32_t kCanIdIdsAlert = 0x200;
+constexpr std::uint32_t kCanIdCurrentState=0x104,kCanIdCurrentStateSecOc=0x105;
+constexpr std::uint32_t kCanIdSessionEcu=0x300,kCanIdSessionIvi=0x301;
+constexpr std::uint32_t kCanIdDiagnosticEcu=0x302,kCanIdDiagnosticIvi=0x303;
 constexpr std::uint16_t kNoSuspectCanId = 0xFFFF;
 constexpr std::size_t kClassicCanPayloadSize = 8;
 

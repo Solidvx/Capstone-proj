@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <atomic>
 #include <thread>
 
 namespace {
@@ -127,11 +128,16 @@ TEST(Ads1115Acquirer, OutOfRangeRawIsRejectedAndKeepsLastValidValue) {
 }
 
 TEST(Ads1115AcquisitionWorker, PublishesResultsFromItsOwnThread) {
-    Bus bus;  // real clock; the fake bus completes conversions immediately
-    const auto start = std::chrono::steady_clock::now();
-    Ads1115AcquisitionWorker worker(bus, [start] {
-        return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now() - start).count());
+    Bus bus;
+    const auto owner = std::this_thread::get_id();
+    std::atomic<std::uint64_t> time{0};
+    std::atomic<bool> worker_clock_used{false}, owner_clock_used{false};
+    // This checks threading/publication, not host scheduling latency. The
+    // deterministic acquirer cases above still enforce the real 20ms policy.
+    Ads1115AcquisitionWorker worker(bus, [&] {
+        if (std::this_thread::get_id() == owner) owner_clock_used = true;
+        else worker_clock_used = true;
+        return time.fetch_add(1);
     });
     worker.start();
     AdcSnapshot s;
@@ -143,4 +149,6 @@ TEST(Ads1115AcquisitionWorker, PublishesResultsFromItsOwnThread) {
     EXPECT_GE(s.last_valid_sequence, 2U);
     EXPECT_EQ(s.last_error_sequence, 0U);
     EXPECT_FLOAT_EQ(s.pack_v, 36.0f);
+    EXPECT_TRUE(worker_clock_used);
+    EXPECT_FALSE(owner_clock_used);
 }

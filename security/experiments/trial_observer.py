@@ -11,10 +11,16 @@ import signal
 import time
 
 from security.experiments.can_capture import CaptureSocket, frame_json, inspect_interface
+from security.ids.startup_identity import source_digest, file_digest
+import platform
+import sys
+from pathlib import Path
 
 
-def healthy(channel):
-    info = inspect_interface(channel, 'physical')
+def healthy(channel,environment='physical'):
+    if environment not in ('physical','vcan'):raise ValueError('explicit bus environment required')
+    info = inspect_interface(channel, environment)
+    if environment=='vcan':return info
     if info['bitrate'] != 500000 or info['state'] != 'ERROR-ACTIVE':
         raise RuntimeError('CAN must be ERROR-ACTIVE at 500000 bit/s')
     return info
@@ -24,9 +30,11 @@ def emit(row):
     print(json.dumps(row), flush=True)
 
 
-def observe(channel, duration, run_id, control_fd=0):
-    healthy(channel)
+def observe(channel, duration, run_id, control_fd=0,environment='physical'):
+    healthy(channel,environment)
     bus = CaptureSocket(channel)
+    try: clock_id = Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+    except OSError: clock_id = None
     stopping = False
     def stop(signum, frame):
         nonlocal stopping
@@ -35,7 +43,9 @@ def observe(channel, duration, run_id, control_fd=0):
     phase, pending = 'idle', b''
     deadline = time.monotonic() + duration
     try:
-        emit({'result': 'READY', 'run_id': run_id})
+        emit({'result': 'READY', 'run_id': run_id,'execution_identity':{
+            'schema':'python-actor-startup-v1','source_sha256':source_digest(),
+            'interpreter':file_digest(sys.executable),'python':platform.python_version()}})
         while not stopping and time.monotonic() < deadline:
             if select.select([control_fd], [], [], 0)[0]:
                 data = os.read(control_fd, 4096)
@@ -64,7 +74,7 @@ def observe(channel, duration, run_id, control_fd=0):
                         raise RuntimeError("observer backlog did not drain")
                     phase = next_phase
                     emit({'result': 'PHASE', 'run_id': run_id, 'phase': phase, 't': time.monotonic(),
-                          'drained_at_boundary': discarded, 'rx_dropped': bus.dropped})
+                          'drained_at_boundary': discarded, 'rx_dropped': bus.dropped, 'clock_id': clock_id})
             received = bus.receive(.01)
             if received:
                 frame, _ = received
@@ -82,10 +92,11 @@ def main():
     parser.add_argument('--interface', default='can0')
     parser.add_argument('--duration', type=float, required=True)
     parser.add_argument('--run-id', required=True)
+    parser.add_argument('--environment',choices=('physical','vcan'),default='physical')
     args = parser.parse_args()
     if not 0 < args.duration <= 86400:
         parser.error('duration must be in (0, 86400]')
-    observe(args.interface, args.duration, args.run_id)
+    observe(args.interface, args.duration, args.run_id,environment=args.environment)
 
 
 if __name__ == '__main__':

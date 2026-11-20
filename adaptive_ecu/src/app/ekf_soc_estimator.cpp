@@ -1,6 +1,7 @@
 #include "ekf_soc_estimator.h"
 
 #include <algorithm>
+#include <cmath>
 
 EkfSocEstimator::EkfSocEstimator() : EkfSocEstimator(Config{}) {}
 
@@ -29,6 +30,24 @@ float EkfSocEstimator::update(float dt_s, float current_a, float voltage_pack_v)
 
 float EkfSocEstimator::soc() const {
     return soc_;
+}
+
+EkfSocEstimator::Snapshot EkfSocEstimator::exportState() const {
+    return {1, soc_, covariance_, capacity_ah_, process_noise_, measurement_noise_};
+}
+
+bool EkfSocEstimator::restoreState(const Snapshot& snapshot) {
+    if (snapshot.version != 1 || !std::isfinite(snapshot.soc) ||
+        !std::isfinite(snapshot.covariance) || snapshot.soc < 0 || snapshot.soc > 1 ||
+        snapshot.covariance < 0 || !std::isfinite(snapshot.capacity_ah) ||
+        snapshot.capacity_ah <= 0 || snapshot.capacity_ah != capacity_ah_ ||
+        !std::isfinite(snapshot.process_noise) || snapshot.process_noise < 0 ||
+        snapshot.process_noise != process_noise_ ||
+        !std::isfinite(snapshot.measurement_noise) || snapshot.measurement_noise <= 0 ||
+        snapshot.measurement_noise != measurement_noise_) return false;
+    soc_ = snapshot.soc;
+    covariance_ = snapshot.covariance;
+    return true;
 }
 
 float EkfSocEstimator::ocvFromSoc(float soc) const {

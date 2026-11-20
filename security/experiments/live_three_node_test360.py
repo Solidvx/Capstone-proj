@@ -174,6 +174,7 @@ def main(argv=None, *, pc=False):
         metadata = {'schema': 'pc-test360-v1' if pc else 'test360-v3-continuous', 'stage': args.stage, 'trials': args.per_case, 'run_id': args.run_id,
                     'settings_sha256': live.sha256(args.settings), 'phases': phases,
                     'source_sha256': {p.as_posix(): live.sha256(p) for p in sorted(Path('security').rglob('*.py'))}}
+        if pc:metadata['protocol']=settings['protocol']
         if pc and args.stage == 'official':
             if not args.pilot_dir:raise ValueError('PC official stage requires --pilot-dir')
             pilot = Path(args.pilot_dir)

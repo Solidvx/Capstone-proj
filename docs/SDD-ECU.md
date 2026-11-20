@@ -1,10 +1,12 @@
 > **문서명**: Software Design Document — Node A (ECU) (SDD-ECU)  
-> **버전**: v1.8 | **작성일**: 2026-03-15 | **최종 수정**: 2026-10-03 | **작성자**: 팀원A  
+> **버전**: v1.8 | **작성일**: 2026-03-15 | **최종 수정**: 2026-11-11 | **작성자**: 팀원A
 > **참조**: ICD v1.6, SRS v1.6 (FR-BSW-*, FR-BMS-*, FR-SEC-*), ADR-001/002/003/005/008/009/011/012
 
 ---
 
 # 1. 문서 개요
+
+**2026-11-11 승인된 제품 전환 설계:** [ICD session-v2](ICD-CAN-SESSION.md)/[진단](ICD-CAN-DIAGNOSTIC.md)에 따라 Pub/Sub bridge 뒤에 세션 송신 게이트를 연결한다. 수신 callback은 시각/메타데이터를 보존한 유한 큐로 main 소유 경계에 넘기고 키/번호·상태/수신·송신을 직렬화한다. Python IDS는 로컬 IPC로 인증 발행자에 관찰/사건을 전달하고 노드 간에는 CAN만 쓴다. 관리자는 프로세스 회수/시작 의도·snapshot 검증/복구/시도 기록을 담당한다. 부팅·수동 시작은 fresh, 감독 중 자동 복구는 resume이다. 프로세스 감독자는 비차단 로컬 pipe의 제어 루프 작업 완료를 확인한다. 이 신호는 노드 간 통신이나 정상 배터리·수신 완료의 증거가 아니다. 실제 연결 상태는 CHG-029를 따르며 설계/승인을 구현 증거로 쓰지 않는다.
 
 원천 역할: ICD는 계약, SRS는 요구, 본 문서는 설계다. plan/development 링크는 승인 답변·선정 근거·실행 절차의 위치이며 상위 계약을 변경하는 권한 위임이 아니다. 충돌 시 AGENTS Source of Truth와 사용자 승인 범위를 우선한다.
 
@@ -23,7 +25,7 @@ Node A(ECU) 소프트웨어의 모듈 구조, 클래스 설계, 알고리즘, �
 
 # 2. ECU SW 계층 구조
 
-2026-09-08: 아래 구조도·API 골격은 설계 설명이다. `BmsComponent` 독립 파일은 없고 현재 조립·주기 실행은 `adaptive_ecu/main.cpp`가 담당한다. 실제 API는 각 `include/*.h`가 근거이며 아래 축약 이름으로 호출 코드를 복사하지 않는다. Python 실시간 도구의 현재 경로는 §3.8을 따른다. 실험 당시 버전과 인수 제한은 [실측 추적](development/experiments/physical-ablation-formal-2026-10-04/METHODS-AND-TRACEABILITY.md)에 연결한다. AUTOSAR를 참고한 교육용 구조이며 표준 구현·인증을 주장하지 않는다.
+2026-09-08: 아래 구조도·API 골격은 설계 설명이다. `BmsComponent` 독립 파일은 없고 현재 조립·주기 실행은 `adaptive_ecu/main.cpp`가 담당한다. 실제 API는 각 `include/*.h`가 근거이며 아래 축약 이름으로 호출 코드를 복사하지 않는다. Python 실시간 도구·모델·시험 경로는 §3.8의 예정 항목이다. AUTOSAR를 참고한 교육용 구조이며 표준 구현·인증을 주장하지 않는다.
 
 ```
 ┌───────────────────────────────────┐
@@ -170,32 +172,13 @@ while (running_) {
 
 ### 3.3.1. Publisher<T> 템플릿 설계
 
-```cpp
-template <typename T>
-class Publisher {
-private:
-    std::vector<std::function<void(const T&)>> subscribers_;
-    mutable std::mutex mtx_;
+실제 구현은 `include/publisher.h`와 `include/subscriber.h`다. Publisher는 구독 콜백 snapshot을 mutex 안에서 복사하고 락을 해제한 뒤 호출한다. 따라서 콜백 안의 추가 구독이 락 재진입으로 교착되지 않으며 새 구독자는 다음 발행부터 참여한다.
 
-public:
-    void subscribe(std::function<void(const T&)> callback) {
-        std::lock_guard<std::mutex> lock(mtx_);
-        subscribers_.push_back(std::move(callback));
-    }
+2026-11-10 제품 연결: `include/bms_middleware.h`의 `BmsMiddleware`가 BMS와 Fail-safe Publisher를 소유한다. 구독 시 Subscriber를 값으로 보관하고 발행 시 `Subscriber::onReceive()`를 호출한다. CAN 브릿지 구독자는 생성 시 연결하며 추가 로컬 구독도 지원한다. middleware는 자기 참조 콜백을 소유하므로 복사/이동을 금지한다. 발행 중 파괴하지 않고 생산자를 종료한 후 정리한다.
 
-    void send(const T& data) {
-        std::lock_guard<std::mutex> lock(mtx_);
-        for (auto& sub : subscribers_) {
-            sub(data);
-        }
-    }
+이는 동일 프로세스의 동기식 경량 Pub/Sub다. 숨겨진 큐·IPC·AUTOSAR 표준 런타임은 없다. 콜백은 짧고 비블로킹으로 유지해야 하며, 콜백 예외는 발행자에게 전파된다. 전송 실패는 결과 callback으로 보고한다. callback을 동시 발행에서 사용하는 추가 구독자는 자체 공유 상태를 동기화해야 한다.
 
-    size_t subscriberCount() const {
-        std::lock_guard<std::mutex> lock(mtx_);
-        return subscribers_.size();
-    }
-};
-```
+별도 Python IDS의 진단 제출은 ECU 내부 Unix datagram `CID2` 형식이다. magic 4바이트, kind 1바이트, 본문 길이 1바이트, 관찰 시점의 호스트 단조시각(ms, uint64 big-endian) 8바이트, 검증된 본문으로 구성하며 최대 118바이트다. 런타임은 로그/전달 지연 전의 관찰 시각을 넣는다. ECU는 UID/PID·소유 프로세스 생존 확인 뒤 미래 시각 또는 수신 시점 기준 3,000ms 이상 지난 제출을 첫 메시지부터 거부한다. 이후 source/tick 순서 검증과 CAN 발행 예산은 별도로 적용한다. 이는 동일 호스트 IPC 계약이며 CAN ID/DLC/진단 본문을 바꾸지 않는다. `CID1`은 거부하므로 Python IDS와 ECU 바이너리는 함께 갱신해야 한다. 신뢰된 로컬 생산자가 거짓 시각을 만드는 경우까지 방어한다고 주장하지 않는다.
 
 ### 3.3.2. Classic vs Adaptive 대응 설계 선택
 
@@ -254,7 +237,11 @@ OCV(SOC) = a3*SOC^3 + a2*SOC^2 + a1*SOC + a0
 | P_init | 0.01 | 초기 오차 공분산 |
 | SOC_init | 0.75 | 일반 초기 SOC 추정값 (75%) |
 
-SOC-1=B 사용자 답변에 따라 M3 계획 예제와 일반 초기 설정을 통일했다(2026-09-08). S-21 합성 시험에서는 승인된 초기 SOC 80%를 명시적으로 설정하며 일반 기본값으로 대체하지 않는다. Q=1e-5는 유지한다. 이는 계획 기준의 선택이며 실장비 최적값·제품 시험 합격을 뜻하지 않는다. 측정 후 튜닝은 별도 검토한다. 비교 결과는 [SOC 합성실험 결과](development/experiments/SOC_합성실험_결과.md)에 보존한다.
+SOC-1=B 사용자 답변에 따라 M3 계획 예제와 일반 초기 설정을 통일했다(2026-09-08). S-21 합성 시험에서는 승인된 초기 SOC 80%를 명시적으로 설정하며 일반 기본값으로 대체하지 않는다. Q=1e-5는 유지한다. 이는 계획 기준의 선택이며 실장비 최적값·제품 시험 합격을 뜻하지 않는다. 측정 후 튜닝은 별도 검토한다. 비교 결과는 SOC 합성실험 결과에 보존한다.
+
+2026-11-11 고정 CSV 검증 경로: evaluate_soc_profile은 실제 SensorSimulator PROFILE_CSV와 EkfSocEstimator를 호출하며 S-21의초기80%/50Ah/dt0.1초를 명시한다. 관측 전압은 팩 단위로 한 번 전달하고, 같은 float 관측 전류/dt/초기값의 적분 결과를 함께 출력한다. 정답 SOC는 native 인수나 추정기 입력에 없고 별도 Python 평가기만 읽는다. 실제 프로파일 행 수가 요청 횟수와 다르면 마지막 행 유지로 채우지 않고 거부한다.
+
+tools/quality/bms_profile.py가 사전 고정7조건의 관측36,000행/분리된 참 SOC36,001행(t0 포함)/조건 manifest를 생성한다. 시각/단위/실제 양자화 관측·전후 입력/소스/실행 파일 hash를 검증하며 주 비교2개는 각각 엄격한 RMSE 우위, 민감도4개는 역전까지 보존한다. 실제 결과·원본 해시, [재현 절차](../tools/quality/README.md#tc-bms-002-고정-csv-재현)를 따른다. 이는 합성 계산 모듈 인수이며 main의 wall-clock 주기/CAN/실물 OCV·센서 정확도를 입증하지 않는다.
 
 ### 3.4.2. SOH 추정 로직
 
@@ -264,6 +251,15 @@ SOH = (Q_current / Q_initial) * 100.0
 ```
 
 - S-4=A: Q_current는 가상 용량 열화 시나리오가 제공하는 추정 용량(Ah)이다. 50Ah에서 45Ah로 변경하면 SOH는 90%다. 실제 배터리 수명 추정의 검증을 뜻하지 않는다.
+
+**2026-11-10 제품 연결:** `virtual_battery.h`의 50Ah 공통 상수를 EKF와 SOH 기본 초기 용량에 사용한다. `SohCapacityScenario`가 별도 `--soh-profile` CSV를 시작 시 전부 검증·적재하고 main의 유효 센서 처리 주기에 `recordCycle(capacityAt(elapsed))`를 공급한다. 결과는 BmsMiddleware→Publisher→Subscriber→CanPublisher→0x100/0x102→IVI 인증 서비스에 전달된다. 기존 CAN/HAL 계약은 유지한다.
+
+CSV 헤더는 `elapsed_s,estimated_capacity_ah`다. 첫 시각은 0, 이후 엄격한 증가, 시각은 유한한 비음수, 용량은 유한한 (0,50]Ah여야 한다. 열 누락/추가·비수치·NaN/Inf·범위 초과·중복/역순·빈 파일은 CAN 초기화 전 exit 2로 거부한다. 잘못된 시나리오를 clamp나 100% 기본값으로 대체하지 않는다. 기존 estimator API의 단독 clamp 동작은 별개이며 시나리오 입력이 그곳에 도달하기 전에 검증한다.
+
+시간은 ECU 실행 루프 시작 기준 monotonic 경과 초다. 계단식 적용이며 보간·반복하지 않고 끝값을 유지한다. 명시적 fresh(전원 부팅·수동 시연 재시작)는 시나리오를0초부터 재생한다. session-v2 recovery를 설정한 자동 resume은 검증한 checkpoint의 SOH/시나리오 경과 시간을 복원한다. recovery 미설정의 기존 실행은 영속 SOH 복구를 하지 않는다. ADC 무효 동안 기존 정책대로 계산/송신을 보류하되 시계는 계속 흐른다. 다음 유효 처리에서 그 시각에 해당하는 최신 용량을 적용한다. 시나리오 미지정은 명시적인 가상 완전 건강(50Ah,100%) 입력이다.
+
+예제 `adaptive_ecu/data/soh_demo.csv`: 0초 50Ah(100%), 10초 47.5Ah(95%), 20초 45Ah(90%). 빠른 변화는 기능 시연용이며 실제 열화 속도가 아니다. 센서 profile/가변저항과 독립적이고 nominal SOC 용량을 시간마다 바꾸지 않는다. 실행 로그는 시나리오 출처·단계 수·기준 용량·변경 시각/용량을 기록한다. 재현 보고에는 CSV hash도 남긴다. CHG-025.
+
 - 누적 방전량은 별도 상태로 기록한다. 방전 5Ah를 용량 열화 5Ah로 자동 환산하지 않는다. 초기 추정 용량은 초기 용량이며 누적 방전량은 0에서 시작한다.
 
 ### 3.4.3. Fail-safe 상태머신
@@ -279,14 +275,17 @@ NORMAL ──────────────────▶ WARNING ──�
                             └────────┬─────────────┘
                                      ▼
                                  SHUTDOWN
-                                     │ 수동 리셋
+                                     │ 유효 온도≤55°C 5초 유지
                                      ▼
-                                  NORMAL
+                        NORMAL / WARNING / CRITICAL
+                        (저전압 상태·이력에 따라 선택)
 ```
 
-> CRITICAL에서 NORMAL로 직접 복귀하는 경로는 **의도적으로 두지 않는다**. SOC 5% 미만까지 떨어진 배터리는 자동 복구 대상이 아니며, SHUTDOWN을 거쳐 수동 리셋으로만 해제한다 (ICD §1.3 사유 코드 `0x05`는 WARNING → NORMAL 전용).
+> 저전압 CRITICAL의 자동 해제 경로는 두지 않는다. 과열 SHUTDOWN에 진입해도 저전압 latch를 보존하며 냉각 확인 후 CRITICAL로 돌아간다. 과열만 있었고 SOC도 정상인 경우에는 5초 연속 냉각 확인 후 NORMAL/0x05로 복귀한다. 수동 reset은 별도 기존 API이며 UI 닫기와 무관하다.
 
 **Watchdog 실패에 의한 전이** (FR-BSW-006, NFR-REL-001/002): WatchdogManager가 감시 대상 태스크의 재시작을 3회 연속 실패하면 NORMAL → WARNING으로 전이하고 ICD §1.3의 사유 코드 `0x07`로 `0x101`을 송신한다. 재시작 실행 주체는 태스크를 소유한 `main`이며, WatchdogManager는 타임아웃 감지와 횟수 집계만 담당한다.
+
+현재 CAN 수신 제품 연결은 main 소유 `CanReceiveRecovery`가 담당한다. 1초마다 실제 수신 loop 진행을 확인하고, 3초 무진행 또는 작업 오류를 회수→재시작 경로로 전달한다. timeout으로 정상 대기하는 수신기는 배선 단절/무트래픽만으로 실패 횟수를 소모하지 않는다. 복구 성공은 새 프레임의 callback 완료로 확인하며 스레드 시작만으로 성공 처리하지 않는다. 소켓·보안 세션/counter는 owner에 보존한다. 실제 복구3회 연속 실패 후 회수 완료면 기존 Fail-safe WARNING 처리와 checkpoint를 호출한다. 회수 불가면 중복 수신 작업을 만들지 않고 점검 필요로 표시한다. 원격 연결 복구 여부는 기존 CAN 인증 세션 흐름에서 별도로 판단한다. 드라이버/관리자 vcan 시험과 제품 오류 주입·물리 인수의 범위는 TEST_PLAN을 따른다.
 
 **상태별 동작:**
 
@@ -295,41 +294,29 @@ NORMAL ──────────────────▶ WARNING ──�
 | NORMAL | 정상 운전, 100ms 주기 BMS 데이터 전송 |
 | WARNING | 경고 상태 0x101/0x103 인증 통보; 승인된 취득 요청 간격 유지 |
 | CRITICAL | CRITICAL 상태 전이 0x101/0x103 인증 통보; 승인된 취득 요청 간격 유지 |
-| SHUTDOWN | SHUTDOWN 상태 전이 0x101/0x103 인증 통보; 실제 전원 차단은 필수 범위 밖 |
+| SHUTDOWN | 실행·온도 감시·상태 전송 유지. 과열로 재시작하지 않음. 연속 냉각 확인 후 위험별 복귀; 실제 전원 차단은 필수 범위 밖 |
 
 ## 3.4.4. CAN Publisher (BMS → CAN 전송 브릿지)
 
 **파일**: `adaptive_ecu/src/bsw/can_publisher.cpp`
 
-BmsComponent의 Publisher 이벤트를 구독하여 CAN 프레임으로 변환·전송하는 BSW 모듈이다. Application 계층(BMS)과 CAN 드라이버 사이의 데이터 흐름을 연결한다.
+`BmsMiddleware`의 Publisher/Subscriber를 통해 BMS 상태와 Fail-safe 이벤트를 받는 BSW 브릿지다. Application 계산은 `main.cpp`에 남아 있으며 CAN 인코딩·서명·송신 책임은 `CanPublisher`에 모은다.
 
-```cpp
-class CanPublisher {
-private:
-    CanDriver& driver_;
-    SecOcModule& secoc_;
-    std::atomic<bool> running_{false};
-    std::thread tx_thread_;
-    static constexpr int TX_PERIOD_MS = 100;
+- 실제 API: `CanPublisher(driver, secoc, secoc_enabled)`, `onBmsStatus(data)`, `onFailSafeEvent(event)`.
+- BMS는 main의 기존 100ms `sleep_until` 루프에서 발행하고 전이 이벤트는 FSM callback에서 즉시 발행한다. 별도 TX 스레드나 주기적 재송신을 추가하지 않는다.
+- 원본/auth의 ID·바이트·독립 counter 계약은 ICD를 유지한다. mutex로 두 종류의 동시 발행도 쌍 단위로 직렬화한다.
+- 원본 송신 실패 시 sign/auth 송신을 생략하고 counter도 소비하지 않는다. auth 송신 실패 시 이미 발급한 counter를 되돌리지 않는다. 자동 재시도는 하지 않는다.
+- 결과는 `Sent`, `OriginalSendFailed`, `AuthenticationSendFailed`이며 main이 실패 단계와 원본 ID를 기록한다. 송신 성공은 드라이버 제출 성공이며 상대 노드 수신 보장이 아니다.
 
-public:
-    CanPublisher(CanDriver& driver, SecOcModule& secoc);
-    void start();
-    void stop();
-    void onBmsStatus(const BmsStatusData& data);
-    void onFailSafeEvent(const FailSafeEvent& event);
-private:
-    CanFrame encodeBmsStatus(const BmsStatusData& data);
-    CanFrame encodeFailSafe(const FailSafeEvent& event);
-};
-```
+검증: `test_can_publisher`의 BmsMiddleware 시험은 동일 제품 wiring으로 다중 구독·FSM 전이·원본/auth 순서·MAC·독립 counter·OFF·원본/auth 실패·동시 발행을 검사한다. 물리 주기/수신/Qt 화면 인수는 별도다.
 
-**동작**:
-1. `Publisher<BmsStatusData>`를 구독하여 `onBmsStatus()` 콜백 수신
-2. ICD §1.2 레이아웃으로 8바이트 CAN 프레임 인코딩
-3. `SecOcModule::sign()`으로 인증 프레임(0x102) 생성
-4. `CanDriver::send()`로 원본(0x100) + 인증(0x102) 순차 전송
-5. Fail-safe 이벤트는 이벤트 기반으로 0x101 + 0x103 즉시 전송
+#### 선택형 송신 시도 기록
+
+`SocketCanCdd`의 내부 `CanTxTrace`는 기본 비활성이다. 감독자 `--trace-can-tx`를 선택하면 감독자가 개인 소유 비차단 pipe를 만들고 ECU에 `--tx-trace-fd`로 전달한다. `CanDriver::send()`의 bool API와 CAN 계약은 유지한다. 별도 TX 스레드나 재전송을 추가하지 않는다.
+
+한 시도마다 실행 UUID·순번·호스트 monotonic 시작/종료 ns·ID/DLC/공개 프레임 바이트·인증 counter·실제 syscall 여부/반환 바이트/errno를 고정512B 미만 JSON 한 번의 write로 기록한다. pipe 포화/단절은 기록 누락 누적으로 남기며 파일/네트워크 대기나 기록 재시도를 송신 경로에서 하지 않는다. 사전검사 오류는 syscall 오류와 구분한다. `kernel_accepted=true`는 classic CAN의16바이트 구조체 제출 성공이며 버스 전송·IVI 인증/게시의 증거가 아니다. 시간 차이도 드라이버 시도 경계이며 순수 syscall/물리 전송 지연이 아니다.
+
+감독자는 길이·형식·실행 UUID·순번/누락·counter/bytes·종료 원수를 검사하고 기존 manager 로그로 전달한다. trace 읽기/형식 오류는 trace만 닫으며 건강 감시 실패로 바꾸지 않는다. `ECU_CAN_TX_CAPTURE_END.COMPLETE`는 종료 기록/EOF와 원수의 정합성이다. 명시적 기록 drop이 있어도 스트림은 COMPLETE일 수 있으므로 `records_dropped`를 함께 확인한다. SIGKILL 등 종료 기록 부재는 INCOMPLETE다. 실행/해석과 검증 근거를 따른다.
 
 ---
 
@@ -514,7 +501,7 @@ SensorData SensorSimulator::nextFromHardware() {
 
 ADC-2=A의 첫 시험 설정(2026-09-08): 내부 128SPS, 요청 사이 최소 100ms, 완료 조회 간격 최소 1ms, 요청 시작 후 20ms 미만에 반환한 유효 결과만 인수한다. 20ms에 도달하면 만료로 처리한다. 같은 요청 구간에서 재시도하지 않으며 I2C 호출이 남아 있으면 다음 요청도 겹치지 않는다. 실제 구현에서 감시·CAN 처리를 취득 대기와 분리한다. 이 값은 승인된 시험 후보이며 커널 호출의 종료 상한이나 실측 보장이 아니다. 실측 후 재검토한다.
 
-위 예제는 변환식 설명이며 I2C 실패·범위 이탈·변환 준비 상태·센서 오류 복구 처리를 생략한 제품 코드가 아니다. 실제 구현은 [ECU M3](../plan/detail/ecu/M3_EKF_Failsafe_SecOC.md)의 승인된 센서 오류 정책을 적용한다. 전원·실제 입력은 3.3V/0~3.3V이고 PGA ±4.096V가 입력 허용 전압을 확대하지 않는다. 기준은 [확인사항 §1](development/governance/의사결정_기록.md#part2-confirmed)과 [TI 데이터시트](https://www.ti.com/product/ADS1115)다.
+위 예제는 변환식 설명이며 I2C 실패·범위 이탈·변환 준비 상태·센서 오류 복구 처리를 생략한 제품 코드가 아니다. 실제 구현은 ECU M3의 승인된 센서 오류 정책을 적용한다. 전원·실제 입력은 3.3V/0~3.3V이고 PGA ±4.096V가 입력 허용 전압을 확대하지 않는다. 기준은 확인사항 §1과 [TI 데이터시트](https://www.ti.com/product/ADS1115)다.
 
 변환식 단위 시험의 이상적 입력/기대값은 raw=0 → 0V → 가상 30V, raw=13200 → 1.65V → 가상 36V, raw=26400 → 3.3V → 가상 42V다. 이는 계산 검증 벡터이며 장비 측정이나 SOC 정확도 증거가 아니다. 실제 드라이버 시험과 음수·범위 이탈·I2C 실패 시험은 구현 단계에서 수행한다.
 
@@ -530,8 +517,7 @@ ADC-2=A의 첫 시험 설정(2026-09-08): 내부 128SPS, 요청 사이 최소 10
 
 ### 3.8.1. 디렉토리 구조
 
-2026-10-21 통합 후 두 실행 경로를 함께 보존한다. 10월 4일 실장비 경로의 공격 CLI는 `security/attacks/attack_simulator.py`, 실시간 IDS는 `security/ids/runtime.py`와 `runtime_detector.py`, 실험은 `security/experiments/{can_capture,evaluate_normal,live_ablation,summarize_live,publication}.py`다. 별도 pickle 저장 모델을 읽는 경로는 사용하지 않는다. 실제 파일과 테스트/실측 인수는 구분하며 [CHG-014](aidlc/changes/CHG-014/aidlc-state.md)를 따른다.
-GitHub의 별도 관측 수신기 경로도 합성 생성기와 실 CAN 도구를 분리한다. `attack_simulator.py`는 물리 `canN`에서 격리 시험 확인·10초 상한을 강제하고, `capture_normal.py`는 학습 JSONL과 manifest를 새 파일로만 만든다. `secoc_tamper_fixture.py`는 IT-004의 정상 기준→MAC 1비트 변조→같은 counter 정상 복구를 통제한다. 모델 pickle은 로드하지 않으며 `ids/runtime.py`가 명시적으로 제공된 정상 캡처를 학습한다.
+현행 구현은 합성 생성기와 실 CAN 도구를 분리한다. `attack_simulator.py`는 물리 `canN`에서 격리 시험 확인·10초 상한을 강제하고, `capture_normal.py`는 학습 JSONL과 manifest를 새 파일로만 만든다. `secoc_tamper_fixture.py`는 IT-004의 정상 기준→MAC 1비트 변조→같은 counter 정상 복구를 통제한다. 모델 pickle은 로드하지 않으며 `ids/runtime.py`가 명시적으로 제공된 정상 캡처를 학습한다.
 
 ```
 security/
@@ -556,20 +542,18 @@ security/
 
 ### 3.8.2. CLI 인터페이스
 
-현재 `python -m security.attacks.attack_simulator --help`의 `--type` 선택 CLI가 존재한다. 실제 캠페인은 `security.experiments.live_ablation`을 사용했으며 수신·송신 소유권, 유한 재시도, 결과 원장을 함께 기록한다. 구체적 옵션과 재현은 [실행 플레이북](development/playbooks/live-security-validation.md)을 따른다.
 공통 `attack_simulator.py`는 `--type fuzzy|replay|spoofing|flooding`, `--channel`, `--duration`, `--rate`, `--seed`, `--run-id`, `--log`를 제공한다. `vcanN` 이외의 물리 인터페이스는 `--confirm-isolated-test-bus` 없이는 거부하고 실행시간 10초·요청률 4,000fps 상한을 둔다. Replay는 표준 `0x100` raw 또는 `--replay-mode authenticated-pair`의 과거 `0x100/0x102` 쌍을 사용한다. 인증 쌍 모드에서 rate는 쌍/초이며 상한은 두 프레임을 포함한 fps로 검증한다. 실행 JSON과 journal은 소켓 송신 수락 시각·성공 송신 수·중단 상태를 보존한다. 실제 버스 주입/수신 시각은 별도 Node B 관측기로 기록하고 버스 점유율은 추정값으로 채우지 않는다.
+
+키 없는 `security.experiments.can_attack_worker`의 Replay 관찰은 별도 경로다. 기존1초 관찰 전체를 순차 소비하며 첫 유효 원본/auth 쌍과 최신 원본만 유지한다. 인증 쌍 모드는 기존0..100ms 간격의 첫 쌍, 비인증 모드는 마지막 원본을 선택한다. 쌍을 일찍 찾더라도 전체 관찰의 제어 단절/예상 밖 명령·CAN 오류를 계속 확인하고 실패 시 송신하지 않는다. 새 프레임 개수 상한·키·MAC 검증·운영 임계를 추가하지 않는다. 이 고정된 live-frame 상태는 전체 worker RSS/커널 수신 큐/외부 로그 용량의 상한을 뜻하지 않는다. 합성 할당/실제 worker 검증.
 
 ### 3.8.3. 공격별 핵심 로직
 
-10월 4일 live 하네스의 시험 구현 경로는 `security/attacks/attack_simulator.py`와 `security/experiments/live_ablation.py`다. 초기 제안의 무한 송신/고정 캡처 절차와 구분한다.
-
-| 공격 | 현재 프레임 생성/선택 | 실행 구분 |
+| 공격 | 핵심 파라미터 | python-can 호출 |
 | --- | --- | --- |
-| Fuzzy | seeded RNG의 11-bit ID와 8-byte payload | seed와 실제 송신·오류를 원장에 보존 |
-| Replay | 단독 도구는 고정 예시 BMS; 물리 Ablation은 관측·수용된 BMS/auth 쌍 선택 | SecOC ON은 실제 관측 쌍, OFF는 원본 BMS 사용 |
-| Spoofing | 0x100, SOC raw=200과 고정 변조 payload | 인증 없는 주입이며 정상 인증 프레임과 결합한 게시를 별도 해석 |
-| Flooding | 0x000, 8-byte zero payload | 기한·요청률·유한 송신 재시도와 실제 점유율 측정 |
-
+| Fuzzy | `random.randint(0,0x7FF)`, `os.urandom(8)` | `bus.send(Message(arbitration_id, data, is_extended_id=False))` |
+| Replay | 사전 캡처된 메시지 큐 (FIFO) | 캡처: `Listener` 10초, 재전송: 원본 그대로 `bus.send()` |
+| Spoofing | target_id=0x100, 가짜 SOC raw=200 (=100%) | `bus.send(Message(0x100, [200, 190, ...]))` |
+| Flooding | target_id=0x100, 최대 속도 전송 | `while True: bus.send(msg)` (종료 기한·송신 timeout·오류 집계를 구현; 실제 속도/부하는 측정) |
 
 ## 3.9. Isolation Forest IDS 엔진 (Python)
 
@@ -595,9 +579,13 @@ security/
 
 현재 모델 클래스는 `security/ids/if_detector.py`의 `IsolationForestDetector`다. 기본 n_estimators=100, contamination=0.05, random_state=42는 **현재 코드 설정**이며 최종 성능을 보장하는 운영값이 아니다. 정상 학습·튜닝·평가 입력을 분리하고 모델·정규화 범위·설정·의존 버전·해시를 함께 보존하는 저장/로드 경로는 구현 과제다. 별도 `train_model.py`는 아직 없다.
 
+session-v2 정상 IF 평가 경로는 `security/experiments/evaluate_session_if.py`다. 세 캡처 manifest의 프로토콜/환경·해시/run-id·수집 시간 중복을 검사하고 동일 runtime 특징 추출기로 IF 단독 정상 오탐 창을 평가한다. 모델 저장/로드나 공격 기여 분석을 구현했다는 뜻은 아니다. runtime의 `MODEL_EVALUATION`은 실제 모델 호출 결과, `MODEL_SKIPPED`는 무입력 생략 근거이며 CAN 경보가 아닌 로컬 계측이다. 실행/해석은 [IDS 안내](../security/ids/README.md)를 따른다.
+
+N07 선택 계측은 `resource_metrics.py`와 runtime의 `--measure-resources`/관리형 `measure_resources` 설정을 사용한다. 실제 모델 준비/SocketCAN open 후 host 경과·현재 프로세스 CPU·Linux RSS endpoint/생애 peak·입력/처리/drop·고정 크기 단계별 시간 원수를 같은 세대 로그에 남긴다. 프레임/모델 윈도우와 anomaly/wire scoring 호출은 별도 단위이며 추가 추론은 없다. 중첩 단계 시간을 합산하지 않고 학습/자식 CPU·없는 모델 파일 크기를 만들지 않는다. 기본은 비활성이고 선택 여부를 startup identity에 포함한다. 정상/오류/인터럽트 요약과 최종 없음의 부분 sample을 구분하며 owner의 종료 상한을 보존한다. `summarize_resources.py`/PC collect_ids는 세대별 source hash·기간/분모·부분 상태를 보존하며 시행별 지표로 임의 분배하지 않는다. 실행/수집·한계를 따른다. 운영 임계/CAN·IF 효과·최대 처리량/물리 인수는 변경하거나 완료 처리하지 않는다.
+
 ### 3.9.3. 실시간 탐지 흐름
 
-CAN 수집 → 1초 윈도우 확정 → §3.9.1 특징 → 학습된 IF 점수 → 사전 고정한 임계 판정 → ICD §1.5의 0x200 경보 순서다. 수집·학습·경보 전송은 `security/ids/runtime.py`에 구현되어 있으며 실행 시 검증한 정상 입력에서 학습한다. 외부 직렬화 모델 역직렬화는 사용하지 않는다. 단위 시험과 실제 공격 인수는 [실측 추적](development/experiments/physical-ablation-formal-2026-10-04/METHODS-AND-TRACEABILITY.md)에서 구분한다.
+CAN 수집 → 1초 윈도우 확정 → §3.9.1 특징 → 학습된 IF 점수 → 사전 고정한 임계 판정 → ICD §1.5의 0x200 경보 순서다. 수집·저장/로드·경보 전송은 ECU M4에서 구현한다.
 
 `decision_function`은 낮을수록 이상이고 기본 predict 경계는 0이다. 현재 `anomaly()`는 그 부호를 반전하여 높을수록 이상이다. `wire_score()`의 0~255 raw를 다시 물리 점수처럼 100배 인코딩하지 않는다. 전송 wrapper에는 raw/표현값 중 어느 입력을 받는지 명시한다. 임계 -0.5나 미검증 유형 추론 규칙을 운영 기본값으로 복사하지 않는다. Unknown/masquerade에 새 wire 유형 코드를 임의 할당하지 않으며 유형 미확정의 송신 정책은 ICD 변경 게이트 또는 기존 코드 의미를 보존하는 구현 판단으로 정리한다.
 
@@ -617,25 +605,6 @@ contamination은 학습 분포에서 이상치로 둘 비율에 따라 offset을
 | 모델 로드 | `joblib.load('data/models/isolation_forest.pkl')` |
 | 의존성 | python-can, scikit-learn, numpy, pandas |
 
-### 3.9.5. 실시간 IDS 규칙 임계 확정과 정상 오탐 (EXQ-11)
-
-Config 3의 탐지는 `security/ids/runtime_detector.py`의 규칙으로 판정한다(스트리밍 탐지기). 사용자 결정 [EXQ-11=A](development/governance/보안실험_통합시험_진행결정.md#answers-applied)에 따라 아래 기본 임계를 **확정 동작점**으로 쓰고, 정상 트래픽만 넣은 오탐을 먼저 측정했다. 이 임계는 ROC로 고른 값이 아니라 공학적 기본값이며, 규칙 베이스라인 ROC(`rule_baseline.py`)와는 다른 탐지기다.
-
-| 규칙 | 확정값 | `Config` 필드 |
-| --- | --- | --- |
-| 최소 주기 | 50 ms | `min_period_s=0.050` |
-| 메시지 누락 | 300 ms | `missing_s=0.300` |
-| 인증 대기 만료 | 100 ms | `pending_s=0.100` |
-| 초당 프레임 | 100 | `max_frames_per_second=100` |
-| 1초 내 실패 반복 | 3 | `failure_repeat_count=3` |
-| SOC 변화 | 20 %p | `max_soc_step=20.0` |
-| 온도 변화 | 20 °C | `max_temperature_step=20.0` |
-| 전류 변화 | 100 A | `max_current_step=100.0` |
-
-**정상 오탐 측정(합성, 사전검증).** `security/experiments/measure_runtime_fpr.py`로 Node A 정상 트래픽(0x100 10 Hz + 0x102, seed 20261003, 149.918 s, 2998프레임)을 위 임계의 탐지기에 넣었다. 완료 1초 창 **149개 중 오탐 0개, FPR 0.00%** 로 TC-EXP-005 기준(≤5%)을 합성 등급에서 충족했다. 단위 시험은 `security/tests/test_measure_runtime_fpr.py`다.
-
-> 이 수치는 **합성(grade 1)** 사전검증이다. 잘 짜인 정상 트래픽에 대한 느슨한 규칙 임계의 결과이며, 실제 버스의 기동 과도·지터·다른 ID 혼입은 반영하지 않는다. **TC-EXP-005 최종 오탐은 물리 CAN 정상 캡처로 판정**하고 그 결과를 이 표와 별도로 기록한다. 측정 환경이 바뀌어 오탐이 5%를 넘으면 임계를 EXQ-11 B안(선정용/평가용 분리 보정)으로 다시 정한다.
-
 ---
 
 # 4. 데이터 흐름도
@@ -644,18 +613,18 @@ Config 3의 탐지는 `security/ids/runtime_detector.py`의 규칙으로 판정�
 [센서 입력: 전압, 전류, 온도]
         │
         ▼
-  BmsComponent.update()
+  main의 센서 취득·BMS 계산
         │
-        ├─▶ EkfSocEstimator.estimate() → SOC
-        ├─▶ SohEstimator.update() → SOH
+        ├─▶ EkfSocEstimator.update() → SOC
+        ├─▶ SohCapacityScenario → SohEstimator.recordCycle()/soh() → SOH
         ├─▶ FailSafeStateMachine.evaluate() → 상태 전이 판단
         │
         ▼
   Publisher<BmsStatusData>.send()   → 구독자 통지
   Publisher<FailSafeEvent>.send()   → (전이 시만)
         │
-        ▼  (구독자: CanPublisher)
-  CanPublisher.onBmsData() / onFailSafeEvent()
+        ▼  Subscriber<T>.onReceive() → CAN 브릿지
+  CanPublisher.onBmsStatus() / onFailSafeEvent()
         │
         ├─▶ SecOcModule.sign(payload) → MAC 생성
         │
@@ -697,7 +666,6 @@ C++ `test/`는 `adaptive_ecu/` 기준이다. 파일 존재와 공식 TC 전체 �
 | v1.3 | 2026-04-15 | 테스트 케이스 매핑 §5 추가 | 팀원A |
 | v1.4 | 2026-05-09 | §3.1 디렉토리 구조에 `data/` 디렉토리 추가, §5 테스트 매핑에 WatchdogManager·SensorSimulator 추가, 참조 문서 버전 ICD/SRS v1.3 반영 | 팀원A |
 | v1.5 | 2026-05-09 | §4 데이터 흐름도에 CanPublisher 모듈 명시, 참조 문서 SRS v1.3→v1.4 반영 | 팀원A |
-| v1.8 | 2026-10-03 | §3.9.5 추가 — 실시간 IDS 규칙 임계 확정값(EXQ-11=A)과 정상 오탐 합성 사전검증(149창 중 0건, FPR 0.00%). 최종 오탐은 물리 CAN에서 판정 | 사용자 |
 | v1.7 | 2026-10-03 | §3.7.3 ADS1115 제품 연결: 별도 취득 worker, 순번 기반 새 측정, 3회 확인·200ms 신선도, 오류·준비 중 송신 보류(ADS-1), 가상 고정 전류·온도(ADS-2), EKF 재개(ADS-3), 끝점 ±32코드 허용(B안, ±16에서 1000회 재측정 후 확대, 실측 기반 설계값·추가 측정 후 재검토), 오류 원인 로그. §3.7.1 모드 이름 검증·`setHardwareVoltage` 추가, POTENTIOMETER 제거(I-5=B). §3.5.1 송신 counter를 인증 CAN ID별 독립으로 갱신(ICD v1.6, CHG-012) | 팀원A |
 | v1.6 | 2026-09-06 | §3.7.2 OCV-SOC 3차 계수 교체 — 기존 계수는 SOC 12.3% 아래에서 단조성이 깨져 EKF 보정 방향이 반전되고 §3.7.3 ADS1115 범위(팩 30~42V)와도 불일치했다. 단조 증가·끝점 정합 제약의 가상 계수로 교체하고 검증표를 추가(실측 피팅 근거 없음). §3.4.1에 팩→단셀 변환 명시. §3.4.3에 Watchdog 실패 전이(ICD 사유 코드 `0x07`)와 CRITICAL 복귀 경로 부재 근거 추가 | 팀원A |
 
@@ -713,19 +681,95 @@ S-3=A의 다음 전환 목표는 [ICD §8](ICD.md#8-승인된-다음-전환-목�
 가상 10직렬/50Ah 장비 모델은 ADC 취득·상태 통보·IVI 전달 검증에 사용한다. NASA 단셀 자료는 원시 단위의 재생·데이터 검증으로 유지한다. FR-BMS-002/TC-BMS-002의 정량 비교는 별도 참 상태와 동일 관측을 사용하는 합성 시험으로 분리한다. 상세 인수는 TEST_PLAN의 S-7=A 절을 따른다. 합성 생성기의 모델·관측 오차는 TEST_PLAN의 S-21=A, 제품 설정은 SOC-1/2 승인과 실제 `include/ekf_soc_estimator.h`를 따른다. 제품 기본 초기 SOC 75%와 시험 초기 SOC 80%를 구분한다. 이 계획 변경으로 실제 코드·모델 유효성·장비 인수를 완료했다고 해석하지 않는다.
 
 
-2026-09-08 종합 정합성 검토: 현재/예정 경로, 승인 상태, 단위·측정·실행 예제를 대조·정정했다. 세부 변경과 보류 관문은 [종합 검토](development/reviews/문서_종합정합성_검토.md)에 기록한다. 기존 요구/TC ID와 ICD 계약 본문은 보존했다.
+2026-09-08 종합 정합성 검토: 현재/예정 경로, 승인 상태, 단위·측정·실행 예제를 대조·정정했다. 세부 변경과 보류 관문은 종합 검토에 기록한다. 기존 요구/TC ID와 ICD 계약 본문은 보존했다.
 
 
 ## 2026-09-09 승인된 SecOC 현행 규칙 정정
 
 현행 고정키 수신 규칙은 [ICD §2.3~2.5](ICD.md#23-수신-검증-절차-node-b)를 따른다. 단순 대소 비교나 범위 밖 유효 MAC만으로 counter를 재동기화하는 이전 설명은 적용하지 않는다. 실제 C++/Python verify는 이 정정과 일치하며 알고리즘 변경은 없다. 첫 수신 MAC 성공은 새 부팅을 증명하지 못하고, 수신기 재부팅 후 과거 메시지 수락 위험이 남는다. 요구사항의 replay 방어 기준을 낮추거나 전체 보안 인수를 완료 처리하지 않는다.
 
-인증 세션 자동 복구의 승인된 방향은 유지한다. 세션 상세 계약·양측 전환·재부팅 보안 시험은 [세션 설계안](development/security/CAN_세션인증_설계안.md)의 별도 관문이다. 새 wire·키 파생·HAL 변경을 이번 정정 승인으로 포함하지 않는다.
+인증 세션 자동 복구의 승인된 방향은 유지한다. 세션 상세 계약·양측 전환·재부팅 보안 시험은 세션 설계안의 별도 관문이다. 새 wire·키 파생·HAL 변경을 이번 정정 승인으로 포함하지 않는다.
 
 ## CAN IDS 소프트웨어 실행 경로 (CHG-007)
 
-`security/ids/runtime_detector.py`와 `runtime.py`에 시간 주입 탐지·규칙·독립 SecOC 관찰·기존 IF 연동·JSONL replay·SocketCAN 수신/0x200 송신을 구현했다. 0x200/7차원 특징/기존 오프라인 평가 계약은 유지한다. 원인 미확정 이상은 로컬 진단으로만 남기고 wire 공격 종류를 추가하지 않는다. 임계·버퍼·IF 모드·전송 제한·키 부재 동작은 [IDS README](../security/ids/README.md)에 명시한다. 승인 대기인 Node B 인증 이벤트 전송과 세션 프로토콜은 구현하지 않았다. [시험 증거](aidlc/changes/CHG-007/audit.md).
+`security/ids/runtime_detector.py`와 `runtime.py`에 시간 주입 탐지·규칙·독립 SecOC 관찰·기존 IF 연동·JSONL replay·SocketCAN 수신/0x200 송신을 구현했다. 0x200/7차원 특징/기존 오프라인 평가 계약은 유지한다. 원인 미확정 이상은 로컬 진단으로만 남기고 wire 공격 종류를 추가하지 않는다. 임계·버퍼·IF 모드·전송 제한·키 부재 동작은 [IDS README](../security/ids/README.md)에 명시한다. 승인 대기인 Node B 인증 이벤트 전송과 세션 프로토콜은 구현하지 않았다. 시험 증거.
 
-## 2026-10-21 통합 실행 경계
 
-[CHG-019](aidlc/changes/CHG-019/spec.md)에 양쪽 IDS/실험 도구 통합을 기록한다. IDS는 커널 수신 시각·독립 IF 보정을 사용하고, READY/run-id 및 유형별 최대4개 FIFO를 유지한다. 전체 송신 시도100ms 간격과 ENOBUFS/EAGAIN 기록 후 계속 수신을 결합하며 실패 경보를 재큐잉하지 않는다. 명시 ids-normal-v2 manifest 또는 로컬 frames.jsonl의 캡처 manifest를 검증한다. CAN/HAL·탐지 임계는 바꾸지 않았으며 과거 물리 결과는 통합 소스의 물리 재인수 증거가 아니다.
+### 센서 오류·회복 보완 (2026-11-11)
+
+기존 인증 NodeStatus의 입력 품질을 ECU 오류 경로에서도 전달한다. IVI는 최근 입력 오류 보고와 통신 단절을 구분하고, 정상 품질 보고에 더해 새 BMS 수신을 확인한 뒤 stale을 해제한다. 상세 구현·호스트 시험·물리 미검증 범위는 CHG-029 추가 증거의 센서 오류 전달·회복 절을 따른다.
+
+
+### 과열 복귀 구현 — 2026-11-11
+
+FailSafeStateMachine의 monotonic evaluate overload가 5초 연속 구간과 최대200ms 관찰 간격을 검사한다. main은 ADC 오류/준비/회복 gate에서 inputUnavailable을 호출하여 냉각 시간을 초기화한다. 오래된 ADC 값을 재사용하여 5초를 채우는 것을 HardwareSampleFeed freshness gate로 막는다. Fail-safe snapshot v2는 critical_latched를 보존하지만 냉각 시각은 저장하지 않는다. 이전 v1 SHUTDOWN 저장본은 저전압 이력 미상이므로 보수적으로 CRITICAL 이력이 있는 것으로 복원한다. 새 v2 checkpoint는 이전 바이너리에 그대로 되돌려 사용하는 형식이 아니다. ADS1115 모드의 온도는 기존 가상25°C이며 과열 검증에는 온도 profile을 사용한다.
+
+
+### 관리형 IDS 세대별 로그 수집
+
+관리형 IDS의 실행별 로그는 별도 UUID generation과 `owned-ids-<generation>` run_id로 귀속한다. 준비 확인 시 `OWNED_IDS_READY` JSON에 generation/PID/mode/protocol/분류 버전만 알린다. 키·설정·경로는 이 메시지에 넣지 않는다. 개인 로그 디렉터리의 owner.lock은 관리자와 IDS child가 함께 보유하고 종료 뒤 닫는다. session_ids_log 수집기는 활성 잠금을 거부하고 선택한 실행의 events.jsonl/process.log만 권한·형식·길이·hash와 함께 수집한다. 수집 완료는 실험 유효 판정과 구분하며 PC 전체 제어기 연결은 아직 진행 중이다.
+
+### BMS 계산 작업 복구 제품 연결 — 2026-11-11
+
+recovery/checkpoint 실행에서 BmsCalculationTask를 실제 main에 연결했다. 1초 감시·3초 무진행·1초 회수 기한·최대3회 실제 실패를 사용한다. 메모리 상태 나이는 기존 명시적 checkpoint 정책을 적용한다. sensor/EKF/SOH 복사본의 정상 결과만 owner가 반영하며 Fail-safe와 세션 소유권은 owner에 유지한다. 기존 작업을 회수하지 못하면 운영자 확인으로 전환하고 중복 생성/자동 전체 재시작하지 않는다. ADC 입력 대기는 계산 작업 실패로 세지 않는다. 상세 증거와 CAN 수신 작업 미완료 범위는 CHG-029의 재개1단계 기록을 따른다.
+
+
+### 인증된 IVI 거부 진단의 IDS 소비 — 2026-11-12
+
+session-v2에서 IVI가 명시적으로 활성화한 RejectionRecord를0x303으로 보내면 ECU Exchange가 인증/세션/순번을 검증한다. 이 결과를 로그만 남기던 경로에서 supervisor 소유의 별도 비차단 pipe→PeerDiagnostics 소비까지 연결했다. --ids-peer-fd/--peer-rejection-fd는 private 상속 FD이며 공격 Pi3나 외부 네트워크에 전달하지 않는다. 기존 context pipe와 구별하고 두 writer/reader 수명은 해당 ECU/IDS 세대에 묶는다.
+
+로컬CPR1/144B는 세대/현재 세션/기존80B본문・ECU수신/검증/발행 시각・envelope 순번・누적로컬drop을 보존한다. ECU수신/검증은ms 원시값을ns 단위로 표현한 것이며1ns 측정 해상도가 아니다. IDS는 현재context・64칸 미수신 역순 허용/중복 배제・검증 후3초 로컬 상한・본문 의미를 검사한다. 같은거부UUID의 같은 내용은 중복, 다른 내용은 모순으로 보존한다. 한poll8개/UUID256개/최근1초 집계256개 제한과 집계 불완전을 기록한다. 미래/잘못된 형식/EOF는 이 채널만 불가로 표시하며 raw/IF 경로를 닫지 않는다.
+
+PEER_REJECTION_CONSUMED는 별도 진단이다. Rule/IF 특징·모델·네 유형 분류·새 경보 임계를 바꾸지 않는다. 원래 IVI 이벤트 생성 시각이나 노드 간 지연/공격자 신원은 이 메시지만으로 알 수 없다. IVI의 거부 송신 옵션이 없으면 해당 CAN 보고가 전송되지 않으며 소비0개를 거부0개/전체 방어 성공으로 해석하지 않는다. 실제 연결/회귀 근거는 CHG-029 상태를 따른다.
+
+
+### 시험 전용 sender 제어 경계
+
+A5/A6 보완에는 Linux/ECU_BUILD_TESTS에서만 생성하는 ecu_sender_control_fixture를 사용한다. main의 BMS middleware publish 직전 compile-time gate이며 원본/auth를 함께 보류하고 계산/Fail-safe/진단은 유지한다. 상속 전용 read pipe·반복 연장 없는2초 개발 guard·EOF/오류 재개를 검사한다. 제품 target/설치/ICD API에 제어 옵션을 추가하지 않는다. 상세/실행 경계는 보완 절차를 따른다.
+
+
+### 실제 태스크 성공 복구 관찰
+
+main의 BMS/RX 복구 로그는 owner의 실제 작업 세대/단조시각을 기록한다. RX frames는 callback 완료 뒤 증가한 값이며 thread start 자체를 완료로 쓰지 않는다. CanReceiveRecovery의 내부 generation 읽기만 추가했고 CanDriver/HAL 인터페이스와 CAN 본문은 유지한다. 시험 전용 ecu_bms_recover_fixture는 한 번의 계산 실패 후 정상 계산을 허용하며 설치하지 않는다. 기존 WARNING을 유지한 실제 새 작업/인증 IVI 입력의 성공 검증은 TC-BSW-006 하위 근거를 따른다.
+
+### N03 기존 규칙의 판단 근거 출력
+
+기존 RuntimeDetector/SessionDetector의 판단 지점이 RuleEvent.finding에 관찰/기대/단위・규칙/profile 버전・로컬 식별/수신 epoch·로컬 인증 검사 여부를 기록한다. 기존 Event 인수/분류·임계·IF7특징·CAN 본문은 유지한다. ModelEvaluation도 실제 score/특징과 단위를 보존하고 replay/live logger가 이 필드를 저장한다. severity는 미보정/null이며 기존 anomaly_score와 별개다. [스키마/원인별 한계](../security/ids/README.md#n03-로컬-판단-근거-ids-finding-v1)와 실행 근거를 따른다. 추가 규칙/IF 효과·긴 실험 로그 수집 용량은 별도 인수다.
+
+### N02 기존 제품 입력의 출처 기록
+
+제품 시작의 ECU_INPUT_LINEAGE/ecu-input-lineage-v1은 로컬 로그이며 CAN/HAL을 확장하지 않는다. configuration은 입력 방식/단위/실제 변환/파일 내용 SHA256·바이트 수/고정seed/SOH 정책, state는 현재 CSV 위치/복원된 SOH 경과시간/난수 상태 hash, instance_id와 start_intent는 이번 프로세스·standalone/fresh/resume을 기록한다. 생성 함수는 입력을 소비하거나 난수 엔진을 진행하지 않는다.
+
+SensorSimulator와 SohCapacityScenario는 실제 파싱할 바이트를 한 번 읽어 raw hash와 기존 복원 prefix hash를 함께 만든다. 기존 복원16MiB 상한을 standalone CSV에도 적용한다. 파싱 완료 후 내용/지문을 함께 게시하며 main은 CAN/worker 시작 전에 센서 CSV를 검증한다. 파일 경로를 다시 열어 따로 만든 hash를 실제 파싱 입력인 것처럼 기록하지 않는다. 파일 교체 후 이미 로드한 입력은 유지하고 다음 실행은 새 내용으로 식별한다. 비유한 CSV 전압/전류/온도는 거부하고 유한 온도는 기존 반올림/clamp 결과를 유지하면서 정수 overflow를 피한다.
+
+| 모드 | 기록하는 실제 의미 |
+|---|---|
+| constant | 가상42V/-2A/25°C. 실제 배터리 정상 상태를 입증하지 않음 |
+| profile_csv | 첫3개 관측 V/A/°C, float 변환·온도 반올림/[-10,70] clamp, 행 위치·끝값 유지. 기존 빈 자료 nominal fallback도 명시하며 정상 캡처로 인증하지 않음 |
+| random_walk | 고정seed12345/mt19937·normal_distribution<float>/범위와 복원된 엔진 상태 hash. 다른 표준 라이브러리 간 bit 단위 재현을 보장하지 않음 |
+| ads1115 | A0 ADC·고정0x48, 선택 device 문자열의 hash/원문 미출력, ADC 단위·±32code 끝점/선형 가상30..42V·가상-2A/25°C·새3회/200ms 조건. 실제 팩 측정이나 시동 시 유효 ADC 취득을 입증하지 않음 |
+| 별도 SOH | 가상50Ah와 선택 CSV hash/step 수/초·Ah·이전 step/끝값 유지·복원 경과시간. 실제 열화 실증이 아님 |
+
+ground_truth_label=unattested로 기록하여 소스 선택과 정상/결함/공격 정답 라벨을 구분한다. PC는 이 로그의 재현 가능한 configuration을 실행 형상에 보존하고 요청 모드·pilot·방어 구성 사이의 일치를 검사한다. 프로세스마다 바뀌는 UUID/복원 위치를 같은 configuration hash인 것처럼 비교하지 않는다. 새 freeze/plausibility·fault 생성기/실험 정답 라벨·severity calibration·IF 추가 효과와 물리 인수는 별도다.
+
+N02 후속 합성 생성기는 tools.quality.sensor_scenarios다. 기존 S-21 궤적과 허용 고정 입력 대조군에 명시적 drift/jump/freeze·전압/전류 불일치를 적용하며, source-fault 라벨은 native/IDS에 전달하지 않는다. 분석용 evaluate_soc_profile의 --emit-bms만 기존5열 뒤 실제 encodeBmsStatusFrame의8B를 덧붙인다. 기본 출력/제품 main/CAN 형식은 유지한다. 기존 legacy/session raw 규칙 관찰은 공개 더미 인증 fixture이며 실제 IVI 판정이 아니다. 소스 고장과 동일한 CAN 입력을 만들 수 있는 정상 대조군을 보존하고, 임계 보정/운영 범위 결정 전에 새 freeze/plausibility 유형으로 송신하지 않는다. 재현과 결과.
+
+### 2026-11-14 보호 사건 계보·CAN 전달 설계
+
+계산 상태 계보와 보호 사건 UUID/revision을 기존 복원 상태에 함께 보존한다. 자동 resume은 검증된 저장본을 사용하고 구형 식별자 없는 snapshot은 연속성 미상/새 계보로 구분한다. 세션 키/counter는 저장하지 않는다. 상태 변경/정상 복귀는 동일 사건 revision, 이후 재발은 새 사건이며 번호 소진 시 자동 순환하지 않는다. [CAN 진단 종류8](ICD-CAN-DIAGNOSTIC.md)에 현재 instance/계보/사건을 담고 진단 송신이 BMS/보호를 기다리게 하지 않는다.2026-11-14 승인된 설계이며 checkpoint·실제 발행·IVI 제품 연결은 단계별 구현/검증 후 완료한다.
+
+저장·복원 단계 구현: `ProtectionHistory`는 owner 스레드에서 위험 상태를 관찰하며 `RecoveryCheckpoint` payload v2의 선택적 보호 snapshot으로 보존한다. 파일 integrity envelope `CAPSTONE-CHECKPOINT-V1`/SHA256/원자 교체·상한은 유지하고 payload v1도 읽는다. v2는 기존 rng 행 뒤 `protection 0` 또는 `protection 1`과 version/lineage/incident/state/reason/phase/revision을 기록한다. v1에 새 메타데이터를 넣거나 계산 상태와 다른 사건 상태를 복원하지 않는다. 기존 수신 프로그램은 payload v2를 읽을 수 없으며 자동 하향 저장하지 않는다. 메타데이터 소진/실패는 v2의 명시적 정보 없음으로 저장하고 계산/보호는 계속한다. 구형 NORMAL/복귀 사유에서 확인되지 않은 종료 사건을 생성하지 않는다. 실제 CAN 발행·IVI 연결은 후속이며 현재 검증을 따른다.
+
+CAN 발행 연결: `ProtectionPublisher`는 owner의 상태 갱신에서 최신 본문을 받고 대기 메시지1개/한 pump당1프레임으로 송신한다. main은 기존 NodeStatus1초 갱신을 공유하고 큐 만료는 명시한 `diagnostic_assembly_ms`를 사용한다. 고정 큐/프레임 상한은 구조 제한이며 실제 Pi 지연/처리량 보장이 아니다. 세션 변경/메타데이터 없음은 이전 대기를 지우고, 실패한 프레임/메시지를 그대로 재시도하거나 순번을 되돌리지 않는다. 다음 갱신은 새 순번이다. 시각 역행/codec 실패는 발행기를 격리하며 새 인증 세션 전에는 실패를 숨겨 초기화하지 않는다. 일반 BMS/위험 판단과 별도인 진단 경로다.
+
+
+### 2026-11-16 — R02/R03/R05 구현 경계
+
+R02 센서 추가 검사는 알려진 합성 프로필과 native 관측을 비교하는 상세 로그 도구로 우선 구현한다. 자유 조작 ADS/실제 배터리의 운영 임계나 CAN 공격 분류를 추가하지 않는다. R03은 IVI 동일 boot/monotonic 시계에서 식별 가능한 최초 공격 관찰부터 새 사건의 완전한 인증·의미 검증까지 평가하며 목표3초·화면 지연 별도를 유지한다. MAC/본문 인증과 사건 revision/관찰 순서 수용을 구분하고 의미 수용 플래그·완료 시각을 제품 관찰 로그에 남긴다. R05는 동일 QML/실행본 분리를 유지하고 데스크톱 소유권·협조 종료·PC stdin 수명의 실험 lease·단일 Wayland 화면·종료 후 기존 앱 복원을 연결한다. 관리되지 않은 앱이나 회수/복원 불명은 성공으로 처리하지 않는다. 계약 바이트는 변경하지 않는다. 정의/합격 기준은 [TC-PERF-003](TEST_PLAN.md#tc-perf-003-ids-탐지-응답-시간), 운영 절차는 session campaign을 따른다.
+
+
+### 2026-11-17 수신 순서 보완과 Fail-safe 시간 변환
+
+live IDS의 OrderedSocketCan은 커널 수신시각 자체를 바꾸지 않고 최대4096개/1ms의 제한된 재정렬 구간에서 순서를 정리한다. 뒤늦은 프레임이 이미 공개한 watermark보다 앞서면 상세 시각/ID와 함께 epoch 오류로 처리하고, 용량 초과도 관찰 공백으로 남긴다. 기존10ms realtime→monotonic 매핑 변화·잘린 프레임·드롭/처리 지연 검사는 유지한다. 1ms는 로컬 순서 정리 예산이지 물리Pi 운용값 인수나 시계 오류 허용치 완화가 아니다. 실제Pi는 별도 검증한다.
+
+FailSafeStateMachine의 시간 단위 변환만 로컬 noexcept 함수로 분리한다. 계산/임계·상태 전이·냉각5초·콜백 예외 전파를 유지하며 전체 FSM 함수를 noexcept로 바꾸지 않는다. gcov 예외 필터/분모 제외 없이 새 객체로 커버리지를 검증한다. 진행.
