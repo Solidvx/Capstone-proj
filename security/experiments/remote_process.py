@@ -4,13 +4,14 @@ import hashlib
 import json
 import os
 import select
+import shutil
 import signal
 import subprocess
 import time
 from pathlib import Path
 
 
-def supervise(command, duration, control_fd=0):
+def supervise(command, duration, control_fd=0, on_started=None):
     stopping = False
     def stop(signum, frame):
         nonlocal stopping
@@ -20,6 +21,7 @@ def supervise(command, duration, control_fd=0):
     child = None
     try:
         child = subprocess.Popen(command, stdin=subprocess.DEVNULL, start_new_session=True)
+        if on_started is not None:on_started(child)
         deadline = time.monotonic() + duration
         while not stopping and child.poll() is None and time.monotonic() < deadline:
             readable, _, _ = select.select([control_fd], [], [], .1)
@@ -51,11 +53,12 @@ def main():
     command = args.command[1:] if args.command[:1] == ['--'] else args.command
     if not 0 < args.duration <= 86400 or not command:
         parser.error('a command and duration in (0,86400] are required')
-    executable = Path(command[0])
-    print(json.dumps({'result':'REMOTE_START','run_id':args.run_id,
-                      'executable_sha256':hashlib.sha256(executable.read_bytes()).hexdigest()
-                      if executable.is_file() else None}),flush=True)
-    code = supervise(command, args.duration)
+    executable = Path(shutil.which(command[0]) or command[0])
+    digest=hashlib.sha256(executable.read_bytes()).hexdigest() if executable.is_file() else None
+    def started(child):
+        print(json.dumps({'result':'REMOTE_START','run_id':args.run_id,'pid':child.pid,
+                          'executable_sha256':digest}),flush=True)
+    code = supervise(command, args.duration,on_started=started)
     print(json.dumps({"result": "REMOTE_STOPPED", "run_id": args.run_id, "exit_code": code}), flush=True)
     return code
 

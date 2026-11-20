@@ -71,3 +71,13 @@ def test_real_linux_timestamp_ancillary_abi_on_loopback_udp():
         stamp=next(data for level,kind,data in ancillary if level==socket.SOL_SOCKET and kind==64)
         seconds,nanos=struct.unpack('=qq',stamp)
         assert seconds>0 and 0<=nanos<1_000_000_000
+
+
+def test_clock_mapping_retries_preempted_sample_without_relaxing_step_guard():
+    bus=transport(Mock())
+    with patch('security.ids.runtime.time.monotonic_ns',side_effect=[10_000_000_000,10_020_000_000,10_030_000_000,10_030_000_000]), \
+         patch('security.ids.runtime.time.time_ns',side_effect=[1000_000_000_000,1000_030_000_000]):
+        bus._check_clock()
+    with patch('security.ids.runtime.time.monotonic_ns',side_effect=[0,2_000_000,3_000_000,5_000_000,6_000_000,8_000_000]), \
+         patch('security.ids.runtime.time.time_ns',return_value=0),pytest.raises(RuntimeError,match='uncertainty'):
+        bus._check_clock()

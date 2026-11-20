@@ -1,0 +1,22 @@
+[Unit]
+Description=Capstone ECU managed demo (%i)
+After=network.target
+
+[Service]
+Type=simple
+User=%i
+EnvironmentFile=/etc/capstone/ecu-%i.conf
+StateDirectory=capstone-ecu-%i
+StateDirectoryMode=0700
+UMask=0077
+ExecStart=/usr/bin/python3 /opt/capstone/adaptive_ecu/scripts/supervise_ecu.py --ecu /opt/capstone/bin/adaptive_ecu --checkpoint /var/lib/capstone-ecu-%i/state --initial-intent fresh --stop-timeout ${ECU_STOP_TIMEOUT_S} --startup-timeout ${ECU_STARTUP_TIMEOUT_S} --heartbeat-timeout ${ECU_HEARTBEAT_TIMEOUT_S} --max-crash-restarts ${ECU_MAX_CRASH_RESTARTS} $ECU_SUPERVISOR_ARGS -- --interface ${ECU_INTERFACE} --sensor-mode ${ECU_SENSOR_MODE} --i2c-device ${ECU_I2C_DEVICE} --secoc on --protocol session-v2 --session-policy ${ECU_SESSION_POLICY} --key ${ECU_KEY_PATH} --checkpoint-period-ms ${ECU_CHECKPOINT_PERIOD_MS} --checkpoint-flush-ms ${ECU_CHECKPOINT_FLUSH_MS} --checkpoint-max-age-ms ${ECU_CHECKPOINT_MAX_AGE_MS} --restart-wait-ms ${ECU_RESTART_WAIT_MS} --restart-retry-ms ${ECU_RESTART_RETRY_MS} --restart-notice-attempts ${ECU_RESTART_NOTICE_ATTEMPTS} $ECU_INPUT_ARGS
+Restart=no
+KillMode=control-group
+TimeoutStopSec=70
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

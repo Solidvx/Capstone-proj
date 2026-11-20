@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-// ICD section 8 approved target. Not yet connected to CAN serialization.
+// Authenticated NodeStatus input quality; legacy BMS reserved byte stays zero.
 enum class SensorQuality : std::uint8_t {
     Preparing = 1, Valid = 2, ErrorWithoutValue = 3, ErrorWithValue = 4,
     RecoveringWithoutValue = 5, RecoveringWithValue = 6

@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <utility>
+#include <stdexcept>
 
 namespace ivi {
 
@@ -26,6 +27,7 @@ bool VehicleDataService::loadSecOcKey(const std::string& path) {
 
 void VehicleDataService::setSecOcKey(SecOcKey key) {
     std::lock_guard<std::mutex> lock(mutex_);
+    if(session_)throw std::logic_error("session-v2 cannot reload keys as legacy SecOC");
     verifier_.emplace(key);
     bms_state_.pending_payload.reset();
     bms_state_.pending_received_at.reset();
@@ -37,7 +39,7 @@ void VehicleDataService::setSecOcKey(SecOcKey key) {
 
 bool VehicleDataService::hasSecOcKey() const {
     std::lock_guard<std::mutex> lock(mutex_);
-    return verifier_.has_value();
+    return verifier_.has_value() || bool(session_);
 }
 
 VehicleDataService::ObserverId VehicleDataService::registerObserver(Observer observer) {
@@ -65,6 +67,7 @@ ProcessResult VehicleDataService::processFrame(std::uint32_t can_id,
 
     {
         std::lock_guard<std::mutex> lock(mutex_);
+        if(session_)return ProcessResult::kIgnored; // no legacy/downgrade bypass
         snapshot_.last_can_id = can_id;
         const auto failures_before = snapshot_.secoc_failure_count;
 
@@ -146,6 +149,7 @@ ProcessResult VehicleDataService::processFrame(std::uint32_t can_id,
         should_notify = should_notify || result == ProcessResult::kRejected ||
                         snapshot_.secoc_failure_count != failures_before;
         if (should_notify) {
+            ++snapshot_.snapshot_revision;
             notification = snapshot_;
             observers.reserve(observers_.size());
             for (const auto& entry : observers_) {
@@ -158,6 +162,21 @@ ProcessResult VehicleDataService::processFrame(std::uint32_t can_id,
         notify(notification, observers);
     }
     return result;
+}
+
+bool VehicleDataService::updateSocketDrops(std::optional<std::uint64_t> drops) {
+    VehicleSnapshot notification;
+    std::vector<Observer> observers;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if(snapshot_.ivi_socket_drops==drops)return false;
+        snapshot_.ivi_socket_drops=drops;
+        ++snapshot_.snapshot_revision;
+        notification=snapshot_;
+        for(const auto& entry:observers_)observers.push_back(entry.second);
+    }
+    notify(notification,observers);
+    return true;
 }
 
 bool VehicleDataService::refreshTime(Clock::time_point now) {
@@ -174,7 +193,7 @@ bool VehicleDataService::refreshTime(Clock::time_point now) {
                              : std::chrono::duration_cast<std::chrono::milliseconds>(
                                    now - *last_good_bms_at_);
         const auto age_ms = static_cast<std::uint64_t>(age.count());
-        const bool stale = age >= kStaleTimeout;
+        const bool stale = age >= kStaleTimeout || (snapshot_.session_protocol && !snapshot_.session_bms_ready);
         if (snapshot_.last_good_age_ms == age_ms && snapshot_.vehicle.stale == stale) {
             return false;
         }
@@ -186,6 +205,7 @@ bool VehicleDataService::refreshTime(Clock::time_point now) {
             snapshot_.last_message = "reason=BMS_STALE preserving last good values";
             appendLogLocked(snapshot_.last_message);
         }
+        ++snapshot_.snapshot_revision;
         notification = snapshot_;
         observers.reserve(observers_.size());
         for (const auto& entry : observers_) {
@@ -208,6 +228,7 @@ bool VehicleDataService::acknowledgeSecurityAlert(std::uint64_t sequence) {
         snapshot_.security_alert.reset();
         snapshot_.last_message = "IDS event acknowledged by user";
         appendLogLocked(snapshot_.last_message);
+        ++snapshot_.snapshot_revision;
         notification = snapshot_;
         observers.reserve(observers_.size());
         for (const auto& entry : observers_) {
@@ -293,6 +314,7 @@ ProcessResult VehicleDataService::processAuth(std::uint32_t original_id,
         }
         snapshot_.vehicle.fail_safe_state = parsed->new_state;
         snapshot_.vehicle.fail_safe_reason = parsed->reason;
+        snapshot_.fail_safe_known=true;
     }
 
     snapshot_.last_secoc_verified = true;
@@ -351,6 +373,7 @@ void VehicleDataService::recordSecOcFailureLocked(std::string message) {
         message = "WARNING: " + message;
     }
     snapshot_.last_message = std::move(message);
+    snapshot_.last_rejection_message=snapshot_.last_message;
     appendLogLocked(snapshot_.last_message);
 }
 
@@ -362,6 +385,7 @@ void VehicleDataService::pollTimeouts(Clock::time_point now) {
         bool changed = expirePending(bms_state_, now, "BMS");
         changed = expirePending(fail_safe_state_, now, "Fail-safe") || changed;
         if (!changed) return;
+        ++snapshot_.snapshot_revision;
         notification = snapshot_;
         for (const auto& entry : observers_) observers.push_back(entry.second);
     }

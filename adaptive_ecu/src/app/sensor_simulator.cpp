@@ -16,6 +16,10 @@ constexpr int kMinTemp = -10;
 constexpr int kMaxTemp = 70;
 
 int8_t clampTemp(float temperature_c) {
+    if (!std::isfinite(temperature_c)) throw std::invalid_argument("nonfinite profile temperature");
+    // Bound before rounding to avoid overflowing an integer for a finite CSV value.
+    if (temperature_c<=kMinTemp) return kMinTemp;
+    if (temperature_c>=kMaxTemp) return kMaxTemp;
     const auto rounded = static_cast<int>(std::lround(temperature_c));
     return static_cast<int8_t>(std::clamp(rounded, kMinTemp, kMaxTemp));
 }
@@ -30,6 +34,8 @@ SensorData parseCsvLine(const std::string& line) {
     if (values.size() < 3) {
         throw std::runtime_error("battery profile row must contain voltage,current,temperature");
     }
+    if (!std::isfinite(values[0]) || !std::isfinite(values[1]))
+        throw std::invalid_argument("nonfinite profile voltage/current");
     return {values[0], values[1], clampTemp(values[2])};
 }
 }
@@ -74,26 +80,66 @@ void SensorSimulator::setHardwareVoltage(float pack_voltage_v) {
     hardware_voltage_v_ = pack_voltage_v;
 }
 
+SensorSimulator::Snapshot SensorSimulator::exportState() {
+    if (mode_ == Mode::PROFILE_CSV) loadProfileIfNeeded();
+    return {1, mode_, profile_index_, profile_.size(), random_walk_state_, rng_};
+}
+
+bool SensorSimulator::restoreState(const Snapshot& snapshot) {
+    const auto& walk = snapshot.random_walk_state;
+    if (snapshot.version != 1 || snapshot.mode != mode_ ||
+        !std::isfinite(walk.voltage_v) || walk.voltage_v < kMinVoltage || walk.voltage_v > kMaxVoltage ||
+        !std::isfinite(walk.current_a) || walk.current_a < kMinCurrent || walk.current_a > kMaxCurrent ||
+        walk.temperature_c < kMinTemp || walk.temperature_c > kMaxTemp) return false;
+    auto next_profile = profile_;
+    auto next_input = profile_input_;
+    if (mode_ == Mode::PROFILE_CSV) {
+        if (next_profile.empty()) {
+            SensorSimulator loader(mode_, profile_path_);
+            try { loader.loadProfileIfNeeded(); } catch (const std::exception&) { return false; }
+            next_profile = std::move(loader.profile_);
+            next_input = std::move(loader.profile_input_);
+        }
+        if (next_profile.empty() || snapshot.profile_size != next_profile.size() ||
+            snapshot.profile_index >= next_profile.size()) return false;
+    } else if (snapshot.profile_index != 0 || snapshot.profile_size != 0) {
+        return false;
+    }
+    profile_ = std::move(next_profile);
+    profile_input_ = std::move(next_input);
+    profile_index_ = snapshot.profile_index;
+    random_walk_state_ = walk;
+    rng_ = snapshot.rng;
+    // Old ADC readiness/quality is not a fresh conversion after restart.
+    hardware_voltage_v_.reset();
+    return true;
+}
+
 void SensorSimulator::loadProfileIfNeeded() {
-    if (!profile_.empty() || profile_path_.empty()) {
+    if (profile_input_ || profile_path_.empty()) {
         return;
     }
 
-    std::ifstream input(profile_path_);
+    std::ifstream input(profile_path_,std::ios::binary);
     if (!input) {
         throw std::runtime_error("failed to open battery profile: " + profile_path_);
     }
 
+    const auto captured=captureInput(input,"sensor-v1:profile_csv:");
+    std::istringstream parser(captured.content);
+    std::vector<SensorData> loaded;
     std::string line;
-    while (std::getline(input, line)) {
+    while (std::getline(parser, line)) {
         if (line.empty() || line[0] == '#') {
             continue;
         }
         if (line.find("voltage") != std::string::npos) {
             continue;
         }
-        profile_.push_back(parseCsvLine(line));
+        loaded.push_back(parseCsvLine(line));
     }
+    profile_=std::move(loaded);
+    profile_input_=captured.fingerprint;
 }
 
 SensorData SensorSimulator::nextRandomWalk() {

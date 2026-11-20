@@ -21,7 +21,10 @@ from security.ids.runtime_detector import Observation
 
 
 def sha256(path):
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    digest=hashlib.sha256()
+    with Path(path).open('rb') as stream:
+        for chunk in iter(lambda:stream.read(65536),b''):digest.update(chunk)
+    return digest.hexdigest()
 
 
 def interrupted(signum, frame):

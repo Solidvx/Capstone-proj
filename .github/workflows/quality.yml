@@ -1,0 +1,153 @@
+name: Local-quality baseline
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Native full-product/coverage and cross-toolchain/QEMU are separate gates.
+# No Pi deployment, secrets, or branch-protection changes in this workflow.
+jobs:
+  cross-arm64:
+    needs: static
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Build x86-64 compiler host with ARM64 dependencies
+        run: docker build --platform linux/amd64 -f Dockerfile.arm64 -t capstone-cross:${{ github.sha }} .
+      - name: Cross-build products and run ARM64 C++ tests with explicit QEMU
+        run: |
+          mkdir -p build-quality-cross
+          docker image inspect capstone-cross:${{ github.sha }} > build-quality-cross/image.json
+          docker run --rm --network none --read-only \
+            --tmpfs /tmp:rw,nosuid,size=256m --tmpfs /var/tmp:rw,nosuid,size=512m \
+            --cap-drop ALL --security-opt no-new-privileges=true \
+            --user "$(id -u):$(id -g)" \
+            -v "$PWD:/src:ro" -v "$PWD/build-quality-cross:/out:rw" \
+            capstone-cross:${{ github.sha }} \
+            python3 /src/tools/quality/cross_build.py --repo /src --output-dir /out/run
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: arm64-cross-products-and-qemu
+          path: |
+            build-quality-cross/image.json
+            build-quality-cross/run/result.json
+            build-quality-cross/run/packages.tsv
+            build-quality-cross/run/*.log
+            build-quality-cross/run/ecu/adaptive_ecu
+            build-quality-cross/run/ivi/ivi_dashboard
+            build-quality-cross/run/*/cross-junit.xml
+          if-no-files-found: error
+
+  static:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - run: sudo apt-get update && sudo apt-get install -y cppcheck python3-pytest
+      - run: python3 -m pytest -p no:cacheprovider tools/quality/tests -q
+      - run: python3 tools/quality/static_analysis.py --output-dir quality-static
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: cppcheck
+          path: quality-static/
+          if-no-files-found: error
+
+  build-test:
+    needs: static
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    container:
+      image: debian:trixie
+      # Only the job's isolated virtual network needs administration.
+      # No host networking, privileged container or physical CAN device mount.
+      options: --cap-add=NET_ADMIN
+    timeout-minutes: 25
+    env:
+      QT_QPA_PLATFORM: offscreen
+      QT_QUICK_BACKEND: software
+      PYTHONDONTWRITEBYTECODE: '1'
+      CAPSTONE_SESSION_TEST_INTERFACE: vcan0
+      IVI_REQUIRE_SOCKETCAN: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Install and record native build dependencies
+        run: |
+          apt-get update
+          apt-get install -y build-essential cmake iproute2 libssl-dev libgtest-dev qt6-base-dev qt6-declarative-dev qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-layouts qml6-module-qtquick-templates qml6-module-qtquick-window qml6-module-qtqml-workerscript python3-pytest python3-pytest-subtests python3-numpy python3-sklearn python3-pandas python3-can python3-matplotlib
+          mkdir -p quality-reports
+          dpkg-query -W > quality-reports/packages.txt
+          uname -a > quality-reports/kernel.txt
+      - name: Require an isolated virtual CAN bus
+        run: |
+          ip link add vcan0 type vcan
+          ip link set vcan0 up
+          python3 -m security.experiments.can_health --interface vcan0 --environment vcan > quality-reports/vcan-health.json
+      - name: Build ECU and Qt IVI with coverage
+        id: build
+        run: |
+          cmake -S adaptive_ecu -B build-quality-ecu -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON
+          cmake --build build-quality-ecu --parallel 2
+          cmake -S ivi_platform -B build-quality-ivi -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON -DIVI_BUILD_QT_APP=ON -DIVI_BUILD_EXPERIMENT_TOOLS=ON -DIVI_TEST_ECU_EXECUTABLE="$PWD/build-quality-ecu/adaptive_ecu"
+          cmake --build build-quality-ivi --parallel 2
+          test -x build-quality-ivi/ivi_dashboard
+          test -x build-quality-ivi/ivi_dashboard_experiment
+      - name: Prepare unprivileged product test ownership
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          useradd --create-home --uid 10001 capstone-test
+          chown -R capstone-test:capstone-test build-quality-ecu build-quality-ivi quality-reports
+          runuser -u capstone-test -- id
+      - name: ECU tests (all 28 required, no skips)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          runuser -u capstone-test -- python3 tools/quality/ctest_gate.py --build build-quality-ecu --component ecu
+      - name: IVI and real product integration (all 44 required, no skips)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          runuser -u capstone-test -- python3 tools/quality/ctest_gate.py --build build-quality-ivi --component ivi-integrated
+      - name: Python and quality tool tests
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          runuser -u capstone-test -- python3 -m pytest -p no:cacheprovider security/tests ivi_platform/test tools/quality/tests tools/deployment/tests -q --junitxml=quality-reports/python-junit.xml
+      - name: Verify deployment health against ordinary products on virtual CAN
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          runuser -u capstone-test -- python3 tools/deployment/health_product.py \
+            --ecu build-quality-ecu/adaptive_ecu --ivi build-quality-ivi/ivi_dashboard \
+            --policy adaptive_ecu/data/session-v2-development.conf --interface vcan0 \
+            --out quality-reports/deployment-health --max-age-ms 3000 --startup-timeout-s 30
+      - name: Product coverage gates (both reports retained on failure)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        shell: bash
+        run: |
+          result=0
+          runuser -u capstone-test -- python3 tools/quality/coverage.py --build build-quality-ecu --source adaptive_ecu --component ecu --output-dir quality-reports/ecu || result=1
+          runuser -u capstone-test -- python3 tools/quality/coverage.py --build build-quality-ivi --source ivi_platform --component ivi --output-dir quality-reports/ivi || result=1
+          exit "$result"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: quality-${{ matrix.runner }}
+          path: |
+            quality-reports/
+            build-quality-ecu/Testing/
+            build-quality-ecu/*-results/
+            build-quality-ivi/Testing/
+            build-quality-ivi/*-results/
+          if-no-files-found: error

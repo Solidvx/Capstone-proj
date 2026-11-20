@@ -26,6 +26,7 @@ class RuntimeCliTests(unittest.TestCase):
             self.assertIsNotNone(model.model)
             replay=root/'attack.jsonl'
             replay.write_text(json.dumps({'t':0.0,'can_id':0x555,'data':'00'*8})+'\n'+
+                              json.dumps({'t':0.9,'can_id':0x555,'data':'00'*8})+'\n'+
                               json.dumps({'tick':1.0})+'\n')
             log=root/'events.jsonl'
             args=['--replay',str(replay),'--train-normal',str(normal),'--normal-manifest',str(manifest),'--log',str(log)]
@@ -33,9 +34,37 @@ class RuntimeCliTests(unittest.TestCase):
             records=[json.loads(line) for line in log.read_text().splitlines()]
             self.assertEqual(records[0]['mode'],'rules+if')
             self.assertIn('UNKNOWN_ID',[r.get('reason') for r in records])
+            findings=[r['finding'] for r in records if r.get('finding')]
+            self.assertEqual(records[0]['finding_schema'],'ids-finding-v1')
+            self.assertTrue(findings)
+            self.assertEqual({r['source_id'] for r in findings},{records[0]['finding_source_id']})
+            self.assertEqual(len({r['sequence'] for r in findings}),len(findings))
+            evaluated=[r for r in records if r.get('result')=='MODEL_EVALUATION']
+            self.assertEqual(len(evaluated),1)
+            self.assertEqual(evaluated[0]['finding']['observed']['features']['msg_rate'],1.0)
+            self.assertEqual(evaluated[0]['finding']['observed']['anomaly'],evaluated[0]['anomaly_score'])
             before=log.read_bytes()
             self.assertEqual(main(args),2)
             self.assertEqual(log.read_bytes(),before)
+            measured=root/'measured.jsonl'
+            measured_args=args[:];measured_args[measured_args.index(str(log))]=str(measured)
+            self.assertEqual(main(measured_args+['--measure-resources']),0)
+            measured_rows=[json.loads(line) for line in measured.read_text().splitlines()]
+            summary=measured_rows[-1]
+            self.assertEqual(summary['result'],'RESOURCE_SUMMARY')
+            self.assertEqual(summary['status'],'COMPLETE')
+            self.assertEqual(summary['counts']['completed_frames'],2)
+            self.assertEqual(summary['counts']['completed_ticks'],1)
+            self.assertEqual(summary['counts']['model_evaluations'],1)
+            self.assertEqual(summary['durations']['feature_extraction']['calls'],1)
+            self.assertEqual(summary['durations']['model_anomaly']['calls'],1)
+            self.assertEqual(summary['model_artifact']['storage'],'trained_in_memory')
+            self.assertIsNone(summary['model_artifact']['file_bytes'])
+            self.assertEqual(len(summary['model_artifact']['state_sha256']),64)
+            def core(rows):
+                return [(r.get('timestamp'),r.get('can_id'),r.get('reason'),r.get('attack_type'),r.get('anomaly_score'),r['result'])
+                        for r in rows if r.get('result') not in ('START','END','RESOURCE_SUMMARY')]
+            self.assertEqual(core(records),core(measured_rows))
 
     def test_socketcan_codec_timeout_and_cleanup(self):
         fake=Mock()

@@ -43,6 +43,7 @@ cppcheck-result.xml
 
 # 크로스컴파일 바이너리 (ARM64)
 *.arm64
+!/Dockerfile.arm64
 adaptive_ecu/bin/
 
 
@@ -223,5 +224,22 @@ temp/
 *.pcap
 *.pcapng
 
-# Local evidence recovery archives (not an off-device backup)
-evidence-backups/
+# Local-only personal/AI records and experiment outputs
+/.agents/
+/.claude/
+/.codex/
+/docs/aidlc/
+/docs/development/
+/docs/archive/
+/handoff/
+/하드웨어 정보/
+/plan/
+/1110할일.md
+/AGENTS.md
+/CLAUDE.md
+/CODEX.md
+/SKILL.md
+/tools/workflow/README.md
+/tools/workflow/tests/README.md
+/질문리스트.md
+/프로젝트구조개선.md

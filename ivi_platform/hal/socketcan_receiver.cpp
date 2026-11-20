@@ -49,12 +49,21 @@ bool SocketCanReceiver::open(const std::string& interface_name) {
         return false;
     }
 
+    int overflow_enabled=1;
+    if(::setsockopt(socket_fd_,SOL_SOCKET,SO_RXQ_OVFL,&overflow_enabled,sizeof(overflow_enabled))!=0){
+        setError("setsockopt(SO_RXQ_OVFL) failed");closeDescriptors();return false;
+    }
+    received_frames_=0;socket_drops_=0;drop_measurement_=true;
     const can_filter filters[] = {
         {kCanIdBmsStatus, CAN_SFF_MASK},
         {kCanIdBmsFailSafe, CAN_SFF_MASK},
         {kCanIdBmsSecOc, CAN_SFF_MASK},
         {kCanIdFailSafeSecOc, CAN_SFF_MASK},
         {kCanIdIdsAlert, CAN_SFF_MASK},
+        {kCanIdCurrentState,CAN_SFF_MASK|CAN_EFF_FLAG|CAN_RTR_FLAG},
+        {kCanIdCurrentStateSecOc,CAN_SFF_MASK|CAN_EFF_FLAG|CAN_RTR_FLAG},
+        {kCanIdSessionEcu,CAN_SFF_MASK|CAN_EFF_FLAG|CAN_RTR_FLAG},
+        {kCanIdDiagnosticEcu,CAN_SFF_MASK|CAN_EFF_FLAG|CAN_RTR_FLAG},
     };
     if (::setsockopt(socket_fd_, SOL_CAN_RAW, CAN_RAW_FILTER, filters, sizeof(filters)) != 0) {
         setError("setsockopt(CAN_RAW_FILTER) failed");
@@ -133,8 +142,22 @@ std::string SocketCanReceiver::lastError() const {
     return last_error_;
 }
 
+bool SocketCanReceiver::sendControl(std::uint32_t id,const CanPayload& payload){
+    if(id!=kCanIdSessionIvi && id!=kCanIdDiagnosticIvi)return false;
+    std::lock_guard<std::mutex> lock(mutex_);
+#if defined(__linux__)
+    if(socket_fd_<0)return false;
+    can_frame frame{};frame.can_id=id;frame.can_dlc=8;
+    std::copy(payload.begin(),payload.end(),frame.data);
+    return ::send(socket_fd_,&frame,sizeof frame,MSG_DONTWAIT|MSG_NOSIGNAL)==sizeof frame;
+#else
+    (void)payload;return false;
+#endif
+}
+
 void SocketCanReceiver::receiveLoop() {
 #if defined(__linux__)
+    std::uint32_t last_drop_counter=0;
     pollfd descriptors[2] = {{socket_fd_, POLLIN, 0}, {wake_fds_[0], POLLIN, 0}};
     ReceiveRetryBudget retry_budget(kMaxReceiveRetries);
     const auto retry = [this, &retry_budget](const char* operation) {
@@ -179,7 +202,11 @@ void SocketCanReceiver::receiveLoop() {
         }
 
         can_frame frame{};
-        const auto received = ::read(socket_fd_, &frame, sizeof(frame));
+        alignas(cmsghdr) char ancillary[CMSG_SPACE(sizeof(std::uint32_t))]{};
+        iovec vector{&frame,sizeof(frame)};msghdr message{};
+        message.msg_iov=&vector;message.msg_iovlen=1;
+        message.msg_control=ancillary;message.msg_controllen=sizeof(ancillary);
+        const auto received = ::recvmsg(socket_fd_, &message, 0);
         const auto received_at = Clock::now();
         if (received != static_cast<ssize_t>(sizeof(frame))) {
             if (received < 0 && errno == EINTR) {
@@ -191,6 +218,15 @@ void SocketCanReceiver::receiveLoop() {
                 break;
             }
             continue;
+        }
+        if(message.msg_flags&(MSG_TRUNC|MSG_CTRUNC)){drop_measurement_=false;continue;}
+        ++received_frames_;
+        for(auto* item=CMSG_FIRSTHDR(&message);item;item=CMSG_NXTHDR(&message,item)){
+            if(item->cmsg_level==SOL_SOCKET && item->cmsg_type==SO_RXQ_OVFL){
+                if(item->cmsg_len!=CMSG_LEN(sizeof(std::uint32_t))){drop_measurement_=false;continue;}
+                std::uint32_t current=0;std::memcpy(&current,CMSG_DATA(item),sizeof(current));
+                socket_drops_.fetch_add(static_cast<std::uint32_t>(current-last_drop_counter));last_drop_counter=current;
+            }
         }
         retry_budget.reset();
         setError("");
@@ -212,9 +248,11 @@ void SocketCanReceiver::receiveLoop() {
     }
 #endif
     running_.store(false);
+    drop_measurement_=false;
 }
 
 void SocketCanReceiver::closeDescriptors() {
+    std::lock_guard<std::mutex> lock(mutex_);
 #if defined(__linux__)
     if (socket_fd_ >= 0) {
         ::close(socket_fd_);
