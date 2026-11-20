@@ -5,6 +5,8 @@
 
 # 1. 개요
 
+2026-11-17 CHG-031 실시간 실측 연결 후 native ECU 기대 목록은35개다. 기존33개와 physical_sensor_runtime/physical_ecu_product2개를 모두 실행하며 IVI44개는 유지한다. 새2개는 spawn/exec·Python IPC·실제 vcan을 사용하는 native인수이므로 QEMU 제외 사유를 명시한다. QEMU C++ 목록 ECU27/IVI18을 줄이지 않는다. 양언어 종류9 공개벡터는 cross 소스fingerprint에도 포함한다. 결과는해당 커밋의CI/로컬근거로확인하며 목록수정만으로합격을주장하지않는다.
+
 ## 1.1. 목적
 
 Node A ECU와 Node B C++/Qt IVI의 정적 분석→ARM64 빌드→시험/커버리지→대상 배포를 자동화한다. Git 원격과 `main`·`develop` 및 native 품질 기준선 `quality.yml`이 존재한다. 아래 전체 인수 목표를 완료한 상태는 아니며, 자동 배포는 아직 없다.
@@ -137,3 +139,6 @@ S-8=B로 공식 기준을 C++ 실행 가능 소스 줄 커버리지 80% 이상�
 
 
 2026-09-08: 오래된 전체 실행 골격을 공식 인수 명세와 단일 plan 정본 링크로 대체했다. 바이너리/옵션·job 이미지·CTest 경로·coverage 무효 처리·배포 권한/health 차이를 정정했다. 제품 CI는 여전히 미구현이다.
+
+
+2026-11-17 CHG-031: ECU strict 시험 목록은 새 취득/적분5개를 더한33개이며 IVI제품44개는 유지한다. 별도 cross는 C++ ECU27/IVI18을 요구한다. physical_capture_cli와 bounded_sensor_read는 각각 Python/Linux 파일·프로세스, native fork/회수·소유자 사망 검증으로 native job에 둔다. 기존28/24 수치는 첫 PR 이전 기준선의 이력이다. skip/coverage 문턱은 완화하지 않는다.

@@ -5,6 +5,7 @@
 #include <QStringList>
 #include <QSet>
 #include <QJsonObject>
+#include <QTimer>
 
 #include "vehicle_data_service.h"
 
@@ -21,6 +22,15 @@ class DashboardViewModel : public QObject {
     Q_PROPERTY(double current READ current NOTIFY dataChanged)
     Q_PROPERTY(double temperature READ temperature NOTIFY dataChanged)
     Q_PROPERTY(bool measurementsAvailable READ measurementsAvailable NOTIFY dataChanged)
+    Q_PROPERTY(bool physicalMode READ physicalMode NOTIFY dataChanged)
+    Q_PROPERTY(bool physicalObservationGap READ physicalObservationGap NOTIFY dataChanged)
+    Q_PROPERTY(bool physicalSocInitializing READ physicalSocInitializing NOTIFY dataChanged)
+    Q_PROPERTY(bool physicalSocOutsideModel READ physicalSocOutsideModel NOTIFY dataChanged)
+    Q_PROPERTY(bool socAvailable READ socAvailable NOTIFY dataChanged)
+    Q_PROPERTY(bool sohAvailable READ sohAvailable NOTIFY dataChanged)
+    Q_PROPERTY(bool voltageAvailable READ voltageAvailable NOTIFY dataChanged)
+    Q_PROPERTY(bool currentAvailable READ currentAvailable NOTIFY dataChanged)
+    Q_PROPERTY(bool temperatureAvailable READ temperatureAvailable NOTIFY dataChanged)
     Q_PROPERTY(QString sensorState READ sensorState NOTIFY dataChanged)
     Q_PROPERTY(bool sensorStateWarning READ sensorStateWarning NOTIFY dataChanged)
     Q_PROPERTY(bool sensorUsesLastGood READ sensorUsesLastGood NOTIFY dataChanged)
@@ -40,6 +50,7 @@ class DashboardViewModel : public QObject {
     Q_PROPERTY(bool darkMode READ darkMode WRITE setDarkMode NOTIFY themeChanged)
     Q_PROPERTY(QString statusTitle READ statusTitle NOTIFY dataChanged)
     Q_PROPERTY(QString statusDescription READ statusDescription NOTIFY dataChanged)
+    Q_PROPERTY(QString sohHint READ sohHint NOTIFY dataChanged)
     Q_PROPERTY(bool failSafeKnown READ failSafeKnown NOTIFY dataChanged)
     Q_PROPERTY(QString securityTitle READ securityTitle NOTIFY dataChanged)
     Q_PROPERTY(QString securityDescription READ securityDescription NOTIFY dataChanged)
@@ -64,6 +75,7 @@ public:
     bool failSafeKnown() const { return fail_safe_known_; }
     QString statusTitle() const;
     QString statusDescription() const;
+    QString sohHint() const;
     QString securityTitle() const;
     QString securityDescription() const;
     QString rejectionSummary() const { return rejection_summary_; }
@@ -95,6 +107,18 @@ public:
     double current() const;
     double temperature() const;
     bool measurementsAvailable() const;
+    bool physicalMode()const{return snapshot_.physical_measurement.has_value();}
+    bool physicalObservationGap()const{return physicalMode()&&snapshot_.physical_measurement->observation_gap;}
+    bool physicalSocOutsideModel()const{return physicalMode()&&snapshot_.physical_measurement->soc_basis==2&&
+        snapshot_.physical_valid[0]&&snapshot_.physical_measurement->voltage_v&&
+        (*snapshot_.physical_measurement->voltage_v<3.0||*snapshot_.physical_measurement->voltage_v>4.25);}
+    bool physicalSocInitializing()const{return physicalMode()&&snapshot_.physical_measurement->soc_basis==2&&
+        snapshot_.physical_valid[0]&&!snapshot_.physical_measurement->soc_percent&&!physicalSocOutsideModel();}
+    bool socAvailable()const{return physicalMode()?snapshot_.physical_valid[3]:measurementsAvailable();}
+    bool sohAvailable()const{return physicalMode()?snapshot_.physical_valid[4]:measurementsAvailable();}
+    bool voltageAvailable()const{return physicalMode()?snapshot_.physical_valid[0]:measurementsAvailable();}
+    bool currentAvailable()const{return physicalMode()?snapshot_.physical_valid[1]:measurementsAvailable();}
+    bool temperatureAvailable()const{return physicalMode()?snapshot_.physical_valid[2]:measurementsAvailable();}
     QString sensorState() const;
     bool sensorStateWarning() const;
     bool sensorUsesLastGood() const;
@@ -127,10 +151,19 @@ signals:
     void securityAlertAcknowledgementRequested(qulonglong sequence);
 
 private:
+    void updateConnectionNotice();
+    QTimer connection_check_timer_;
+    bool connection_check_needed_=false;
+    void updatePhysicalSensorNotice();
+    QString missingSensorNames() const;
+    QTimer sensor_loss_timer_, sensor_recovery_timer_;
+    unsigned sensor_seen_mask_=0, sensor_missing_mask_=0;
+    std::uint64_t sensor_recovery_sequence_=0;
+    bool sensor_incident_active_=false;
     void recordProtectionUpdate();
     QJsonObject protectionLink(const QJsonObject& current)const;
     void recordEvent(const QString& text,const QString& category=QStringLiteral("event"));
-    enum class PopupDomain { General, Battery, Security, Storage };
+    enum class PopupDomain { General, Battery, Security, Storage, Sensor };
     void presentPopup(const QString& title, const QString& description, const QString& kind, int priority,PopupDomain domain=PopupDomain::General);
     bool dark_mode_ = true;
     bool fail_safe_known_ = false;
