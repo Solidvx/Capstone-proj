@@ -184,7 +184,7 @@ bool VehicleDataService::refreshTime(Clock::time_point now) {
     std::vector<Observer> observers;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        if (!snapshot_.vehicle.valid || !last_good_bms_at_.has_value()) {
+        if (snapshot_.physical_measurement || !snapshot_.vehicle.valid || !last_good_bms_at_.has_value()) {
             return false;
         }
 

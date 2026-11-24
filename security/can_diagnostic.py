@@ -5,7 +5,7 @@ import hmac
 
 from security.can_session import SessionContext, context_id, diagnostic_tag
 
-LENGTHS = {1: 56, 2: 56, 3: 40, 4: 104, 5: 80, 6: 52, 7: 52, 8: 56}
+LENGTHS = {1: 56, 2: 56, 3: 40, 4: 104, 5: 80, 6: 52, 7: 52, 8: 56, 9: 80}
 
 
 def _u(body: bytes, at: int, size: int = 4) -> int:
@@ -40,8 +40,38 @@ def _state(state: int, present: int, reason: int) -> bool:
 def valid_body(sender: int, kind: int, b: bytes) -> bool:
     if sender not in (0x302, 0x303) or kind not in LENGTHS or len(b) != LENGTHS[kind]:
         return False
-    if kind != 6 and kind not in ((1, 2, 4, 7, 8) if sender == 0x302 else (3, 5)):
+    if kind != 6 and kind not in ((1, 2, 4, 7, 8, 9) if sender == 0x302 else (3, 5)):
         return False
+    if kind == 9:
+        flags = b[65]
+        if (not _uuid(b, 0) or _zero(b, 16, 16) or b[64] != 1 or flags > 31
+                or b[66] > 2 or b[67] > 2 or b[68] not in range(1, 7)
+                or b[69] not in range(1, 7) or b[70] > 1 or b[71]
+                or not _u(b, 72) or not 1 <= _u(b, 76) <= 60000):
+            return False
+        if (flags & 3 not in (0, 3) or bool(flags & 3) != (b[68] == 2)
+                or bool(flags & 4) != (b[69] == 2)
+                or (flags & 8 and (not flags & 3 or b[66] not in (1, 2)))
+                or bool(flags & 16) != (b[67] != 0)
+                or (flags & 3 and _u(b, 56) == 0xFFFFFFFF)
+                or (flags & 4 and _u(b, 60) == 0xFFFFFFFF)):
+            return False
+        if not _u(b, 32, 8) and (flags & 15 or b[68] not in (1, 3) or b[69] not in (1, 3)
+                                or _u(b, 56) != 0xFFFFFFFF or _u(b, 60) != 0xFFFFFFFF):
+            return False
+        for i in range(5):
+            at, size = (40 + i*4, 4) if i < 3 else (52 + (i-3)*2, 2)
+            raw = _u(b, at, size)
+            if not flags & (1 << i):
+                if raw:
+                    return False
+                continue
+            value = int.from_bytes(b[at:at+size], "big", signed=i < 3)
+            if not ((0 <= value <= 26000000) if i == 0 else
+                    (abs(value) <= 2147000000) if i == 1 else
+                    (-55000 <= value <= 125000) if i == 2 else value <= 10000):
+                return False
+        return True
     if kind == 1:
         if (not _uuid(b, 0) or not (_zero(b, 16, 16) or _uuid(b, 16)) or b[32] not in range(1, 6)
                 or b[33] not in (1, 2) or b[34] not in range(1, 7) or b[38] > 3 or b[39] or b[55]

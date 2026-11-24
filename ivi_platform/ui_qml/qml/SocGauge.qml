@@ -7,6 +7,7 @@ Rectangle {
     required property real value
     required property bool available
     required property bool stale
+    property bool showLabel: true
     property color highColor: "#36d399"
     property color mediumColor: "#f59e0b"
     property color lowColor: "#fb7185"
@@ -34,7 +35,9 @@ Rectangle {
 
     Text {
         objectName: "socGaugeLabel"
-        font.pixelSize: 12
+        visible: root.showLabel
+        font.pixelSize: 14
+        font.weight: Font.DemiBold
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.margins: 8
@@ -44,8 +47,8 @@ Rectangle {
 
     Item {
         anchors.centerIn: parent
-        anchors.verticalCenterOffset: 13
-        width: Math.min(parent.width - 24, parent.height - 48)
+        anchors.verticalCenterOffset: root.showLabel ? 13 : 0
+        width: Math.min(parent.width - 24, parent.height - (root.showLabel ? 48 : 24))
         height: width
 
         Canvas {
@@ -76,23 +79,18 @@ Rectangle {
             }
         }
 
-        ColumnLayout {
+        Text {
+            objectName: "socGaugeValue"
             anchors.centerIn: parent
-            spacing: -2
-
-            Text {
-                Layout.alignment: Qt.AlignHCenter
-                text: root.available ? root.clampedValue.toFixed(1) : "--"
-                color: root.gaugeColor
-                font.pixelSize: 27
-                font.bold: true
-            }
-            Text {
-                Layout.alignment: Qt.AlignHCenter
-                text: "%"
-                color: root.mutedColor
-                font.pixelSize: 13
-            }
+            width: Math.max(1, parent.width - 28)
+            text: root.available ? root.clampedValue.toFixed(1) + "%" : "--"
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.NoWrap
+            color: root.gaugeColor
+            font.pixelSize: 32
+            font.weight: Font.Bold
+            minimumPixelSize: 18
+            fontSizeMode: Text.Fit
         }
     }
 }

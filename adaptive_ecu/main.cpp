@@ -21,6 +21,9 @@
 #include "checkpoint_store.h"
 #include "checkpoint_writer.h"
 #include "can_restart_notice.h"
+#include "physical_sensor_runtime.h"
+#include "physical_measurement.h"
+#include "diagnostic_tx_queue.h"
 #ifdef ECU_SENDER_CONTROL_FIXTURE
 #include "test/ecu_sender_gate.h"
 #endif
@@ -36,6 +39,7 @@
 #include <atomic>
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <csignal>
 #include <exception>
 #include <iostream>
@@ -79,6 +83,7 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
     std::string profile_path = "adaptive_ecu/data/battery_profile.csv";
     std::string key_path = "/etc/secoc/key.bin";
     std::string i2c_device = "/dev/i2c-1";
+    std::string physical_config_path;
     bool secoc_enabled = true;
     std::string soh_profile_path;
     std::string protocol="session-v2",session_policy_path;
@@ -106,7 +111,8 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
     for (int i = 1; i < argc; ++i) {
         const std::string arg = argv[i];
         if(arg=="--help"){
-            std::cout<<"adaptive_ecu --interface CAN --sensor-mode constant|profile_csv|random_walk|ads1115\n"
+            std::cout<<"adaptive_ecu --interface CAN --sensor-mode constant|profile_csv|random_walk|ads1115|physical\n"
+                <<"  --physical-config FILE (physical mode, session-v2 only; explicit sensor/model settings)\n"
                 <<"  --secoc on --protocol session-v2 --session-policy FILE --key FILE\n"
                 <<"  --protocol legacy-v1 selects explicit historical experiments; --secoc off is explicit only\n"
                 <<"  --ids-socket PATH --ids-pid PID --ids-frame-budget N --ids-expiry-ms N (Linux, same UID)\n"
@@ -138,6 +144,9 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
             key_path = argv[++i];
         } else if (arg == "--i2c-device") {
             i2c_device = argv[++i];
+        } else if(arg=="--physical-config"){
+            if(!physical_config_path.empty())throw std::invalid_argument("physical config selected twice");
+            physical_config_path=argv[++i];
         } else if (arg == "--soh-profile") {
             soh_profile_path = argv[++i];
             if (soh_profile_path.empty()) {
@@ -275,9 +284,22 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
     const auto mode = SensorSimulator::parseMode(sensor_mode);
     if (!mode) {
         std::cerr << "Unsupported sensor mode: " << sensor_mode
-                  << " (constant|profile_csv|random_walk|ads1115)\n";
+                  << " (constant|profile_csv|random_walk|ads1115|physical)\n";
         return 2;
     }
+    std::optional<PhysicalRuntimeConfig> physical_config;
+    std::unique_ptr<PhysicalSampleFeed> physical_feed;
+    std::unique_ptr<PhysicalSensorProcess> physical_process;
+    if(*mode==SensorSimulator::Mode::PHYSICAL_HARDWARE){
+        if(physical_config_path.empty()||!session_limits||recovery_requested||!soh_profile_path.empty())
+            throw std::invalid_argument("physical mode requires explicit config and session-v2; legacy/virtual SOH/checkpoint recovery are unsupported");
+        physical_config_path=std::filesystem::absolute(physical_config_path).string();
+        physical_config=loadPhysicalRuntimeConfig(physical_config_path);
+        physical_feed=std::make_unique<PhysicalSampleFeed>(*physical_config);
+#ifndef __linux__
+        throw std::invalid_argument("physical mode requires Linux");
+#endif
+    }else if(!physical_config_path.empty())throw std::invalid_argument("physical config requires physical sensor mode");
     // Pin/validate the actual CSV bytes before any CAN or worker side effects.
     SensorSimulator sensor(*mode,profile_path);
     sensor.exportState();
@@ -358,7 +380,15 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
     std::ostringstream input_instance;
     input_instance<<std::hex<<std::setfill('0');
     for (auto byte:instance) input_instance<<std::setw(2)<<static_cast<unsigned>(byte);
-    std::cout<<inputLineageJson(input_instance.str(),recovery_requested?start_intent:"standalone",
+    std::string physical_clock_id;
+    if(physical_config){std::ifstream clock("/proc/sys/kernel/random/boot_id");clock>>physical_clock_id;}
+    if(physical_config){
+        std::cout<<"{\"result\":\"ECU_PHYSICAL_LINEAGE\",\"model_config_sha256\":\""<<physical_config->meter.model_calibration_id
+                 <<"\",\"nominal_capacity_ah\":"<<physical_config->meter.nominal_capacity_ah
+                 <<",\"soc_model\":\""<<(physical_config->meter.automatic_soc?PhysicalSocEkf::kModel:
+                    physical_config->meter.initial_soc?"explicit-coulomb":"unknown")<<'"'
+                 <<",\"physical_accuracy_verified\":false}"<<std::endl;
+    }else std::cout<<inputLineageJson(input_instance.str(),recovery_requested?start_intent:"standalone",
         *mode,sensor,sensor.exportState(),soh_scenario,restored_soh_elapsed,
         *mode==SensorSimulator::Mode::ADS1115_HARDWARE?inputSha256(i2c_device):"")<<std::endl;
     const auto process_started=monotonicMs();
@@ -437,6 +467,8 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
         }
     };
     std::unique_ptr<BmsMiddleware> middleware;
+    std::unique_ptr<session::DiagnosticTxQueue> physical_tx;
+    if(physical_config)physical_tx=std::make_unique<session::DiagnosticTxQueue>(1,6,session_limits->diagnostic.assembly_ms);
     std::function<void()> pump_session=[]{ };
     if(session_limits){
         exchange=std::make_unique<session::Exchange>(session::Endpoint::Ecu,session_key,*session_limits);
@@ -511,6 +543,10 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
             protection_publisher->pump(*exchange,monotonicMs(),[&](const session::Frame& frame){
                 return driver.send(CanFrame{frame.id,frame.dlc,frame.data});
             });
+            if(physical_tx&&exchange->dataOpen()&&exchange->activeContext())
+                physical_tx->pump(session::contextId(*exchange->activeContext()),monotonicMs(),[&](const session::Frame& frame){
+                    return driver.send(CanFrame{frame.id,frame.dlc,frame.data});
+                });
             if(protection_publisher->dropped()!=protection_reported_drops ||
                protection_publisher->failures()!=protection_reported_failures){
                 protection_reported_drops=protection_publisher->dropped();
@@ -582,7 +618,7 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
         if(event==TaskRecovery::Event::Exhausted){
             std::cerr<<"ERR_WATCHDOG_MAX_RESTART task=can-rx attempts="<<receive_recovery->attempts()
                      <<" failures="<<receive_recovery->failures()<<'\n';
-            failsafe.watchdogRestartsFailed(soc_estimator.soc()*100.0f,last_calculation_sample.temperature_c);
+            if(!physical_feed)failsafe.watchdogRestartsFailed(soc_estimator.soc()*100.0f,last_calculation_sample.temperature_c);
             receive_operator=true;
             if(checkpoint_writer)save_state(last_committed_soh_elapsed);
         }else if(event==TaskRecovery::Event::StopDeadline || event==TaskRecovery::Event::InvalidSnapshot ||
@@ -636,6 +672,15 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
                   << "C virtual. BMS TX paused until 3 new valid conversions.\n";
         adc_worker->start();
     }
+    if(physical_config){
+#ifdef __linux__
+        const auto executable=std::filesystem::read_symlink("/proc/self/exe").parent_path()/"physical_battery_worker";
+        physical_process=std::make_unique<PhysicalSensorProcess>(executable.string(),physical_config_path,physical_config->fingerprint);
+#endif
+        std::cout<<"Physical: INA219 voltage/current + DS18B20 temperature; no virtual BMS values. "
+                    "SOC uses the explicitly selected prior/reference model; reference accuracy is unverified. SOH needs an independent capacity test. "
+                    "Physical protection thresholds/cutoff and checkpoint recovery are not enabled.\n";
+    }
 
     auto flush_state=[&](std::uint64_t sequence){
         const auto started=monotonicMs();
@@ -664,9 +709,15 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
     };
     std::uint8_t last_status_quality=0,last_status_stage=0;
     auto publish_sensor_status=[&](){
-        if(protection_publisher)
+        if(protection_publisher&&!physical_feed)
             protection_publisher->offer(*exchange,protection.body(instance),monotonicMs());
-        const auto quality=static_cast<std::uint8_t>(adc_worker ? adc_feed.quality() : SensorQuality::Valid);
+        auto input_quality=adc_worker ? adc_feed.quality() : SensorQuality::Valid;
+        if(physical_feed){
+            const auto v=physical_feed->values(monotonicMs());
+            input_quality=(v.ina_quality==SensorQuality::Valid&&v.temperature_quality==SensorQuality::Valid) ?
+                SensorQuality::Valid : v.ina_quality!=SensorQuality::Valid ? v.ina_quality : v.temperature_quality;
+        }
+        const auto quality=static_cast<std::uint8_t>(input_quality);
         const std::uint8_t stage=calculation_operator || receive_operator ? 5 :
             calculation_recovery && calculation_recovery->state()!=TaskRecovery::State::Idle ? 3 : 2;
         if(exchange && exchange->dataOpen() &&
@@ -677,6 +728,7 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
             status[34]=quality;const auto risk=failsafe.exportState();
             status[35]=static_cast<std::uint8_t>(risk.state);status[36]=risk.reason!=FailSafeStateMachine::REASON_NONE;
             status[37]=static_cast<std::uint8_t>(risk.reason);
+            if(physical_feed){status[35]=0xff;status[36]=status[37]=0;}
             if(checkpoint_writer){
                 const auto storage=checkpoint_writer->status();
                 status[38]=storage.storageFailed() ? 3 : storage.committed<storage.requested ? 1 : 0;
@@ -693,9 +745,11 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
     };
     auto reported_quality = adc_feed.quality();
     const auto soh_started = std::chrono::steady_clock::now();
-    std::cout << "SOH virtual capacity: initial=" << soh_estimator.initialCapacityAh()
+    if(!physical_feed)std::cout << "SOH virtual capacity: initial=" << soh_estimator.initialCapacityAh()
               << "Ah source=" << (soh_profile_path.empty() ? "constant-full-health" : soh_profile_path)
               << " steps=" << soh_scenario.size() << '\n';
+    std::uint64_t physical_sent_at=0,physical_generation=0,physical_logged_sequence=0;
+    bool physical_process_failed=false;
     while (running) {
         const auto cycle_start = std::chrono::steady_clock::now();
 #ifdef ECU_SENDER_CONTROL_FIXTURE
@@ -703,6 +757,68 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
 #endif
         watchdog.kick();
         pump_session();
+
+        if(physical_feed){
+            for(const auto& sample:physical_process->poll())physical_feed->accept(sample,monotonicMs());
+            if(physical_process->failed()){
+                physical_feed->unavailable();
+                if(!physical_process_failed){
+                    physical_process_failed=true;
+                    if(!physical_process->stop())throw std::runtime_error("physical reader unreclaimed; replacement prohibited");
+                    std::cerr<<"Physical reader stopped; invalid sensor state is reported, no simulated fallback\n";
+                }
+            }
+            const auto now=monotonicMs();const auto values=physical_feed->values(now);
+            publish_sensor_status();
+            if(exchange->dataOpen()&&
+               (physical_generation!=exchange->generation()||now-physical_sent_at>=1000)){
+                session::PhysicalMeasurement measurement;measurement.instance=instance;
+                std::copy_n(physical_config->fingerprint.begin(),16,measurement.configuration.begin());
+                measurement.sequence=values.sequence;measurement.voltage_v=values.voltage_v;measurement.current_a=values.current_a;
+                measurement.temperature_c=values.temperature_c;measurement.soc_percent=values.soc_percent;measurement.soh_percent=values.soh_percent;
+                measurement.ina_age_ms=values.ina_age_ms;measurement.temperature_age_ms=values.temperature_age_ms;
+                measurement.ina_quality=static_cast<std::uint8_t>(values.ina_quality);
+                measurement.temperature_quality=static_cast<std::uint8_t>(values.temperature_quality);
+                measurement.soc_basis=physical_feed->socBasis();
+                measurement.soh_basis=physical_feed->sohBasis();
+                measurement.observation_gap=physical_feed->meterState().observation_gap;
+                measurement.nominal_capacity_mah=static_cast<std::uint32_t>(std::llround(physical_config->meter.nominal_capacity_ah*1000));
+                measurement.max_interval_ms=physical_config->meter.max_interval_ms;
+                if(physical_tx->pending()==0){
+                    if(auto packet=exchange->makeDiagnostic(session::DiagnosticKind::PhysicalMeasurement,session::encodePhysicalMeasurement(measurement)))
+                        physical_tx->offer(std::move(*packet),now);
+                    physical_sent_at=now;physical_generation=exchange->generation();
+                }
+            }
+            if(values.sequence!=physical_logged_sequence){
+                physical_logged_sequence=values.sequence;
+                const auto& state=physical_feed->meterState();
+                std::cout<<std::setprecision(12)<<"{\"result\":\"PHYSICAL_SAMPLE\",\"sequence\":"<<values.sequence
+                         <<",\"process_instance_id\":\""<<input_instance.str()<<'"'
+                         <<",\"clock_id\":\""<<physical_clock_id<<'"'
+                         <<",\"model_config_sha256\":\""<<physical_config->meter.model_calibration_id<<'"'
+                         <<",\"sample_monotonic_ms\":";
+                if(values.ina_age_ms!=0xffffffffu&&now>=values.ina_age_ms)std::cout<<now-values.ina_age_ms;else std::cout<<"null";
+                std::cout
+                         <<",\"voltage_v\":"<<(values.voltage_v?std::to_string(*values.voltage_v):"null")
+                         <<",\"current_a\":"<<(values.current_a?std::to_string(*values.current_a):"null")
+                         <<",\"temperature_c\":"<<(values.temperature_c?std::to_string(*values.temperature_c):"null")
+                         <<",\"soc_estimate_percent\":"<<(values.soc_percent?std::to_string(*values.soc_percent):"null")
+                         <<",\"soc_basis\":"<<physical_feed->socBasis()
+                         <<",\"soc_update\":\""<<physical_feed->socUpdate()<<'"'
+                         <<",\"soc_covariance\":";
+                if(const auto covariance=physical_feed->socCovariance())std::cout<<*covariance;else std::cout<<"null";
+                std::cout
+                         <<",\"soh_estimate_percent\":"<<(values.soh_percent?std::to_string(*values.soh_percent):"null")
+                         <<",\"soh_basis\":"<<physical_feed->sohBasis()<<",\"soh_update\":\""<<physical_feed->sohStatus()<<"\""
+                         <<",\"ina_quality\":"<<unsigned(values.ina_quality)<<",\"temperature_quality\":"<<unsigned(values.temperature_quality)
+                         <<",\"charged_ah\":"<<state.charged_ah<<",\"discharged_ah\":"<<state.discharged_ah
+                         <<",\"signed_energy_wh\":"<<state.signed_energy_wh<<",\"observation_gap\":"<<(state.observation_gap?"true":"false")
+                         <<",\"physical_accuracy_verified\":false}"<<std::endl;
+            }
+            poll_receive();completed_cycle(values.voltage_v.has_value()&&values.temperature_c.has_value());
+            wait_cycle(cycle_start+std::chrono::milliseconds(100));continue;
+        }
 
         if (adc_worker) {
             const auto snapshot = adc_worker->snapshot();
@@ -807,6 +923,7 @@ int runMain(int argc, char** argv, BmsCalculationTask::Calculation calculation =
     if(recovery_requested)
         flush_state(save_state(restored_soh_elapsed+std::chrono::duration<double>(std::chrono::steady_clock::now()-soh_started).count()));
     if (adc_worker) adc_worker->stop();
+    if(physical_process&&!physical_process->stop())throw std::runtime_error("physical reader not reclaimed; no replacement permitted");
     watchdog.stop();
     driver.close();
     std::cout << "adaptive_ecu stopped\n";

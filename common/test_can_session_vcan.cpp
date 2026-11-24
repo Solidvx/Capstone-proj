@@ -1,4 +1,6 @@
 #include "can_restart_notice.h"
+#include "physical_measurement.h"
+#include <cmath>
 
 #include <linux/can.h>
 #include <linux/can/raw.h>
@@ -62,6 +64,59 @@ private:int fd_=-1;
 void uuid(std::vector<std::uint8_t>& bytes,unsigned at,std::uint8_t seed){
     std::fill_n(bytes.begin()+at,16,seed);bytes[at+6]=0x40|(seed&15);bytes[at+8]=0x80|(seed&63);
 }
+int receivePhysicalEcu(const std::string& iface,const std::string& selected){
+    Socket socket(iface,false);Key dummy{};for(unsigned i=0;i<32;++i)dummy[i]=i;
+    ExchangeLimits bounds{100,1000,5000,500,2000,200,64,1024,{200,5,100,8,16,8,1024},{1000,100,4,128}};
+    Exchange ivi(Endpoint::Ivi,dummy,bounds);const auto start=milliseconds();
+    std::optional<Nonce> instance;bool passed=false,inject=false;
+    const bool receive_fault=selected=="--ivi-physical-receive-error";
+    const bool automatic_rest=selected=="--ivi-physical-auto-rest";
+    auto observe=[&]{
+        for(const auto& m:ivi.lastReceiveOutcome().applied){
+            require(m.id!=0x100,"physical mode fabricated a legacy pack BMS");
+            require(m.id!=0x101,"physical mode fabricated a legacy battery warning");
+        }
+        const auto& result=ivi.lastDiagnosticResult();
+        if(result.code!=DiagnosticResultCode::Message||!result.message)return;
+        const auto& message=*result.message;
+        if(message.kind==DiagnosticKind::NodeStatus){
+            require(message.body[35]==0xff,"physical mode claimed unconfigured battery protection");
+            Nonce id{};std::copy_n(message.body.begin(),16,id.begin());instance=id;
+            if(receive_fault&&message.body[32]==5){passed=true;return;}
+        }
+        if(message.kind!=DiagnosticKind::PhysicalMeasurement)return;
+        const auto m=decodePhysicalMeasurement(message.body);require(m.has_value(),"invalid physical body");
+        if(!instance||m->instance!=*instance||m->sequence<3)return;
+        if(selected=="--ivi-physical"&&m->sequence<8)return; // retain a real multi-sample meter interval
+        const bool no_electrical=selected=="--ivi-physical-electrical-error";
+        const bool no_temperature=selected=="--ivi-physical-temperature-error";
+        if(!no_electrical&&(!m->voltage_v||!m->current_a))return;
+        if(!no_temperature&&!m->temperature_c)return;
+        require(no_electrical?!m->voltage_v:std::abs(*m->voltage_v-(automatic_rest?3.7:3.737))<1e-6,"physical voltage mismatch");
+        require(no_electrical?!m->current_a:std::abs(*m->current_a+(automatic_rest?0:.37))<1e-6,"physical current mismatch");
+        require(no_temperature?!m->temperature_c:std::abs(*m->temperature_c-19.75)<1e-6,"physical temperature mismatch");
+        if(selected=="--ivi-physical-known"){
+            require(m->soc_percent&&*m->soc_percent>79&&*m->soc_percent<=80,"explicit SOC prior not integrated");
+            require(m->soh_percent&&std::abs(*m->soh_percent-90)<1e-6,"independent capacity SOH mismatch");
+        }else if(selected=="--ivi-physical-measured"){
+            require(!m->soc_percent&&m->soh_percent&&*m->soh_percent>=0&&*m->soh_percent<.1,
+                    "measured short synthetic capacity not delivered independently of SOC");
+        }else if(automatic_rest){
+            require(m->soc_basis==2&&!m->soh_percent,"automatic SOC basis/SOH mismatch");
+            if(!m->soc_percent)return;
+            require(*m->soc_percent>10&&*m->soc_percent<15,"automatic reference SOC mismatch");
+        }else require(!m->soc_percent&&!m->soh_percent,"unknown physical SOC/SOH fabricated");
+        require(m->nominal_capacity_mah==2550,"single-cell nominal capacity lost");
+        if(receive_fault)inject=true;else passed=true;
+    };
+    while(!passed){
+        require(milliseconds()-start<(automatic_rest?80000u:receive_fault?25000u:8000u),"physical ECU authentication/data deadline");
+        if(inject)socket.send({Frame{0x123,{}}});
+        while(auto frame=socket.receive()){const auto at=milliseconds();socket.send(ivi.receive(*frame,at,at));observe();}
+        socket.send(ivi.poll(milliseconds()));observe();std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    std::cout<<"PASS actual physical ECU/owned reader/authenticated CAN: "<<selected<<"; synthetic syscall inputs only\n";return 0;
+}
 int receiveRealEcu(const std::string& iface){
     Socket socket(iface,false);
     Key dummy{};for(unsigned i=0;i<32;++i)dummy[i]=i;
@@ -98,6 +153,7 @@ int main(int argc,char** argv){
         require(iface.rfind("vcan",0)==0&&iface.find('/')==std::string::npos&&iface.size()<IFNAMSIZ&&
             std::filesystem::is_directory("/sys/devices/virtual/net/"+iface),"session smoke only accepts existing virtual vcan interfaces");
         if(argc==2&&std::string(argv[1])=="--ivi-only")return receiveRealEcu(iface);
+        if(argc==2&&std::string(argv[1]).rfind("--ivi-physical",0)==0)return receivePhysicalEcu(iface,argv[1]);
         require(argc==1,"unexpected vcan test argument");
         Socket ecu_socket(iface,true),ivi_socket(iface,false);
         Key dummy{};for(unsigned i=0;i<32;++i)dummy[i]=i;

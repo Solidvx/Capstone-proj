@@ -43,6 +43,142 @@ class DashboardViewModelTest : public QObject {
     }
 
 private slots:
+    void automaticSocInitializationIsDifferentFromUnknownOrLostInput(){
+        DashboardViewModel model;ivi::VehicleSnapshot s;
+        s.physical_measurement=capstone::session_v2::PhysicalMeasurement{};
+        s.physical_measurement->soc_basis=2;s.physical_measurement->sequence=3;
+        s.physical_valid={true,true,true,false,false};s.vehicle.valid=true;
+        model.updateSnapshot(s);QVERIFY(model.physicalSocInitializing());QVERIFY(!model.socAvailable());
+        s.physical_measurement->sequence++;
+        s.physical_measurement->soc_percent=0;s.physical_valid[3]=true;s.vehicle.soc_percent=0;
+        model.updateSnapshot(s);QVERIFY(!model.physicalSocInitializing());QVERIFY(model.socAvailable());
+        QCOMPARE(model.soc(),0.0);QVERIFY(!model.sohAvailable());
+        s.physical_valid[0]=s.physical_valid[1]=s.physical_valid[3]=false;
+        model.updateSnapshot(s);QVERIFY(!model.physicalSocInitializing());QVERIFY(!model.socAvailable());
+        s.physical_measurement->soc_basis=0;s.physical_measurement->soc_percent.reset();
+        s.physical_valid[0]=s.physical_valid[1]=true;model.updateSnapshot(s);
+        QVERIFY(!model.physicalSocInitializing());
+    }
+    void outOfModelVoltageDoesNotPromiseSocInitialization(){
+        DashboardViewModel model;ivi::VehicleSnapshot s;
+        s.physical_measurement=capstone::session_v2::PhysicalMeasurement{};
+        s.physical_measurement->soc_basis=2;s.physical_measurement->sequence=3;
+        s.physical_valid={true,true,true,false,false};s.vehicle.valid=true;
+        for(double voltage:{0.,2.66,4.3}){
+            s.physical_measurement->voltage_v=voltage;s.vehicle.voltage_v=voltage;
+            model.updateSnapshot(s);
+            QVERIFY(model.physicalSocOutsideModel());QVERIFY(!model.physicalSocInitializing());
+            QVERIFY(model.voltageAvailable());QVERIFY(!model.socAvailable());
+        }
+        for(double voltage:{3.,3.7,4.25}){
+            s.physical_measurement->voltage_v=voltage;s.vehicle.voltage_v=voltage;
+            model.updateSnapshot(s);
+            QVERIFY(!model.physicalSocOutsideModel());QVERIFY(model.physicalSocInitializing());
+        }
+        s.physical_measurement->voltage_v=2.66;s.physical_valid[0]=false;model.updateSnapshot(s);
+        QVERIFY(!model.physicalSocOutsideModel());QVERIFY(!model.physicalSocInitializing());
+        s.physical_valid[0]=true;s.physical_measurement->soc_basis=0;model.updateSnapshot(s);
+        QVERIFY(!model.physicalSocOutsideModel());QVERIFY(!model.physicalSocInitializing());
+    }
+    void sohHintDistinguishesMissingCapacityFromExpiredMeasurement(){
+        DashboardViewModel model;ivi::VehicleSnapshot s;
+        s.physical_measurement=capstone::session_v2::PhysicalMeasurement{};
+        model.updateSnapshot(s);QCOMPARE(model.sohHint(),QStringLiteral("용량 시험 후 표시됩니다"));
+        s.physical_measurement->soh_basis=1;s.physical_measurement->soh_percent=90;
+        s.physical_valid[4]=true;model.updateSnapshot(s);
+        QCOMPARE(model.sohHint(),QStringLiteral("측정한 용량을 기준으로 계산했습니다"));
+        s.physical_valid[4]=false;model.updateSnapshot(s);
+        QCOMPARE(model.sohHint(),QStringLiteral("새 용량 정보를 확인하고 있습니다"));
+        s.physical_measurement->soh_basis=2;s.physical_measurement->soh_percent=81;
+        s.physical_valid[4]=true;model.updateSnapshot(s);
+        QVERIFY(model.sohAvailable());QVERIFY(model.sohHint().isEmpty());
+        s.physical_measurement.reset();model.updateSnapshot(s);QVERIFY(model.sohHint().isEmpty());
+    }
+    void physicalSensorNoticesDebounceAndKeepOneIncidentUntilStableRecovery(){
+        DashboardViewModel model;QSignalSpy records(&model,&DashboardViewModel::eventRecorded);
+        auto count=[&](const QString& category){
+            unsigned n=0;for(const auto& args:records)
+                if(qvariant_cast<QJsonObject>(args.first()).value("category").toString()==category)++n;
+            return n;
+        };
+        ivi::VehicleSnapshot s;s.physical_measurement=capstone::session_v2::PhysicalMeasurement{};
+        s.physical_measurement->sequence=3;s.vehicle.valid=true;s.vehicle.stale=false;
+        s.physical_valid={true,true,true,false,false};model.updateSnapshot(s);
+        // Reproduce short expiry/recovery cycles: availability changes at once,
+        // but these are not separate user-visible sensor failures.
+        for(unsigned i=0;i<3;++i){
+            s.physical_valid[0]=s.physical_valid[1]=false;model.updateSnapshot(s);
+            QVERIFY(!model.voltageAvailable());QVERIFY(!model.popupVisible());
+            QTest::qWait(120);
+            s.physical_valid[0]=s.physical_valid[1]=true;model.updateSnapshot(s);
+            QTest::qWait(120);
+        }
+        QTest::qWait(2100);QCOMPARE(count("sensor-input-lost"),0u);
+        s.physical_valid[0]=s.physical_valid[1]=false;model.updateSnapshot(s);
+        QTRY_VERIFY_WITH_TIMEOUT(model.popupVisible(),2500);
+        QCOMPARE(count("sensor-input-lost"),1u);
+        QVERIFY(model.popupDescription().contains(QStringLiteral("전압·전류")));
+        // Neither short recovery nor another loss dismisses/reopens the notice.
+        s.physical_valid[0]=s.physical_valid[1]=true;model.updateSnapshot(s);
+        QTest::qWait(120);QVERIFY(model.popupVisible());
+        s.physical_valid[0]=s.physical_valid[1]=false;model.updateSnapshot(s);
+        model.dismissPopup();QTest::qWait(2100);
+        QVERIFY(!model.popupVisible());QCOMPARE(count("sensor-input-lost"),1u);
+        QCOMPARE(count("sensor-input-recovered"),0u);
+        s.physical_valid[0]=s.physical_valid[1]=true;model.updateSnapshot(s);
+        s.physical_measurement->sequence++;model.updateSnapshot(s);
+        QTRY_COMPARE_WITH_TIMEOUT(count("sensor-input-recovered"),1u,5500);
+        QVERIFY(!model.popupVisible()); // recovery never reopens a closed notice
+        s.physical_valid[2]=false;model.updateSnapshot(s);
+        QTRY_VERIFY_WITH_TIMEOUT(model.popupVisible(),2500);
+        QCOMPARE(count("sensor-input-lost"),2u);
+        s.physical_valid[2]=true;model.updateSnapshot(s);
+        s.physical_measurement->sequence++;model.updateSnapshot(s);
+        QTRY_COMPARE_WITH_TIMEOUT(model.popupKind(),QStringLiteral("success"),5500);
+        QVERIFY(model.popupVisible()); // unread recovery result stays until closed
+        QCOMPARE(count("sensor-input-recovered"),2u);
+    }
+    void physicalSensorWarmupAndSourceReplacementDoNotFabricateRecovery(){
+        DashboardViewModel model;ivi::VehicleSnapshot s;
+        s.physical_measurement=capstone::session_v2::PhysicalMeasurement{};
+        s.physical_measurement->ina_quality=s.physical_measurement->temperature_quality=1;
+        model.updateSnapshot(s);QTest::qWait(2100);QVERIFY(!model.popupVisible());
+        // A sensor which never worked must still report a persistent failure.
+        s.physical_measurement->ina_quality=3;model.updateSnapshot(s);
+        QTRY_VERIFY_WITH_TIMEOUT(model.popupVisible(),2500);
+        s.physical_measurement->instance[0]=1;
+        s.physical_measurement->ina_quality=1;model.updateSnapshot(s);
+        QVERIFY(!model.popupVisible());
+        QVERIFY(!model.eventHistory().join(' ').contains(QStringLiteral("회복 확인")));
+        // Recovery cannot cover a security warning; total loss also must not
+        // emit a second set of legacy BMS connection events.
+        s.physical_measurement->ina_quality=3;model.updateSnapshot(s);
+        QTRY_VERIFY_WITH_TIMEOUT(model.popupVisible(),2500);
+        s.session_protocol=true;s.observed_condition_mask=8;model.updateSnapshot(s);
+        const auto security_notice=model.popupTitle();QVERIFY(security_notice.contains(QStringLiteral("Flooding")));
+        s.physical_valid={true,true,true,false,false};s.vehicle.valid=true;
+        s.physical_measurement->sequence=3;model.updateSnapshot(s);
+        s.physical_measurement->sequence=4;model.updateSnapshot(s);
+        QTest::qWait(5100);
+        QCOMPARE(model.popupTitle(),security_notice);QCOMPARE(model.popupKind(),QStringLiteral("danger"));
+        QVERIFY(model.eventHistory().join(' ').contains(QStringLiteral("회복 확인")));
+        QVERIFY(!model.eventHistory().join(' ').contains(QStringLiteral("배터리 정보 수신 확인")));
+    }
+    void physicalUnknownSocAndPartialSensorFailure(){
+        DashboardViewModel model;ivi::VehicleSnapshot s;s.physical_measurement=capstone::session_v2::PhysicalMeasurement{};
+        s.physical_measurement->sequence=3;s.vehicle.valid=true;s.vehicle.stale=false;
+        s.vehicle.voltage_v=3.8531;s.vehicle.current_a=-.3711;s.vehicle.temperature_c=20.125;
+        s.physical_valid={true,true,true,false,false};model.updateSnapshot(s);
+        QVERIFY(model.physicalMode());QVERIFY(model.measurementsAvailable());QVERIFY(!model.socAvailable());QVERIFY(!model.sohAvailable());
+        QVERIFY(model.voltageAvailable());QVERIFY(model.temperatureAvailable());QCOMPARE(model.voltage(),3.8531);
+        QCOMPARE(model.socBand(),QStringLiteral("unavailable"));QVERIFY(!model.failSafeKnown());
+        QCOMPARE(model.statusTitle(),QStringLiteral("실제 배터리 측정 중"));
+        s.physical_valid[2]=false;model.updateSnapshot(s);QVERIFY(model.voltageAvailable());QVERIFY(!model.temperatureAvailable());
+        QCOMPARE(model.statusTitle(),QStringLiteral("일부 센서 확인 필요"));
+        s.physical_valid.fill(false);s.vehicle.valid=false;s.vehicle.stale=true;model.updateSnapshot(s);
+        QVERIFY(!model.measurementsAvailable());QVERIFY(!model.socAvailable());
+        QCOMPARE(model.statusTitle(),QStringLiteral("센서·연결 확인 필요"));
+    }
     void committedRecordingGapPersistsAcrossNewProtectionIncidents(){
         using namespace capstone::session_v2;
         const auto instance=diagnosticUuid(),lineage=diagnosticUuid(),context=diagnosticUuid();
@@ -377,7 +513,7 @@ private slots:
         DashboardViewModel model;ivi::VehicleSnapshot snapshot;
         snapshot.session_protocol=true;snapshot.connection_stage="authenticating";
         model.updateSnapshot(snapshot);
-        QCOMPARE(model.connectionLabel(),QStringLiteral("안전한 연결 확인 중"));
+        QCOMPARE(model.connectionLabel(),QStringLiteral("연결 확인 중"));
         QCOMPARE(model.securityTitle(),QStringLiteral("보안 감시 확인 중"));
         snapshot.connection_stage="connected";snapshot.vehicle.valid=true;snapshot.vehicle.stale=false;
         snapshot.fail_safe_known=true;snapshot.vehicle.fail_safe_state=3;snapshot.vehicle.fail_safe_reason=4;snapshot.vehicle.temperature_c=65;
@@ -388,6 +524,45 @@ private slots:
         model.dismissPopup();snapshot.connection_stage="synchronizing";snapshot.vehicle.stale=true;
         model.updateSnapshot(snapshot);
         QCOMPARE(model.connectionLabel(),QStringLiteral("배터리 상태 확인 중"));QVERIFY(model.failSafeOverlayActive());
+    }
+    void connectionRetriesKeepOneLabelUntilRecoveryOrPersistentFailure(){
+        DashboardViewModel model;ivi::VehicleSnapshot s;
+        s.session_protocol=true;s.connection_stage="authenticating";
+        s.vehicle.valid=true;s.vehicle.stale=true;s.vehicle.fail_safe_state=3;
+        s.vehicle.fail_safe_reason=4;s.vehicle.temperature_c=65;s.fail_safe_known=true;
+        model.updateSnapshot(s);model.dismissPopup();
+        for(unsigned i=0;i<3;++i){
+            s.connection_stage="fault";model.updateSnapshot(s);
+            QCOMPARE(model.connectionLabel(),QStringLiteral("연결 확인 중"));
+            s.connection_stage="authenticating";model.updateSnapshot(s);
+            QCOMPARE(model.connectionLabel(),QStringLiteral("연결 확인 중"));
+        }
+        QVERIFY(model.stale());QVERIFY(!model.secocVerified());
+        QVERIFY(model.failSafeOverlayActive());
+        QTRY_COMPARE_WITH_TIMEOUT(model.connectionLabel(),QStringLiteral("연결 확인 필요"),11000);
+        for(const auto* stage:{"fault","authenticating","waiting","synchronizing","waiting-data"}){
+            s.connection_stage=stage;model.updateSnapshot(s);
+            QCOMPARE(model.connectionLabel(),QStringLiteral("연결 확인 필요"));
+        }
+        s.connection_stage="connected";s.vehicle.stale=false;model.updateSnapshot(s);
+        QCOMPARE(model.connectionLabel(),QStringLiteral("현재 수신값"));
+        QVERIFY(model.failSafeOverlayActive());
+        s.connection_stage="fault";s.vehicle.stale=true;model.updateSnapshot(s);
+        QCOMPARE(model.connectionLabel(),QStringLiteral("연결 확인 중"));
+        s.connection_stage="restart-announced";model.updateSnapshot(s);
+        QCOMPARE(model.connectionLabel(),QStringLiteral("ECU 재시작 중…"));
+        s.session_protocol=false;s.vehicle.valid=false;model.updateSnapshot(s);
+        QCOMPARE(model.connectionLabel(),QStringLiteral("연결 대기"));
+    }
+    void successfulConnectionCancelsPendingFailureNotice(){
+        DashboardViewModel model;ivi::VehicleSnapshot s;
+        s.session_protocol=true;s.connection_stage="fault";model.updateSnapshot(s);
+        s.connection_stage="connected";s.vehicle.valid=true;s.vehicle.stale=false;
+        model.updateSnapshot(s);
+        QTest::qWait(10100);
+        QCOMPARE(model.connectionLabel(),QStringLiteral("현재 수신값"));
+        s.connection_stage="authenticating";s.vehicle.stale=true;model.updateSnapshot(s);
+        QCOMPARE(model.connectionLabel(),QStringLiteral("연결 확인 중"));
     }
     void programRecoveryDoesNotClearBatteryProtection(){
         DashboardViewModel model;ivi::VehicleSnapshot snapshot;

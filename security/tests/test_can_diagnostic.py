@@ -110,3 +110,20 @@ def test_missing_conflicting_and_padding_fragments():
     changed[-1] = sender, bytes(last)
     with pytest.raises(ValueError, match="padding"):
         decode(keys, ctx, sender, changed)
+
+
+def test_physical_soh_reference_basis_roundtrip_and_invalid_flags():
+    ctx, keys, _ = fixtures()
+    line = (RECORD / "physical-v1-vectors.tsv").read_text().splitlines()[0].split()
+    body = bytearray.fromhex(line[2])
+    body[67] = 2
+    body[65] |= 16
+    body[54:56] = (8100).to_bytes(2, "big")
+    assert valid_body(0x302, 9, body)
+    frames = encode(keys, ctx, 0x302, 123, 9, bytes(body))
+    assert decode(keys, ctx, 0x302, frames) == (123, 9, bytes(body))
+    body[67] = 3
+    assert not valid_body(0x302, 9, body)
+    body[67] = 2
+    body[65] &= ~16
+    assert not valid_body(0x302, 9, body)
