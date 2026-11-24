@@ -252,7 +252,8 @@ def main():
     if any(not row["valid"] or row["stale"] or int(row["session_generation"]) != 1 or row["soh"] != 100 for row in service):
         raise RuntimeError("actual IVI service did not reflect authenticated current BMS")
     expected_name={"flooding":"Flooding","fuzzy":"Fuzzy","replay":"Replay","spoofing":"Spoofing"}.get(args.ids_attack)
-    allowed_security=("보안 감시 확인 중","새 보안 알림 없음")+(expected_name,) if expected_name else (("보안 감시 확인 중","Flooding") if args.ids_check else (("보안 감시 확인 중","새 보안 알림 없음") if args.real_ids_check else ("보안 감시 확인 중",)))
+    normal_security=("보안 감시 확인 중","새 공격 징후 없음","공격 징후 종료")
+    allowed_security=normal_security+(expected_name,) if expected_name else (normal_security+("Flooding",) if args.ids_check else normal_security)
     if any(row["connection"] != "현재 수신값" or row["security"] not in allowed_security or row["soh"] != 100 or
            not int(row["t1_received_ns"]) <= int(row["t2_published_ns"]) <= int(row["t3_view_model_ns"]) for row in model):
         raise RuntimeError("actual Qt ViewModel values/clock order differ")

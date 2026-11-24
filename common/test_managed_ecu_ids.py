@@ -133,7 +133,7 @@ def main():
         new_ids=wait(manager,lambda:(pid if (pid:=owned_pid(log,manager.pid,'IDS started')) and pid!=ids_pid else None))
         wait(manager,lambda:any(row.get('observation_ready') for row in records(observations)[start:]))
         wait(manager,lambda:any(row.get('result')=='VIEW_MODEL_PUBLICATION' and row.get('connection')=='ECU 프로그램 복구 완료' for row in records(observations)[start:]))
-        wait(manager,lambda:any(row.get('result')=='VIEW_MODEL_PUBLICATION' and row.get('security')=='새 보안 알림 없음' for row in records(observations)[start:]),timeout=12)
+        wait(manager,lambda:any(row.get('result')=='VIEW_MODEL_PUBLICATION' and row.get('security')=='새 공격 징후 없음' for row in records(observations)[start:]),timeout=12)
         stop(manager)
         assert manager.returncode==0 and not Path('/proc',str(new_ecu)).exists() and not Path('/proc',str(new_ids)).exists()
         generations=[row for row in records(log) if row.get('result')=='OWNED_IDS_READY']
