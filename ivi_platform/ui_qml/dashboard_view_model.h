@@ -54,6 +54,8 @@ class DashboardViewModel : public QObject {
     Q_PROPERTY(bool failSafeKnown READ failSafeKnown NOTIFY dataChanged)
     Q_PROPERTY(QString securityTitle READ securityTitle NOTIFY dataChanged)
     Q_PROPERTY(QString securityDescription READ securityDescription NOTIFY dataChanged)
+    Q_PROPERTY(QString securityCardState READ securityCardState NOTIFY dataChanged)
+    Q_PROPERTY(QString securityStatusLine READ securityStatusLine NOTIFY dataChanged)
     Q_PROPERTY(QStringList floodingMetrics READ floodingMetrics NOTIFY dataChanged)
     Q_PROPERTY(QStringList incidentTreatments READ incidentTreatments NOTIFY dataChanged)
     Q_PROPERTY(QString rejectionSummary READ rejectionSummary NOTIFY dataChanged)
@@ -78,7 +80,9 @@ public:
     QString sohHint() const;
     QString securityTitle() const;
     QString securityDescription() const;
-    QString rejectionSummary() const { return rejection_summary_; }
+    QString securityCardState() const;
+    QString securityStatusLine() const;
+    QString rejectionSummary() const;
     QString historyStorageStatus() const { return history_storage_status_; }
     void restoreEventHistory(const QStringList& history);
     void expectProtectionHistory();
@@ -174,7 +178,9 @@ private:
     QString popup_title_, popup_description_, popup_kind_;
     QString security_title_ = QStringLiteral("새 보안 알림 없음");
     QString security_description_ = QStringLiteral("새로운 탐지 보고가 없습니다.");
-    QString rejection_summary_ = QStringLiteral("수신 메시지 거부 기록 없음");
+    QString rejection_summary_;
+    QTimer security_recovery_timer_;
+    bool security_recovered_recently_=false;
     QString last_rejection_;
     QStringList events_;
     bool history_loaded_=false;

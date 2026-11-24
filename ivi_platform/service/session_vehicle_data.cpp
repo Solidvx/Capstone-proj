@@ -111,6 +111,7 @@ bool VehicleDataService::applySessionLocked(Clock::time_point now,SessionService
         ids_source_.reset();ids_tick_=0;ids_observation_at_.reset();
         publication_meter_.reset();snapshot_.ivi_publication_metrics=publication_meter_.value();
         ids_order_=wire::IdsSubmissionOrder{};ids_quiet_ms_.fill(0);ids_pending_end_.fill(false);
+        ids_recurrence_armed_mask_=0;
         last_plan_receipt_at_.reset();
     }
     const auto& outcome=session_->lastReceiveOutcome();
@@ -189,9 +190,21 @@ bool VehicleDataService::applySessionLocked(Clock::time_point now,SessionService
                     now-*ids_observation_at_<std::chrono::seconds(3) && tick==ids_tick_+1;
                 const auto elapsed=continuous ? static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(now-*ids_observation_at_).count()) : 0;
                 const std::uint32_t window=(std::uint32_t(body[32])<<24)|(std::uint32_t(body[33])<<16)|(std::uint32_t(body[34])<<8)|body[35];
+                if(!continuous || body[16]!=1)ids_recurrence_armed_mask_=0;
+                else{
+                    const auto repeated=ids_recurrence_armed_mask_ & body[48] & snapshot_.observed_condition_mask;
+                    for(unsigned type=0;type<4;++type)if(repeated&(1u<<type))
+                        ++snapshot_.security_recurrence_counts[type];
+                    ids_recurrence_armed_mask_=(ids_recurrence_armed_mask_ |
+                        (snapshot_.observed_condition_mask & static_cast<std::uint8_t>(~body[48]))) &
+                        static_cast<std::uint8_t>(~body[48]);
+                }
                 for(unsigned type=0;type<4;++type){
-                    if(!continuous || body[16]!=1 || (body[48]&(1u<<type))){ids_quiet_ms_[type]=0;ids_pending_end_[type]=false;}
+                    // Missing coverage resets quiet time, not an already
+                    // authenticated terminal report. A new condition cancels it.
+                    if(!continuous || body[16]!=1 || (body[48]&(1u<<type)))ids_quiet_ms_[type]=0;
                     else ids_quiet_ms_[type]=std::min<std::uint64_t>(5000,ids_quiet_ms_[type]+std::min<std::uint64_t>(elapsed,window));
+                    if(body[48]&(1u<<type))ids_pending_end_[type]=false;
                 }
                 for(unsigned type=0;type<4;++type){
                     const unsigned bit=1u<<type;

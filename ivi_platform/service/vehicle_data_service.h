@@ -87,6 +87,7 @@ struct VehicleSnapshot {
     std::uint8_t unreconciled_incident_mask=0;
     std::uint8_t reconciled_unknown_mask=0;
     std::uint8_t observed_condition_mask=0;
+    std::array<std::uint64_t,4> security_recurrence_counts{};
     std::array<std::optional<capstone::session_v2::Nonce>,4> security_incident_ids{};
     capstone::session_v2::IncidentRejectionLink::Matches incident_rejection_ids{};
     std::uint64_t snapshot_revision=0;
@@ -191,6 +192,7 @@ private:
     bool protection_inconsistent_=false;
     std::array<std::uint64_t,4> ids_quiet_ms_{};
     std::array<bool,4> ids_pending_end_{};
+    std::uint8_t ids_recurrence_armed_mask_=0;
     std::uint8_t inherited_ids_mask_=0;
     std::optional<Clock::time_point> ids_observation_at_;
     std::optional<Clock::time_point> session_opened_at_;
