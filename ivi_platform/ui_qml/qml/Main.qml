@@ -194,7 +194,7 @@ ApplicationWindow {
                                     border.color: root.vehicleModel.failSafeOverlayActive ? root.red : root.vehicleModel.failSafeState === "WARNING" ? root.orange : root.lineColor
                                     ColumnLayout {
                                         objectName: "systemStatusContents"
-                                        anchors.centerIn: parent; width: parent.width - 24; spacing: 5
+                                        anchors.horizontalCenter: parent.horizontalCenter; y: (parent.height - height) / 2; width: parent.width - 24; spacing: 5
                                         UiText { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: "시스템 상태"; color: root.muted; font.pixelSize: 14 }
                                         UiText {
                                             objectName: "statusTitle"
@@ -224,7 +224,7 @@ ApplicationWindow {
                                                   root.vehicleModel.securityCardState === "recovered" ? root.green : root.lineColor
                                     ColumnLayout {
                                         objectName: "securityStatusContents"
-                                        anchors.centerIn: parent; width: parent.width - 24; spacing: 4
+                                        anchors.horizontalCenter: parent.horizontalCenter; y: (parent.height - height) / 2; width: parent.width - 24; spacing: 4
                                         UiText { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: "보안 상태"; color: root.muted; font.pixelSize: 14 }
                                         UiText {
                                             objectName: "securityTitle"
@@ -248,7 +248,7 @@ ApplicationWindow {
                             Layout.fillWidth: true; Layout.preferredHeight: 96
                             ColumnLayout {
                                 objectName: "recentEventsContents"
-                                anchors.centerIn: parent; width: parent.width - 24; spacing: 4
+                                anchors.horizontalCenter: parent.horizontalCenter; y: (parent.height - height) / 2; width: parent.width - 24; spacing: 4
                                 RowLayout {
                                     Layout.fillWidth: true
                                     UiText { text: "최근 이벤트"; color: root.ink; font.pixelSize: 14; font.weight: Font.Bold }
