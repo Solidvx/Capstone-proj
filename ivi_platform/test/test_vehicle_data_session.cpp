@@ -266,6 +266,30 @@ void tests(){
     }
 
     {
+        Rig rig;rig.open();rig.send(rig.bms());
+        std::vector<std::uint8_t> body(52);body[6]=0x40;body[8]=0x80;
+        body[16]=1;body[34]=3;body[35]=0xe8;body[39]=20;
+        body[46]=3;body[47]=0xe8;body[48]=1;body[50]=4;
+        auto observe=[&](unsigned tick,unsigned mask){
+            body[23]=static_cast<std::uint8_t>(tick);body[48]=static_cast<std::uint8_t>(mask);
+            const auto packet=rig.ecu.makeDiagnostic(wire::DiagnosticKind::Observation,body);
+            EXPECT_TRUE(packet.has_value());rig.send(packet->frames);
+        };
+        observe(1,1);
+        observe(2,1);
+        EXPECT_EQ(rig.service.latest().security_recurrence_counts[0],0u);
+        observe(3,0);
+        EXPECT_EQ(rig.service.latest().observed_condition_mask,1u);
+        observe(4,1);
+        EXPECT_EQ(rig.service.latest().security_recurrence_counts[0],1u);
+        observe(5,1);
+        EXPECT_EQ(rig.service.latest().security_recurrence_counts[0],1u);
+        observe(6,0);
+        observe(7,1);
+        EXPECT_EQ(rig.service.latest().security_recurrence_counts[0],2u);
+    }
+
+    {
         wire::IncidentRejectionLink link;
         const auto instance=wire::diagnosticUuid(),incident_id=wire::diagnosticUuid();
         wire::Context context{1,{}, {}};const auto session=wire::contextId(context);
@@ -371,11 +395,15 @@ void tests(){
         packet=observation.ecu.makeDiagnostic(wire::DiagnosticKind::Observation,body);
         observation.send(packet->frames);
         EXPECT_TRUE(observation.service.latest().security_observation_ready);
-        for(unsigned tick=4;tick<=9;++tick){
+        // A missing observation after the accepted terminal report must reset
+        // local quiet coverage without forgetting that report.
+        for(unsigned tick=4;tick<=12;++tick){
+            if(tick==5)continue;
             for(unsigned step=0;step<10;++step){observation.send(observation.bms());observation.advance(90);}
             quiet[23]=static_cast<std::uint8_t>(tick);
             packet=observation.ecu.makeDiagnostic(wire::DiagnosticKind::Observation,quiet);
             EXPECT_TRUE(packet.has_value());observation.send(packet->frames);
+            if(tick==6)EXPECT_EQ(observation.service.latest().observed_condition_mask,1u);
         }
         EXPECT_EQ(observation.service.latest().observed_condition_mask,0u);
         observation.advance(3001);

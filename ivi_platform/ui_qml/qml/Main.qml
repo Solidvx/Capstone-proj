@@ -218,19 +218,25 @@ ApplicationWindow {
                                     objectName: "securityStatusCard"
                                     Layout.fillWidth: true; Layout.fillHeight: true
                                     Layout.preferredHeight: 140; Layout.minimumHeight: 140
+                                    color: root.vehicleModel.securityCardState === "active" ? (root.dark ? "#3b2029" : "#fff0f1") :
+                                           root.vehicleModel.securityCardState === "recovered" ? (root.dark ? "#15352e" : "#e9f8f1") : root.panel
+                                    border.color: root.vehicleModel.securityCardState === "active" ? root.red :
+                                                  root.vehicleModel.securityCardState === "recovered" ? root.green : root.lineColor
                                     ColumnLayout {
                                         objectName: "securityStatusContents"
                                         anchors.centerIn: parent; width: parent.width - 24; spacing: 4
-                                        UiText { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: "보안 탐지 결과"; color: root.muted; font.pixelSize: 14 }
+                                        UiText { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: "보안 상태"; color: root.muted; font.pixelSize: 14 }
                                         UiText {
                                             objectName: "securityTitle"
                                             Layout.fillWidth: true
                                             horizontalAlignment: Text.AlignHCenter
                                             text: root.vehicleModel.securityTitle
-                                            color: root.ink; font.pixelSize: 18; font.weight: Font.Bold
+                                            color: root.vehicleModel.securityCardState === "active" ? root.red :
+                                                   root.vehicleModel.securityCardState === "recovered" ? root.green : root.ink
+                                            font.pixelSize: 18; font.weight: Font.Bold
                                             wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight
                                         }
-                                        UiText { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: root.vehicleModel.secocFailureCount + "건 수신 검증 실패"; color: root.muted; font.pixelSize: 14 }
+                                        UiText { objectName: "securityStatusLine"; Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: root.vehicleModel.securityStatusLine; color: root.muted; font.pixelSize: 14; wrapMode: Text.Wrap; maximumLineCount: 2 }
                                         AppButton { Layout.alignment: Qt.AlignHCenter; text: "보안 내역 보기"; padding: 5; Layout.preferredHeight: 32; Layout.minimumHeight: 32; Layout.maximumHeight: 32; onClicked: root.currentPage = 1 }
                                     }
                                 }
@@ -269,8 +275,20 @@ ApplicationWindow {
                             id: securityDetails
                             width: Math.max(0, securityScroll.width - 16)
                             spacing: 18
-                            UiText { text: root.vehicleModel.securityTitle; color: root.ink; font.pixelSize: 24; font.weight: Font.Bold; Layout.fillWidth: true; wrapMode: Text.Wrap }
-                            UiText { text: root.vehicleModel.securityDescription; color: root.muted; font.pixelSize: 16; Layout.fillWidth: true; wrapMode: Text.Wrap }
+                            Card {
+                                objectName: "securityDetailCard"
+                                Layout.fillWidth: true; Layout.preferredHeight: 140
+                                color: root.vehicleModel.securityCardState === "active" ? (root.dark ? "#3b2029" : "#fff0f1") :
+                                       root.vehicleModel.securityCardState === "recovered" ? (root.dark ? "#15352e" : "#e9f8f1") : root.panel
+                                border.color: root.vehicleModel.securityCardState === "active" ? root.red :
+                                              root.vehicleModel.securityCardState === "recovered" ? root.green : root.lineColor
+                                ColumnLayout {
+                                    anchors.fill: parent; anchors.margins: 14; spacing: 5
+                                    UiText { text: "현재 보안 상태"; color: root.muted; font.pixelSize: 14 }
+                                    UiText { text: root.vehicleModel.securityTitle; color: root.vehicleModel.securityCardState === "active" ? root.red : root.vehicleModel.securityCardState === "recovered" ? root.green : root.ink; font.pixelSize: 21; font.weight: Font.Bold; Layout.fillWidth: true; wrapMode: Text.Wrap }
+                                    UiText { text: root.vehicleModel.securityDescription; color: root.muted; font.pixelSize: 15; Layout.fillWidth: true; wrapMode: Text.Wrap }
+                                }
+                            }
                             UiText { text: "수신 검증 결과"; color: root.ink; font.pixelSize: 19; font.weight: Font.Bold }
                             Repeater { model: root.vehicleModel.incidentTreatments; UiText { required property string modelData; text: modelData; color: root.ink; font.pixelSize: 15; Layout.fillWidth: true; wrapMode: Text.Wrap } }
                             UiText { objectName: "rejectionSummary"; text: root.vehicleModel.rejectionSummary; color: root.muted; font.pixelSize: 16; Layout.fillWidth: true; wrapMode: Text.Wrap }

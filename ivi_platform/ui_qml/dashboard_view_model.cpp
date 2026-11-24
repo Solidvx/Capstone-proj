@@ -61,6 +61,11 @@ bool validProtectionRecord(const QJsonObject& record){
 }
 
 DashboardViewModel::DashboardViewModel(QObject* parent) : QObject(parent) {
+    security_recovery_timer_.setSingleShot(true);
+    connect(&security_recovery_timer_,&QTimer::timeout,this,[this]{
+        security_recovered_recently_=false;
+        emit dataChanged();
+    });
     event_source_instance_=QUuid::createUuid().toString(QUuid::WithoutBraces);
     dark_mode_ = QSettings(QStringLiteral("Capstone"), QStringLiteral("IviDashboard"))
                      .value(QStringLiteral("darkMode"), true).toBool();
@@ -341,12 +346,14 @@ QString DashboardViewModel::statusTitle() const {
         return voltageAvailable()&&currentAvailable()&&temperatureAvailable() ? QStringLiteral("실제 배터리 측정 중") : QStringLiteral("일부 센서 확인 필요");
     }
     if (snapshot_.vehicle.fail_safe_state == 3) {
-        if(snapshot_.vehicle.valid && !snapshot_.vehicle.stale && !sensorStateWarning() && snapshot_.vehicle.temperature_c<=55)
-            return QStringLiteral("온도 회복 확인 중");
-        return QStringLiteral("과열 보호 중");
+        return QStringLiteral("[CRITICAL] 배터리 과열 위험");
     }
-    if (snapshot_.vehicle.fail_safe_state == 2) return QStringLiteral("배터리 위험 상태");
-    if (snapshot_.vehicle.fail_safe_state == 1) return QStringLiteral("배터리 경고");
+    if (snapshot_.vehicle.fail_safe_state == 2) return QStringLiteral("[CRITICAL] 배터리 잔량 위험");
+    if (snapshot_.vehicle.fail_safe_state == 1) {
+        if(snapshot_.vehicle.fail_safe_reason==3)return QStringLiteral("[WARNING] 배터리 온도 높음");
+        if(snapshot_.vehicle.fail_safe_reason==1)return QStringLiteral("[WARNING] 배터리 잔량 경고");
+        return QStringLiteral("배터리 경고");
+    }
     if (sensorStateWarning()) return QStringLiteral("센서 확인 필요");
     if (!valid()) return QStringLiteral("배터리 정보 대기");
     if (stale()) return QStringLiteral("연결 확인 필요");
@@ -408,6 +415,10 @@ QString DashboardViewModel::securityTitle()const{
     }
     if(snapshot_.session_protocol && (!snapshot_.security_observation_ready || snapshot_.observed_condition_mask) && active_attack_types_.isEmpty())
         return QStringLiteral("보안 감시 확인 중");
+    if(snapshot_.session_protocol && security_recovered_recently_)
+        return QStringLiteral("공격 징후 종료");
+    if(snapshot_.session_protocol && snapshot_.security_observation_ready && active_attack_types_.isEmpty())
+        return QStringLiteral("새 공격 징후 없음");
     return security_title_;
 }
 QString DashboardViewModel::securityDescription()const{
@@ -420,7 +431,42 @@ QString DashboardViewModel::securityDescription()const{
     }
     if(snapshot_.session_protocol && (!snapshot_.security_observation_ready || snapshot_.observed_condition_mask) && active_attack_types_.isEmpty())
         return QStringLiteral("탐지기의 연결 상태를 확인하고 있습니다.");
+    if(snapshot_.session_protocol && security_recovered_recently_)
+        return QStringLiteral("정상 관찰이 이어져 탐지 상태가 종료됐습니다.");
+    if(snapshot_.session_protocol && snapshot_.security_observation_ready && active_attack_types_.isEmpty())
+        return QStringLiteral("현재 관찰 구간에 새 공격 징후가 없습니다.");
     return security_description_;
+}
+QString DashboardViewModel::securityCardState()const{
+    if(snapshot_.session_protocol){
+        if(snapshot_.observed_condition_mask)
+            return snapshot_.security_observation_ready && !snapshot_.unreconciled_incident_mask ?
+                QStringLiteral("active") : QStringLiteral("checking");
+        if(!snapshot_.security_observation_ready)return QStringLiteral("checking");
+        if(security_recovered_recently_)return QStringLiteral("recovered");
+    }
+    return securityAlertActive() ? QStringLiteral("active") : QStringLiteral("normal");
+}
+QString DashboardViewModel::securityStatusLine()const{
+    if(securityCardState()==QStringLiteral("recovered"))
+        return QStringLiteral("정상 관찰 후 탐지 종료 확인");
+    if(securityCardState()==QStringLiteral("checking"))
+        return QStringLiteral("보안 감시 상태 확인 중");
+    if(securityCardState()==QStringLiteral("active")){
+        for(const auto& id:snapshot_.incident_rejection_ids)if(id)
+            return QStringLiteral("관련 데이터의 수신 거부 확인");
+        return QStringLiteral("공격 징후 탐지 중 · 수신 처리 확인 중");
+    }
+    return QStringLiteral("현재 관찰 구간에 새 공격 징후 없음");
+}
+QString DashboardViewModel::rejectionSummary()const{
+    if(snapshot_.session_protocol && snapshot_.observed_condition_mask){
+        for(const auto& id:snapshot_.incident_rejection_ids)if(id)
+            return QStringLiteral("관련 데이터의 수신 거부가 확인됐습니다.");
+        return QStringLiteral("이번 탐지와 연결된 수신 처리 결과를 확인 중입니다.");
+    }
+    if(rejection_summary_.isEmpty())return QStringLiteral("새 수신 검증 실패 기록 없음");
+    return rejection_summary_;
 }
 
 QString DashboardViewModel::sohHint() const {
@@ -435,15 +481,15 @@ QString DashboardViewModel::statusDescription() const {
         QStringLiteral("측정이 끊긴 구간이 있습니다.\n부하를 자동 차단하지 않습니다.") :
         QStringLiteral("실제 센서로 측정하고 있습니다.\n부하를 자동 차단하지 않습니다.");
     switch (snapshot_.vehicle.fail_safe_reason) {
-    case 1: if (snapshot_.vehicle.fail_safe_state) return QStringLiteral("배터리 잔량이 부족합니다. 충전이 필요합니다."); break;
-    case 2: if (snapshot_.vehicle.fail_safe_state) return QStringLiteral("잔량이 매우 낮습니다. 배터리를 점검해 주세요."); break;
+    case 1: if (snapshot_.vehicle.fail_safe_state) return QStringLiteral("잔량이 20% 미만입니다. 충전이 필요합니다."); break;
+    case 2: if (snapshot_.vehicle.fail_safe_state) return QStringLiteral("잔량이 5% 미만입니다. 사용을 중단하고 배터리를 충전하세요."); break;
     case 3: case 4: if (snapshot_.vehicle.fail_safe_state == 3) {
         if(!snapshot_.vehicle.valid || snapshot_.vehicle.stale || sensorStateWarning())
             return QStringLiteral("현재 온도를 확인할 수 없어 보호 상태를 유지합니다.");
-        if(snapshot_.vehicle.temperature_c<=55)return QStringLiteral("온도가 안정적으로 유지되는지 확인하고 있습니다.");
-        return QStringLiteral("온도가 내려가기를 기다리고 있습니다.");
+        if(snapshot_.vehicle.temperature_c<=55)return QStringLiteral("온도가 55°C 이하로 5초 연속 유지되면 과열 보호가 해제됩니다.");
+        return QStringLiteral("배터리 온도가 60°C를 초과했습니다. 사용을 중단하고 냉각하세요.");
     }
-        if (snapshot_.vehicle.fail_safe_state) return QStringLiteral("배터리 온도가 높습니다. 점검이 필요합니다."); break;
+        if (snapshot_.vehicle.fail_safe_state) return QStringLiteral("배터리 온도가 55°C를 초과했습니다. 사용을 줄이고 온도를 낮춰주세요."); break;
     case 7: if (snapshot_.vehicle.fail_safe_state) return QStringLiteral("시스템 작업 복구에 실패했습니다. 점검이 필요합니다."); break;
     }
     if (sensorStateWarning()) return measurementsAvailable()
@@ -567,6 +613,10 @@ void DashboardViewModel::updateSnapshot(const ivi::VehicleSnapshot& snapshot) {
         sensor_seen_mask_=sensor_missing_mask_=0;sensor_incident_active_=false;
         if(popup_visible_&&popup_domain_==PopupDomain::Sensor)dismissPopup();
     }
+    if(!snapshot.session_protocol || snapshot.observed_condition_mask || !snapshot.security_observation_ready){
+        security_recovery_timer_.stop();
+        security_recovered_recently_=false;
+    }
     recordProtectionUpdate();
     const auto valid_node=[](const auto& node){
         using namespace capstone::session_v2;
@@ -609,11 +659,33 @@ void DashboardViewModel::updateSnapshot(const ivi::VehicleSnapshot& snapshot) {
     }
     if (new_fail_safe) {
         fail_safe_known_ = true;
-        recordEvent(statusTitle() + QStringLiteral(" · ") + statusDescription(),QStringLiteral("battery-state"));
-        presentPopup(statusTitle(), statusDescription(), snapshot.vehicle.fail_safe_state >= 2 ?
-            QStringLiteral("danger") : snapshot.vehicle.fail_safe_state == 1 ?
+        QString event_title=statusTitle();
+        QString event_description=statusDescription();
+        bool recovered=false;
+        if(previous.vehicle.fail_safe_state==3 && snapshot.vehicle.fail_safe_state!=3){
+            event_title=QStringLiteral("과열 보호 해제");
+            event_description=QStringLiteral("온도가 55°C 이하로 5초 연속 유지되어 과열 보호가 해제됐습니다.");
+            recovered=true;
+        }else if(previous.vehicle.fail_safe_state==2 && snapshot.vehicle.fail_safe_state==1){
+            event_title=QStringLiteral("잔량 위험 해제");
+            event_description=QStringLiteral("잔량이 5% 이상으로 회복됐습니다. 잔량 경고는 계속됩니다. 배터리를 계속 충전하세요.");
+            recovered=true;
+        }else if(previous.vehicle.fail_safe_state==1 && previous.vehicle.fail_safe_reason==1 &&
+                 snapshot.vehicle.fail_safe_state==0 && snapshot.vehicle.fail_safe_reason==5){
+            event_title=QStringLiteral("잔량 경고 해제");
+            event_description=QStringLiteral("잔량이 20% 이상으로 회복되어 경고가 해제됐습니다. 안정적인 사용을 위해 배터리를 충분히 충전하는 것을 권장합니다.");
+            recovered=true;
+        }else if(previous.vehicle.fail_safe_state==1 && previous.vehicle.fail_safe_reason==3 &&
+                 snapshot.vehicle.fail_safe_state==0 && snapshot.vehicle.fail_safe_reason==5){
+            event_title=QStringLiteral("과열 보호 해제");
+            event_description=QStringLiteral("온도가 55°C 이하로 5초 연속 유지되어 과열 보호가 해제됐습니다.");
+            recovered=true;
+        }
+        recordEvent(event_title + QStringLiteral(" · ") + event_description,QStringLiteral("battery-state"));
+        presentPopup(event_title, event_description, recovered ? QStringLiteral("success") :
+            snapshot.vehicle.fail_safe_state >= 2 ? QStringLiteral("danger") : snapshot.vehicle.fail_safe_state == 1 ?
             QStringLiteral("warning") : QStringLiteral("success"),
-            snapshot.vehicle.fail_safe_state >= 2 ? 100 : 60,PopupDomain::Battery);
+            recovered ? 60 : snapshot.vehicle.fail_safe_state >= 2 ? 100 : 60,PopupDomain::Battery);
     }
     if(snapshot.session_protocol){
         unsigned added=snapshot.observed_condition_mask & ~previous.observed_condition_mask;
@@ -623,11 +695,18 @@ void DashboardViewModel::updateSnapshot(const ivi::VehicleSnapshot& snapshot) {
                previous.security_incident_ids[type]!=snapshot.security_incident_ids[type])added|=1u<<type;
         }
         const unsigned ended=previous.observed_condition_mask & ~snapshot.observed_condition_mask;
+        if(ended && !snapshot.observed_condition_mask && snapshot.security_observation_ready &&
+           !(ended & snapshot.reconciled_unknown_mask)){
+            security_recovered_recently_=true;
+            security_recovery_timer_.start(2000);
+        }
         if(added){
             for(int type=1;type<=4;++type)if(added&(1u<<(type-1)))
                 recordEvent(QString::fromLatin1(ivi::attackTypeName(type))+QStringLiteral(" 탐지 보고"),QStringLiteral("ids-start"));
             presentPopup(securityTitle(),securityDescription(),QStringLiteral("danger"),70,PopupDomain::Security);
         }
+        for(unsigned type=0;type<4;++type)if(snapshot.security_recurrence_counts[type]>previous.security_recurrence_counts[type])
+            recordEvent(QString::fromLatin1(ivi::attackTypeName(type+1))+QStringLiteral(" 재탐지 · 기존 사건 지속"),QStringLiteral("ids-repeat"));
         for(unsigned type=0;type<4;++type){
             const unsigned bit=1u<<type;
             if((snapshot.observed_condition_mask&bit) && !(added&bit) &&
@@ -636,10 +715,14 @@ void DashboardViewModel::updateSnapshot(const ivi::VehicleSnapshot& snapshot) {
         }
         if(ended){
             if(!snapshot.observed_condition_mask&&popup_visible_&&popup_domain_==PopupDomain::Security&&popup_kind_==QStringLiteral("danger"))dismissPopup();
-            for(int type=1;type<=4;++type)if(ended&(1u<<(type-1)))
-                if(snapshot.reconciled_unknown_mask&(1u<<(type-1)))
+            for(int type=1;type<=4;++type){
+                if((ended&(1u<<(type-1)))==0)continue;
+                if(snapshot.reconciled_unknown_mask&(1u<<(type-1))){
                     recordEvent(QString::fromLatin1(ivi::attackTypeName(type))+QStringLiteral(" · 이전 기록은 감시 공백으로 종료 미확인, 새 감시에서 정상 수신 확인"),QStringLiteral("ids-reconciled"));
-                else recordEvent(QString::fromLatin1(ivi::attackTypeName(type))+QStringLiteral(" · 정상 관찰 후 종료 확인"),QStringLiteral("ids-end"));
+                }else{
+                    recordEvent(QString::fromLatin1(ivi::attackTypeName(type))+QStringLiteral(" · 정상 관찰 후 종료 확인"),QStringLiteral("ids-end"));
+                }
+            }
         }
         if(previous.security_observation_ready && !snapshot.security_observation_ready)
             recordEvent(QStringLiteral("보안 감시 상태 확인 필요"),QStringLiteral("ids-unavailable"));

@@ -192,7 +192,7 @@ private slots:
         link=protectionRecords(records).last().value("protection_link").toObject();
         QCOMPARE(link.value("status").toString(),QStringLiteral("new-incident"));
         QVERIFY(link.value("gap_possible").toBool());
-        QCOMPARE(model.statusTitle(),QStringLiteral("배터리 경고"));
+        QCOMPARE(model.statusTitle(),QStringLiteral("[WARNING] 배터리 온도 높음"));
         DashboardViewModel reopened;QSignalSpy reopened_records(&reopened,&DashboardViewModel::eventRecorded);
         reopened.expectProtectionHistory();reopened.restoreProtectionHistory(durable,false);
         reopened.updateSnapshot(s);
@@ -300,7 +300,7 @@ private slots:
         QCOMPARE(process.value("restart_operation_id").toString(),QString::fromLatin1(QByteArray(reinterpret_cast<const char*>(operation.data()),16).toHex()));
         QVERIFY(process.value("calculation_restored").toBool());QVERIFY(process.value("risk_restored").toBool());
         QCOMPARE(event.value("battery_state").toInt(),3);
-        QCOMPARE(model.statusTitle(),QStringLiteral("과열 보호 중"));
+        QCOMPARE(model.statusTitle(),QStringLiteral("[CRITICAL] 배터리 과열 위험"));
         next.session_id=diagnosticUuid();model.updateSnapshot(s);QCOMPARE(recorded.size(),before+2);
         next.body.clear();model.updateSnapshot(s);QCOMPARE(recorded.size(),before+2);
         DiagnosticMessage plan{DiagnosticKind::RestartPlan,1,0x302,context,std::vector<std::uint8_t>(56),20,21};
@@ -349,11 +349,13 @@ private slots:
         s.session_protocol=true;s.session_bms_ready=true;s.fail_safe_known=true;
         s.vehicle.valid=true;s.vehicle.stale=false;s.vehicle.sensor_state=2;
         s.vehicle.fail_safe_state=3;s.vehicle.fail_safe_reason=4;s.vehicle.temperature_c=65;
-        model.updateSnapshot(s);QCOMPARE(model.statusTitle(),QStringLiteral("과열 보호 중"));
+        model.updateSnapshot(s);QCOMPARE(model.statusTitle(),QStringLiteral("[CRITICAL] 배터리 과열 위험"));
         s.vehicle.temperature_c=55;model.updateSnapshot(s);
-        QCOMPARE(model.statusTitle(),QStringLiteral("온도 회복 확인 중"));QVERIFY(model.failSafeOverlayActive());
+        QCOMPARE(model.statusTitle(),QStringLiteral("[CRITICAL] 배터리 과열 위험"));
+        QVERIFY(model.statusDescription().contains(QStringLiteral("5초 연속")));
+        QVERIFY(model.failSafeOverlayActive());
         s.vehicle.sensor_state=4;model.updateSnapshot(s);
-        QCOMPARE(model.statusTitle(),QStringLiteral("과열 보호 중"));
+        QCOMPARE(model.statusTitle(),QStringLiteral("[CRITICAL] 배터리 과열 위험"));
         QVERIFY(model.statusDescription().contains(QStringLiteral("현재 온도를 확인할 수 없어")));
         s.vehicle.sensor_state=2;s.vehicle.fail_safe_state=0;s.vehicle.fail_safe_reason=5;
         s.last_secoc_verified=true;model.updateSnapshot(s);QVERIFY(!model.failSafeOverlayActive());
@@ -485,6 +487,44 @@ private slots:
         snapshot.observed_condition_mask=8;model.updateSnapshot(snapshot);
         QVERIFY(model.popupVisible());
     }
+    void securityCardShowsActiveThenBriefConfirmedRecovery(){
+        DashboardViewModel model;ivi::VehicleSnapshot snapshot;
+        snapshot.session_protocol=true;snapshot.security_observation_ready=true;
+        snapshot.observed_condition_mask=2;model.updateSnapshot(snapshot);
+        QCOMPARE(model.securityCardState(),QStringLiteral("active"));
+        QVERIFY(model.rejectionSummary().contains(QStringLiteral("확인 중")));
+        QVERIFY(!model.rejectionSummary().contains(QStringLiteral("거부 기록 없음")));
+        model.dismissPopup();
+        QCOMPARE(model.securityCardState(),QStringLiteral("active"));
+        snapshot.observed_condition_mask=0;model.updateSnapshot(snapshot);
+        QCOMPARE(model.securityCardState(),QStringLiteral("recovered"));
+        QCOMPARE(model.securityTitle(),QStringLiteral("공격 징후 종료"));
+        QVERIFY(!model.popupVisible());
+        QTRY_COMPARE_WITH_TIMEOUT(model.securityCardState(),QStringLiteral("normal"),2500);
+        snapshot.observed_condition_mask=2;model.updateSnapshot(snapshot);
+        snapshot.observed_condition_mask=0;snapshot.security_observation_ready=false;model.updateSnapshot(snapshot);
+        QCOMPARE(model.securityCardState(),QStringLiteral("checking"));
+    }
+    void sameIncidentRedetectionRecordsHistoryWithoutPopup(){
+        DashboardViewModel model;ivi::VehicleSnapshot snapshot;
+        QSignalSpy recorded(&model,&DashboardViewModel::eventRecorded);
+        snapshot.session_protocol=true;snapshot.security_observation_ready=true;
+        snapshot.observed_condition_mask=8;
+        capstone::session_v2::Nonce incident{};incident[0]=1;
+        snapshot.security_incident_ids[3]=incident;
+        model.updateSnapshot(snapshot);model.dismissPopup();
+        const auto before=recorded.size();
+        snapshot.security_recurrence_counts[3]=1;
+        model.updateSnapshot(snapshot);
+        QVERIFY(!model.popupVisible());
+        QCOMPARE(recorded.size(),before+1);
+        const auto event=qvariant_cast<QJsonObject>(recorded.last().at(0));
+        QCOMPARE(event.value("category").toString(),QStringLiteral("ids-repeat"));
+        QVERIFY(event.value("summary").toString().contains(QStringLiteral("Flooding 재탐지")));
+        QCOMPARE(event.value("typed_incidents").toArray().at(0).toObject().value("attack_type").toString(),QStringLiteral("flooding"));
+        model.updateSnapshot(snapshot);
+        QCOMPARE(recorded.size(),before+1);
+    }
     void authenticatedObservationNamesAndUnknownCoverage(){
         DashboardViewModel model;ivi::VehicleSnapshot snapshot;
         snapshot.session_protocol=true;snapshot.security_observation_ready=true;
@@ -519,7 +559,7 @@ private slots:
         snapshot.fail_safe_known=true;snapshot.vehicle.fail_safe_state=3;snapshot.vehicle.fail_safe_reason=4;snapshot.vehicle.temperature_c=65;
         model.updateSnapshot(snapshot);
         QCOMPARE(model.connectionLabel(),QStringLiteral("현재 수신값"));
-        QCOMPARE(model.statusTitle(),QStringLiteral("과열 보호 중"));
+        QCOMPARE(model.statusTitle(),QStringLiteral("[CRITICAL] 배터리 과열 위험"));
         QVERIFY(model.failSafeKnown());QVERIFY(model.failSafeOverlayActive());
         model.dismissPopup();snapshot.connection_stage="synchronizing";snapshot.vehicle.stale=true;
         model.updateSnapshot(snapshot);
@@ -574,7 +614,7 @@ private slots:
         QCOMPARE(model.connectionLabel(),QStringLiteral("ECU 연결 복구 중…"));
         snapshot.connection_stage="program-restored";snapshot.vehicle.stale=false;model.updateSnapshot(snapshot);
         QCOMPARE(model.connectionLabel(),QStringLiteral("ECU 프로그램 복구 완료"));
-        QCOMPARE(model.statusTitle(),QStringLiteral("과열 보호 중"));
+        QCOMPARE(model.statusTitle(),QStringLiteral("[CRITICAL] 배터리 과열 위험"));
         QVERIFY(model.failSafeOverlayActive());
     }
     void actualReplayDecisionShowsDataRejectionButExpiryDoesNotReuseProof(){
